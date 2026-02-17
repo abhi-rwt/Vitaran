@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login - Vitaran</title>
+  <link rel="stylesheet" href="qd.css">
+</head>
+<body>
+
+<div class="auth-box">
+  <img src="/logos/logo.png" alt="Logo">
+
+  <div class="auth-title">Login to Continue</div>
+
+  <form onsubmit="login(event)">
+
+    <div class="input-group">
+      <label>Email</label>
+      <input 
+        id="email"
+        type="email"
+        required
+        pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+        oninvalid="this.setCustomValidity('Please enter valid email (example@email.com)')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>Password</label>
+      <input 
+        type="password"
+        id="password"
+        required
+      >
+    </div>
+
+    <div style="text-align:right; margin-top:-10px; margin-bottom:15px;">
+      <a href="forgot.html" class="forgot-link">Forgot Password?</a>
+    </div>
+
+    <button class="btn" type="submit">Login</button>
+
+  </form>
+
+  <div class="bottom-text">
+    Don’t have an account? <a href="register.html">Register</a>
+  </div>
+
+</div>
+
+<script>
+async function login(e){
+  e.preventDefault();
+
+  const form = e.target;
+
+  if(!form.checkValidity()){
+    form.reportValidity();
+    return;
+  }
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  try{
+    const res = await fetch("/api/auth/login",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      localStorage.setItem("token", data.token);
+      window.location.href="subscription.html";
+    }else{
+      showModal(data.message || "Login failed");
+    }
+
+  }catch(err){
+    showModal("Server error");
+  }
+}
+
+function showModal(message){
+  const modal = document.createElement("div");
+  modal.className = "error-modal";
+  modal.innerHTML = `
+    <div class="error-content">
+      <p>${message}</p>
+      <button onclick="this.closest('.error-modal').remove()">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Vitaran</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <!-- dashboard.js MUST load after DOM -->
+  <script src="dashboard.js" defer></script>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="header">
+  <div class="header-left">
+    <img src="/logos/logo.png" class="logo" alt="Logo">
+
+    <div class="brand">
+      <h1>Vitaran</h1>
+      <span>Delivery Partner</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <span class="badge">Subscription Active</span>
+    <button class="btn ghost">Logout</button>
+  </div>
+</header>
+
+<!-- ================= MAIN ================= -->
+<main class="container">
+
+  <!-- PROFILE -->
+  <section class="card profile-card">
+    <div class="profile-text">
+      <h3>Complete Your Profile</h3>
+      <p>Add documents & vehicle details to unlock more orders.</p>
+    </div>
+
+    <button class="btn primary">Complete Profile</button>
+  </section>
+
+  <!-- GRID -->
+  <section class="grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <!-- STATS -->
+      <section class="card">
+        <div class="stats">
+          <div class="stat">
+            <span>Total Orders</span>
+            <strong>0</strong>
+          </div>
+
+          <div class="stat">
+            <span>Active</span>
+            <strong>0</strong>
+          </div>
+
+          <div class="stat">
+            <span>Completed</span>
+            <strong>0</strong>
+          </div>
+
+          <div class="stat highlight">
+            <span>Earnings</span>
+            <strong>₹0</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDERS -->
+      <section class="card">
+        <div class="card-head">
+          <h3>High Priority Orders</h3>
+          <small>Sorted by highest profit</small>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Order</th>
+              <th>Status</th>
+              <th>KM</th>
+              <th>₹</th>
+            </tr>
+          </thead>
+
+          <!-- 🔥 JS WILL INJECT ROWS HERE -->
+          <tbody>
+            <!-- empty by default -->
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- TRACKING -->
+      <section class="card">
+        <h3>Live Tracking</h3>
+        <div class="steps">
+          <div class="step">Accepted</div>
+          <div class="step">Picked</div>
+          <div class="step">Delivered</div>
+        </div>
+      </section>
+
+      <!-- TIP -->
+      <section class="card note">
+        <strong>Tip</strong>
+        <p>Higher profit orders are auto-prioritized.</p>
+      </section>
+
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

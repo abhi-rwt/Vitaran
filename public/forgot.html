@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reset Password - Vitaran</title>
+  <link rel="stylesheet" href="qd.css">
+</head>
+<body>
+
+<div class="auth-box">
+  <img src="/logos/logo.png" alt="Logo">
+
+  <div class="auth-title">Reset Password</div>
+  <div class="auth-subtitle">Enter your registered email</div>
+
+  <form onsubmit="resetPassword(event)">
+
+    <div class="input-group">
+      <label>Email</label>
+      <input 
+        id="email"
+        type="email"
+        required
+        pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+        oninvalid="this.setCustomValidity('Please enter valid email (example@email.com)')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>New Password</label>
+      <input 
+        type="password"
+        id="newPassword"
+        required
+        minlength="6"
+        oninvalid="this.setCustomValidity('Password must be minimum 6 characters')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <button class="btn" type="submit">Reset Password</button>
+
+  </form>
+
+  <div class="bottom-text">
+    <a href="login.html">Back to Login</a>
+  </div>
+
+</div>
+
+<script>
+async function resetPassword(e){
+  e.preventDefault();
+
+  const form = e.target;
+
+  if(!form.checkValidity()){
+    form.reportValidity();
+    return;
+  }
+
+  const email = document.getElementById("email").value.trim();
+  const newPassword = document.getElementById("newPassword").value;
+
+  try{
+    const res = await fetch("/api/auth/reset-password",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ email, newPassword })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      showModal("Password reset successful ✅");
+      setTimeout(()=>{
+        window.location.href="login.html";
+      },1200);
+    }else{
+      showModal(data.message || "Reset failed");
+    }
+
+  }catch(err){
+    showModal("Server error");
+  }
+}
+
+function showModal(message){
+  const modal = document.createElement("div");
+  modal.className = "error-modal";
+  modal.innerHTML = `
+    <div class="error-content">
+      <p>${message}</p>
+      <button onclick="this.closest('.error-modal').remove()">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+</script>
+
+</body>
+</html>

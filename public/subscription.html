@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Subscription - Vitaran</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="subscription.css">
+</head>
+<body>
+
+<div class="subscription-box">
+
+    <img src="/logos/logo.png" class="main-logo" alt="Logo">
+
+    <div class="auth-title">Choose Your Subscription Plan</div>
+    
+
+    <!-- Top tabs -->
+    <div class="plan-switch" role="tablist" aria-label="Subscription categories">
+        <button class="switch-btn active" onclick="showEcom()" id="tab-ecom" aria-controls="ecomPlans">E-Commerce</button>
+        <button class="switch-btn" onclick="showQuick()" id="tab-quick" aria-controls="quickPlans">Quick Commerce</button>
+        <button class="switch-btn" onclick="showAll()" id="tab-all" aria-controls="allPlans">All-in-One</button>
+    </div>
+
+    <!-- ----------------- E-COMMERCE ------------------- -->
+    <section id="ecomPlans" class="plans-section" aria-labelledby="tab-ecom">
+
+      <h2 class="section-title">E-Commerce Subscription Plans</h2>
+
+      <div class="plan-grid">
+
+        <!-- 1 Month -->
+        <article class="plan-card" data-type="E-Commerce" data-duration="1">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon"><img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho"><img src="logos/myntra.jpeg" alt="myntra">
+            <span class="plan-name">1 Month Plan</span>
+          </div>
+
+          <div class="plan-price">₹199</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('E-Commerce 1 Month', 199)">Buy Now</button>
+        </article>
+
+        <!-- 3 Month -->
+        <article class="plan-card" data-type="E-Commerce" data-duration="3">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon"><img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho"><img src="logos/myntra.jpeg" alt="myntra">
+            <span class="plan-name">3 Months Plan</span>
+          </div>
+
+          <div class="plan-price">₹499</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('E-Commerce 3 Months', 499)">Buy Now</button>
+        </article>
+
+        <!-- 12 Month -->
+        <article class="plan-card" data-type="E-Commerce" data-duration="12">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon"><img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho"><img src="logos/myntra.jpeg" alt="myntra">
+            <span class="plan-name">12 Months Plan</span>
+          </div>
+
+          <div class="plan-price">₹1199</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('E-Commerce 12 Months', 1199)">Buy Now</button>
+        </article>
+
+      </div>
+
+    </section>
+
+    <!-- ---------------- QUICK COMMERCE ---------------- -->
+    <section id="quickPlans" class="plans-section" style="display:none;" aria-labelledby="tab-quick">
+
+        <div class="category-switch" role="tablist" aria-label="Quick commerce categories">
+            <button class="switch-btn2 active" onclick="showFood()" id="tab-food" aria-controls="foodPlans">Food</button>
+            <button class="switch-btn2" onclick="showGrocery()" id="tab-grocery" aria-controls="groceryPlans">Grocery</button>
+            <button class="switch-btn2" onclick="showBoth()" id="tab-both" aria-controls="bothPlans">Both</button>
+        </div>
+
+        <!-- FOOD -->
+        <div id="foodPlans" class="sub-plans">
+            <h2 class="section-title">Quick Commerce Food Delivery Plans</h2>
+            <div class="plan-grid">
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="1">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <span class="plan-name">1 Month Plan</span>
+                </div>
+                <div class="plan-price">₹149</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food 1 Month', 149)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="3">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <span class="plan-name">3 Months Plan</span>
+                </div>
+                <div class="plan-price">₹399</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food 3 Months', 399)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="12">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <span class="plan-name">12 Months Plan</span>
+                </div>
+                <div class="plan-price">₹999</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food 12 Months', 999)">Buy Now</button>
+              </article>
+
+            </div>
+        </div>
+
+        <!-- GROCERY -->
+        <div id="groceryPlans" class="sub-plans" style="display:none;">
+            <h2 class="section-title">Quick Commerce Grocery Delivery Plans</h2>
+            <div class="plan-grid">
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="1">
+                <div class="plan-title">
+                  <img src="logos/zepto.jpeg" alt="zepto">
+                  <img src="logos/Instamart.png" alt="instamart">
+                  <img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">1 Month Plan</span>
+                </div>
+                <div class="plan-price">₹149</div>
+                <div class="plan-features"><ul>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Grocery 1 Month', 149)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="3">
+                <div class="plan-title">
+                  <img src="logos/zepto.jpeg" alt="zepto">
+                  <img src="logos/Instamart.png" alt="instamart">
+                  <img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">3 Months Plan</span>
+                </div>
+                <div class="plan-price">₹399</div>
+                <div class="plan-features"><ul>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Grocery 3 Months', 399)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="12">
+                <div class="plan-title">
+                  <img src="logos/zepto.jpeg" alt="zepto">
+                  <img src="logos/Instamart.png" alt="instamart">
+                  <img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">12 Months Plan</span>
+                </div>
+                <div class="plan-price">₹999</div>
+                <div class="plan-features"><ul>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Grocery 12 Months', 999)">Buy Now</button>
+              </article>
+
+            </div>
+        </div>
+
+        <!-- BOTH (Food + Grocery) -->
+        <div id="bothPlans" class="sub-plans" style="display:none;">
+          <h2 class="section-title">Quick Commerce Food + Grocery Plans</h2>
+          <div class="plan-grid">
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="1">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <img src="logos/zepto.jpeg" alt="zepto"><img src="logos/Instamart.png" alt="instamart"><img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">1 Month Plan</span>
+                </div>
+                <div class="plan-price">₹249</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food+Grocery 1 Month', 249)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="3">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <img src="logos/zepto.jpeg" alt="zepto"><img src="logos/Instamart.png" alt="instamart"><img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">3 Months Plan</span>
+                </div>
+                <div class="plan-price">₹599</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food+Grocery 3 Months', 599)">Buy Now</button>
+              </article>
+
+              <article class="plan-card" data-type="Quick Commerce" data-duration="12">
+                <div class="plan-title">
+                  <img src="logos/swiggy.png" alt="swiggy"><img src="logos/zomato.png" alt="zomato">
+                  <img src="logos/zepto.jpeg" alt="zepto"><img src="logos/Instamart.png" alt="instamart"><img src="logos/blinkit.png" alt="blinkit">
+                  <span class="plan-name">12 Months Plan</span>
+                </div>
+                <div class="plan-price">₹1599</div>
+                <div class="plan-features"><ul>
+                    <li>Swiggy Orders</li><li>Zomato Orders</li>
+                    <li>Zepto Orders</li><li>Instamart Orders</li><li>Blinkit Orders</li>
+                    <li>Unlimited Deliveries</li><li>Profitable Order Highlighted</li>
+                </ul></div>
+                <button class="subscribe-btn" onclick="buyPlan('Food+Grocery 12 Months', 1599)">Buy Now</button>
+              </article>
+
+          </div>
+        </div>
+
+    </section>
+
+    <!-- ---------------- ALL-IN-ONE (NEW) ---------------- -->
+    <section id="allPlans" class="plans-section" style="display:none;" aria-labelledby="tab-all">
+
+      <h2 class="section-title">All-in-One (E-Commerce + Quick Commerce)</h2>
+
+      <div class="plan-grid">
+
+        <!-- 1 Month - ₹299 -->
+        <article class="plan-card" data-type="All-in-One" data-duration="1">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon">
+            <img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho">
+            <img src="logos/myntra.jpeg" alt="myntra">
+            <img src="logos/swiggy.png" alt="swiggy">
+            <img src="logos/zomato.png" alt="zomato">
+            <img src="logos/zepto.jpeg" alt="zepto">
+            <img src="logos/Instamart.png" alt="instamart">
+            <img src="logos/blinkit.png" alt="blinkit">
+            <span class="plan-name">1 Month Plan</span>
+          </div>
+
+          <div class="plan-price">₹299</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Swiggy Orders</li>
+              <li>Zomato Orders</li>
+              <li>Zepto Orders</li>
+              <li>Instamart Orders</li>
+              <li>Blinkit Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('All-in-One 1 Month', 299)">Buy Now</button>
+        </article>
+
+        <!-- 3 Months - ₹799 -->
+        <article class="plan-card" data-type="All-in-One" data-duration="3">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon">
+            <img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho">
+            <img src="logos/myntra.jpeg" alt="myntra">
+            <img src="logos/swiggy.png" alt="swiggy">
+            <img src="logos/zomato.png" alt="zomato">
+            <img src="logos/zepto.jpeg" alt="zepto">
+            <img src="logos/Instamart.png" alt="instamart">
+            <img src="logos/blinkit.png" alt="blinkit">
+            <span class="plan-name">3 Months Plan</span>
+          </div>
+
+          <div class="plan-price">₹799</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Swiggy Orders</li>
+              <li>Zomato Orders</li>
+              <li>Zepto Orders</li>
+              <li>Instamart Orders</li>
+              <li>Blinkit Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('All-in-One 3 Months', 799)">Buy Now</button>
+        </article>
+
+        <!-- 12 Months - ₹1999 -->
+        <article class="plan-card" data-type="All-in-One" data-duration="12">
+          <div class="plan-title">
+            <img src="logos/amazon.png" alt="amazon">
+            <img src="logos/flipkart.png" alt="flipkart">
+            <img src="logos/meesho.png" alt="meesho">
+            <img src="logos/myntra.jpeg" alt="myntra">
+            <img src="logos/swiggy.png" alt="swiggy">
+            <img src="logos/zomato.png" alt="zomato">
+            <img src="logos/zepto.jpeg" alt="zepto">
+            <img src="logos/Instamart.png" alt="instamart">
+            <img src="logos/blinkit.png" alt="blinkit">
+            <span class="plan-name">12 Months Plan</span>
+          </div>
+
+          <div class="plan-price">₹1999</div>
+
+          <div class="plan-features">
+            <ul>
+              <li>Amazon Orders</li>
+              <li>Flipkart Orders</li>
+              <li>Meesho Orders</li>
+              <li>Myntra Orders</li>
+              <li>Swiggy Orders</li>
+              <li>Zomato Orders</li>
+              <li>Zepto Orders</li>
+              <li>Instamart Orders</li>
+              <li>Blinkit Orders</li>
+              <li>Unlimited Deliveries</li>
+              <li>Profitable Order Highlighted</li>
+            </ul>
+          </div>
+          <button class="subscribe-btn" onclick="buyPlan('All-in-One 12 Months', 1999)">Buy Now</button>
+        </article>
+
+      </div>
+    </section>
+    <!-- end allPlans -->
+
+</div>
+
+<!-- ================= MAIN PLAN SWITCHING SCRIPT ================= -->
+<script>
+/* Top-level switches */
+function showEcom() {
+  document.getElementById('ecomPlans').style.display = 'block';
+  document.getElementById('quickPlans').style.display = 'none';
+  document.getElementById('allPlans').style.display = 'none';
+  document.getElementById('tab-ecom').classList.add('active');
+  document.getElementById('tab-quick').classList.remove('active');
+  document.getElementById('tab-all').classList.remove('active');
+}
+
+function showQuick() {
+  document.getElementById('ecomPlans').style.display = 'none';
+  document.getElementById('quickPlans').style.display = 'block';
+  document.getElementById('allPlans').style.display = 'none';
+  document.getElementById('tab-quick').classList.add('active');
+  document.getElementById('tab-ecom').classList.remove('active');
+  document.getElementById('tab-all').classList.remove('active');
+}
+
+function showAll() {
+  document.getElementById('ecomPlans').style.display = 'none';
+  document.getElementById('quickPlans').style.display = 'none';
+  document.getElementById('allPlans').style.display = 'block';
+  document.getElementById('tab-all').classList.add('active');
+  document.getElementById('tab-ecom').classList.remove('active');
+  document.getElementById('tab-quick').classList.remove('active');
+}
+
+/* Quick Food/Grocery Switch */
+function showFood() {
+  document.getElementById('foodPlans').style.display = 'block';
+  document.getElementById('groceryPlans').style.display = 'none';
+  document.getElementById('bothPlans').style.display = 'none';
+  setQuick(0);
+}
+
+function showGrocery() {
+  document.getElementById('foodPlans').style.display = 'none';
+  document.getElementById('groceryPlans').style.display = 'block';
+  document.getElementById('bothPlans').style.display = 'none';
+  setQuick(1);
+}
+
+function showBoth() {
+  document.getElementById('foodPlans').style.display = 'none';
+  document.getElementById('groceryPlans').style.display = 'none';
+  document.getElementById('bothPlans').style.display = 'block';
+  setQuick(2);
+}
+
+/* Highlight selected tab */
+function setQuick(i) {
+  document.querySelectorAll('.switch-btn2').forEach((btn, idx) => {
+    if (idx === i) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+/* Load defaults */
+(function(){
+  showEcom();
+  showFood();
+})();
+</script>
+
+<!-- ================= RAZORPAY ================= -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function buyPlan(plan, amount){
+
+  fetch("/api/payment/create-order",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ plan_name:plan, amount })
+  })
+  .then(r => r.json())
+  .then(data => {
+
+    var options = {
+      key: data.key,
+      amount: amount * 100,
+      currency: "INR",
+      name: "Vitaran",
+      description: plan,
+      image: "http://localhost:3000/logos/logo.png",  // 🔥 FULL URL USE KAR
+      order_id: data.order.id,
+
+      handler: function (response) {
+        window.location.href = "dashboard.html";
+      }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+  });
+}
+</script>
+
+</body>
+</html>

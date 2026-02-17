@@ -1,0 +1,170 @@
+:root{
+  --blue:#0093FF;
+  --dark-blue:#003f7f;
+  --bg:linear-gradient(to bottom, #E7F4FF, #DFF2FF);
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:Poppins, sans-serif;
+}
+
+/* Main white login-style box */
+.subscription-box{
+  width:92%;
+  max-width:900px;
+  margin:28px auto;
+  background:#fff;
+  padding:28px 26px;
+  border-radius:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.10);
+  text-align:center;
+}
+
+/* ✅ MAIN LOGO — ZOOM INSIDE SQUARE ONLY */
+.main-logo{
+  width:140px;              /* Square width */
+  height:140px;             /* Square height */
+  object-fit:cover;         /* Zoom effect */
+  object-position:center;   /* Center focus */
+  border-radius:12px;
+  margin-bottom:18px;
+}
+
+/* Main Title */
+.auth-title{
+  font-size:26px;
+  font-weight:700;
+  color:var(--dark-blue);
+  margin-bottom:6px;
+}
+
+/* Sub title */
+.sub-title{
+  font-size:24px;
+  font-weight:600;
+  color:var(--dark-blue);
+  margin-bottom:20px;
+}
+
+/* Tabs */
+.plan-switch, .category-switch{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.switch-btn,
+.switch-btn2{
+  padding:8px 20px;
+  border-radius:25px;
+  background:#fff;
+  border:1px solid #d2e5ff;
+  color:var(--dark-blue);
+  cursor:pointer;
+  font-size:14px;
+}
+
+.switch-btn.active,
+.switch-btn2.active{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(0,147,255,0.18);
+}
+
+/* Section title */
+.section-title{
+  text-align:left;
+  margin:10px 0 18px 4px;
+  font-size:20px;
+  color:var(--dark-blue);
+}
+
+/* Grid */
+.plan-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
+}
+
+/* Cards */
+.plan-card{
+  background:#fff;
+  padding:18px;
+  border-radius:14px;
+  text-align:left;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  transition:0.18s;
+}
+
+.plan-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 14px 32px rgba(0,0,0,0.12);
+}
+
+/* Title with logos */
+.plan-title{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.plan-title img{
+  width:26px;
+  height:26px;
+  border-radius:4px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+}
+
+.plan-name{
+  font-weight:700;
+  font-size:15px;
+  margin-left:4px;
+  color:var(--dark-blue);
+}
+
+/* Price */
+.plan-price{
+  margin-top:8px;
+  font-size:22px;
+  font-weight:800;
+}
+
+/* Features */
+.plan-features ul{
+  margin-left:20px;
+  margin-bottom:15px;
+  color:#333;
+}
+
+/* Button */
+.subscribe-btn{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.subscribe-btn:hover{
+  background:#0079e2;
+}
+
+/* Responsive */
+@media(max-width:600px){
+  .main-logo{
+    width:100px;
+    height:100px;
+  }
+  .auth-title{font-size:22px;}
+  .sub-title{font-size:20px;}
+  .subscription-box{ padding:18px; }
+}

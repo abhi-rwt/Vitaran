@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register - Vitaran</title>
+  <link rel="stylesheet" href="qd.css">
+</head>
+<body>
+
+<div class="auth-box">
+  <img src="/logos/logo.png" alt="Logo">
+
+  <div class="auth-title">Delivery Partner Registration</div>
+
+  <form onsubmit="register(event)">
+
+    <div class="input-group">
+      <label>Name</label>
+      <input id="name" required
+        oninvalid="this.setCustomValidity('Please enter your name')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>Email</label>
+      <input 
+        id="email"
+        type="email"
+        required
+        pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+        oninvalid="this.setCustomValidity('Please enter valid email (example@email.com)')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>Phone</label>
+      <input 
+        id="phone"
+        required
+        pattern="\d{10}"
+        maxlength="10"
+        inputmode="numeric"
+        oninvalid="this.setCustomValidity('Phone number must be exactly 10 digits')"
+        oninput="this.setCustomValidity(''); this.value=this.value.replace(/\D/g,'')"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>Password</label>
+      <input 
+        type="password"
+        id="password"
+        required
+        minlength="6"
+        oninvalid="this.setCustomValidity('Password must be minimum 6 characters')"
+        oninput="this.setCustomValidity('')"
+      >
+    </div>
+
+    <button class="btn" type="submit">Register</button>
+
+  </form>
+
+  <div class="bottom-text">
+    Already have an account? <a href="login.html">Login</a>
+  </div>
+
+</div>
+
+<script>
+async function register(e){
+  e.preventDefault();
+
+  const form = e.target;
+
+  if(!form.checkValidity()){
+    form.reportValidity();
+    return;
+  }
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value;
+
+  try{
+    const res = await fetch("/api/auth/register",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ name, email, phone, password })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      showModal("Registration successful ✅ Redirecting to login...", true);
+      setTimeout(()=>{
+        window.location.href="login.html";
+      },1200);
+    }else{
+      showModal(data.message || "Registration failed");
+    }
+
+  }catch(err){
+    showModal("Server error");
+  }
+}
+
+/* PROFESSIONAL MODAL */
+function showModal(message, success=false){
+  const modal = document.createElement("div");
+  modal.className = "error-modal";
+  modal.innerHTML = `
+    <div class="error-content">
+      <p style="color:${success ? '#00c853' : '#333'}">${message}</p>
+      <button onclick="this.closest('.error-modal').remove()">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+</script>
+
+</body>
+</html>
