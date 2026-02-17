@@ -13,6 +13,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
+/* ===================== ROOT ROUTE FIX (IMPORTANT) ===================== */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
 /* ===================== MONGODB CONNECTION ===================== */
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("🟢 MongoDB Connected (Vitaran DB)"))
@@ -55,7 +60,7 @@ app.post("/api/auth/register", async (req, res) => {
     email = email.toLowerCase().trim();
 
     if (!validEmail(email))
-      return res.json({ success: false, message: "Invalid email format (example@gmail.com required)" });
+      return res.json({ success: false, message: "Invalid email format" });
 
     if (!/^\d{10}$/.test(phone))
       return res.json({ success: false, message: "Phone must be exactly 10 digits" });
@@ -75,7 +80,7 @@ app.post("/api/auth/register", async (req, res) => {
 
   } catch (err) {
     console.log("Register Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -88,9 +93,6 @@ app.post("/api/auth/login", async (req, res) => {
       return res.json({ success: false, message: "Missing fields" });
 
     email = email.toLowerCase().trim();
-
-    if (!validEmail(email))
-      return res.json({ success: false, message: "Invalid email format" });
 
     const user = await User.findOne({ email });
     if (!user)
@@ -110,7 +112,7 @@ app.post("/api/auth/login", async (req, res) => {
 
   } catch (err) {
     console.log("Login Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -121,14 +123,6 @@ app.post("/api/auth/reset-password", async (req, res) => {
 
     if (!email || !newPassword)
       return res.json({ success: false, message: "All fields required" });
-
-    email = email.toLowerCase().trim();
-
-    if (!validEmail(email))
-      return res.json({ success: false, message: "Invalid email format" });
-
-    if (newPassword.length < 6)
-      return res.json({ success: false, message: "Password minimum 6 characters" });
 
     const user = await User.findOne({ email });
     if (!user)
@@ -142,7 +136,7 @@ app.post("/api/auth/reset-password", async (req, res) => {
 
   } catch (err) {
     console.log("Reset Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -150,19 +144,15 @@ app.post("/api/auth/reset-password", async (req, res) => {
 app.post("/api/subscription/save", async (req, res) => {
   try {
     const { token, plan } = req.body;
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     await User.findByIdAndUpdate(decoded.id, { plan });
-
     res.json({ success: true });
-
   } catch (err) {
     res.json({ success: false });
   }
 });
 
-/* ===================== RAZORPAY TEST MODE ===================== */
+/* ===================== RAZORPAY ===================== */
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -192,6 +182,7 @@ app.post("/api/payment/create-order", async (req, res) => {
 
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Vitaran Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Vitaran Server running on port ${PORT}`);
 });
