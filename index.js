@@ -13,12 +13,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ===================== ROOT ROUTE FIX (IMPORTANT) ===================== */
+/* ===================== ROOT ROUTE ===================== */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-/* ===================== MONGODB CONNECTION ===================== */
+/* ===================== MONGODB ===================== */
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("🟢 MongoDB Connected (Vitaran DB)"))
 .catch(err => {
@@ -116,6 +116,34 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+/* ===================== GET CURRENT USER (FOR DASHBOARD CHECK) ===================== */
+app.post("/api/auth/me", async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token)
+      return res.json({ success: false });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user)
+      return res.json({ success: false });
+
+    res.json({
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        plan: user.plan
+      }
+    });
+
+  } catch (err) {
+    res.json({ success: false });
+  }
+});
+
 /* ===================== RESET PASSWORD ===================== */
 app.post("/api/auth/reset-password", async (req, res) => {
   try {
@@ -124,9 +152,14 @@ app.post("/api/auth/reset-password", async (req, res) => {
     if (!email || !newPassword)
       return res.json({ success: false, message: "All fields required" });
 
+    email = email.toLowerCase().trim();
+
     const user = await User.findOne({ email });
     if (!user)
       return res.json({ success: false, message: "User not found" });
+
+    if (newPassword.length < 6)
+      return res.json({ success: false, message: "Password minimum 6 characters" });
 
     const hash = await bcrypt.hash(newPassword, 10);
     user.password = hash;
@@ -144,9 +177,12 @@ app.post("/api/auth/reset-password", async (req, res) => {
 app.post("/api/subscription/save", async (req, res) => {
   try {
     const { token, plan } = req.body;
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     await User.findByIdAndUpdate(decoded.id, { plan });
+
     res.json({ success: true });
+
   } catch (err) {
     res.json({ success: false });
   }

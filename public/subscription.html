@@ -470,11 +470,30 @@ function buyPlan(plan, amount){
       currency: "INR",
       name: "Vitaran",
       description: plan,
-      image: "http://localhost:3000/logos/logo.png",  // 🔥 FULL URL USE KAR
+      image: "https://vitaran.onrender.com/logos/logo.png",
       order_id: data.order.id,
 
       handler: function (response) {
-        window.location.href = "dashboard.html";
+
+        const token = localStorage.getItem("token");
+
+        fetch("/api/subscription/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: token,
+            plan: plan
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.success){
+            window.location.href = "dashboard.html";
+          } else {
+            alert("Plan save failed");
+          }
+        });
+
       }
     };
 

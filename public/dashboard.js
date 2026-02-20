@@ -1,5 +1,5 @@
 /************************************************
- * QuickDelivery - FINAL Dashboard Logic
+ * Vitaran - FINAL Dashboard Logic
  * Single Source of Truth ✅
  ************************************************/
 
