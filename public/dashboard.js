@@ -22,10 +22,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
 
     if(!data.success){
-      localStorage.removeItem("token");
+      console.log("Auth failed but token preserved");
       window.location.href = "login.html";
       return;
-    }
+      }
 
     if(!data.user.plan){
       window.location.href = "subscription.html";
