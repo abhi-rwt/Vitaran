@@ -453,53 +453,77 @@ function setQuick(i) {
 
 <!-- ================= RAZORPAY ================= -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
-function buyPlan(plan, amount){
+async function buyPlan(plan, amount){
 
-  fetch("/api/payment/create-order",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ plan_name:plan, amount })
-  })
-  .then(r => r.json())
-  .then(data => {
+  try{
 
+    // 🔹 Step 1: Create Razorpay Order
+    const orderRes = await fetch("/api/payment/create-order",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ amount })
+    });
+
+    const orderData = await orderRes.json();
+
+    if(orderData.status !== "ok"){
+      alert("Order creation failed");
+      return;
+    }
+
+    // 🔹 Step 2: Razorpay Options
     var options = {
-      key: data.key,
+      key: orderData.key,
       amount: amount * 100,
       currency: "INR",
       name: "Vitaran",
       description: plan,
       image: "https://vitaran.onrender.com/logos/logo.png",
-      order_id: data.order.id,
+      order_id: orderData.order.id,
 
-      handler: function (response) {
+      handler: async function (response) {
 
         const token = localStorage.getItem("token");
 
-        fetch("/api/subscription/save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        if(!token){
+          alert("Session expired. Please login again.");
+          window.location.href = "login.html";
+          return;
+        }
+
+        // 🔹 Step 3: Save Subscription Plan in DB
+        const saveRes = await fetch("/api/subscription/save",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({
             token: token,
             plan: plan
           })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if(data.success){
-            window.location.href = "dashboard.html";
-          } else {
-            alert("Plan save failed");
-          }
         });
 
+        const saveData = await saveRes.json();
+
+        if(saveData.success){
+          window.location.href = "dashboard.html";
+        } else {
+          alert("Plan saved failed");
+        }
+      },
+
+      theme: {
+        color: "#0093FF"
       }
     };
 
     var rzp = new Razorpay(options);
     rzp.open();
-  });
+
+  } catch(err){
+    console.log("Payment Error:", err);
+    alert("Something went wrong");
+  }
 }
 </script>
 

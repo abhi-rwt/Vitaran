@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-/* ===================== MONGODB ===================== */
+/* ===================== MONGODB CONNECTION ===================== */
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("🟢 MongoDB Connected (Vitaran DB)"))
 .catch(err => {

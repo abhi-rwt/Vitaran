@@ -1,19 +1,58 @@
 /************************************************
- * Vitaran - FINAL Dashboard Logic
- * Single Source of Truth ✅
+ * Vitaran - FINAL Dashboard (Server Plan Based)
  ************************************************/
 
-/* ================= PLAN CONFIG ================= */
-// plan name localStorage me save hoga (subscription ke baad)
-// example: localStorage.setItem("plan", "ALL");
+document.addEventListener("DOMContentLoaded", async () => {
 
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    window.location.href = "login.html";
+    return;
+  }
+
+  try{
+
+    const res = await fetch("/api/auth/me",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ token })
+    });
+
+    const data = await res.json();
+
+    if(!data.success){
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+      return;
+    }
+
+    if(!data.user.plan){
+      window.location.href = "subscription.html";
+      return;
+    }
+
+    const userPlan = data.user.plan;
+    document.querySelector(".badge").innerText = userPlan + " Plan Active";
+
+    initDashboard(userPlan);
+
+  }catch(err){
+    console.log("Dashboard error:", err);
+    window.location.href = "login.html";
+  }
+
+});
+
+
+/* ================= PLAN CONFIG ================= */
 const PLAN_CONFIG = {
   ECOM: {
-    platforms: ["Amazon", "Flipkart", "Meesho", "Myntra"],
+    platforms: ["Amazon","Flipkart","Meesho","Myntra"],
     maxProfit: 60
   },
   QUICK: {
-    platforms: ["Swiggy", "Zomato", "Zepto", "Instamart", "Blinkit"],
+    platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
     maxProfit: 80
   },
   ALL: {
@@ -25,79 +64,73 @@ const PLAN_CONFIG = {
   }
 };
 
-/* ================= HELPERS ================= */
-function random(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
-function randomFrom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+/* ================= DASHBOARD INIT ================= */
+function initDashboard(userPlan){
 
-function platformLogo(name) {
-  return `/logos/${name.toLowerCase()}.png`;
-}
+  const config = PLAN_CONFIG[userPlan];
 
-function orderStatus() {
-  return randomFrom(["Accepted", "Picked", "Out"]);
-}
+  function random(min, max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
 
-/* ================= MAIN LOGIC ================= */
-const userPlan = localStorage.getItem("plan") || "ALL";
-const config = PLAN_CONFIG[userPlan];
+  function randomFrom(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
 
-const orders = [];
+  function platformLogo(name){
+    return `/logos/${name.toLowerCase()}.png`;
+  }
 
-// generate random orders
-for (let i = 0; i < random(5, 9); i++) {
-  const profit = random(20, config.maxProfit);
-  orders.push({
-    platform: randomFrom(config.platforms),
-    orderId: "#QD" + random(1000, 9999),
-    status: orderStatus(),
-    km: (Math.random() * 8 + 1).toFixed(1),
-    profit: profit
+  function orderStatus(){
+    return randomFrom(["Accepted","Picked","Out"]);
+  }
+
+  const orders = [];
+
+  for(let i=0;i<random(5,9);i++){
+    const profit = random(20, config.maxProfit);
+    orders.push({
+      platform: randomFrom(config.platforms),
+      orderId: "#VT" + random(1000,9999),
+      status: orderStatus(),
+      km: (Math.random()*8+1).toFixed(1),
+      profit: profit
+    });
+  }
+
+  orders.sort((a,b)=>b.profit-a.profit);
+
+  const tbody = document.querySelector(".table tbody");
+  tbody.innerHTML="";
+
+  orders.forEach((o,index)=>{
+    const tr=document.createElement("tr");
+    if(index===0) tr.classList.add("priority");
+
+    tr.innerHTML=`
+      <td>
+        <img src="${platformLogo(o.platform)}">
+        ${o.platform}
+      </td>
+      <td>${o.orderId}</td>
+      <td><span class="tag ${o.status.toLowerCase()}">${o.status}</span></td>
+      <td>${o.km}</td>
+      <td class="${o.profit>=70?'green':''}">${o.profit}</td>
+    `;
+
+    tbody.appendChild(tr);
   });
+
+  document.querySelectorAll(".stat strong")[0].innerText=random(80,200);
+  document.querySelectorAll(".stat strong")[1].innerText=random(3,9);
+  document.querySelectorAll(".stat strong")[2].innerText=random(70,180);
+  document.querySelectorAll(".stat strong")[3].innerText="₹"+random(3000,12000);
+
+  const steps=document.querySelectorAll(".step");
+  steps.forEach((s,i)=>{
+    if(i<random(1,3)) s.classList.add("active");
+  });
+
+  console.log("Server Plan:", userPlan);
 }
-
-// sort by highest profit (MOST IMPORTANT)
-orders.sort((a, b) => b.profit - a.profit);
-
-/* ================= RENDER ================= */
-const tbody = document.querySelector(".table tbody");
-tbody.innerHTML = "";
-
-orders.forEach((o, index) => {
-  const tr = document.createElement("tr");
-
-  if (index === 0) tr.classList.add("priority");
-
-  tr.innerHTML = `
-    <td>
-      <img src="${platformLogo(o.platform)}">
-      ${o.platform}
-    </td>
-    <td>${o.orderId}</td>
-    <td><span class="tag ${o.status.toLowerCase()}">${o.status}</span></td>
-    <td>${o.km}</td>
-    <td class="${o.profit >= 70 ? "green" : ""}">${o.profit}</td>
-  `;
-
-  tbody.appendChild(tr);
-});
-
-/* ================= STATS ================= */
-document.querySelectorAll(".stat strong")[0].innerText = random(80, 200); // total
-document.querySelectorAll(".stat strong")[1].innerText = random(3, 9);    // active
-document.querySelectorAll(".stat strong")[2].innerText = random(70, 180); // completed
-document.querySelectorAll(".stat strong")[3].innerText = "₹" + random(3000, 12000);
-
-/* ================= TRACKING ================= */
-const steps = document.querySelectorAll(".step");
-steps.forEach((s, i) => {
-  if (i < random(1, 3)) s.classList.add("active");
-});
-
-/* ================= DEBUG (for viva) ================= */
-console.log("Active Plan:", userPlan);
-console.log("Generated Orders:", orders);
