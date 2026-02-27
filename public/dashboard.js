@@ -1,11 +1,12 @@
 /************************************************
- * Vitaran - FINAL Dashboard (Stable Version)
+ * Vitaran - FINAL Dashboard (Ultra Stable)
  ************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
 
   const token = localStorage.getItem("token");
 
+  // 🔐 If token missing → login
   if (!token) {
     window.location.href = "login.html";
     return;
@@ -19,16 +20,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       body: JSON.stringify({ token })
     });
 
-    // 🔥 If server sleeping, status not OK
     if (!res.ok) {
-      throw new Error("Server not responding");
+      console.log("Server not responding");
+      return;
     }
 
     const data = await res.json();
 
     if (!data.success) {
       console.log("Auth failed");
-      window.location.href = "login.html";
       return;
     }
 
@@ -38,19 +38,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const userPlan = data.user.plan;
-    document.querySelector(".badge").innerText =
-      userPlan + " Plan Active";
+
+    const badge = document.querySelector(".badge");
+    if (badge) {
+      badge.innerText = userPlan + " Plan Active";
+    }
 
     initDashboard(userPlan);
 
   } catch (err) {
-
     console.log("Dashboard error:", err);
-
-    // 🔥 Render sleep fix (retry once)
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
   }
 
 });
@@ -59,15 +56,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* ================= PLAN CONFIG ================= */
 
 const PLAN_CONFIG = {
-  ECOM: {
+  "E-Commerce 1 Month": {
     platforms: ["Amazon","Flipkart","Meesho","Myntra"],
     maxProfit: 60
   },
-  QUICK: {
+  "E-Commerce 3 Months": {
+    platforms: ["Amazon","Flipkart","Meesho","Myntra"],
+    maxProfit: 70
+  },
+  "E-Commerce 12 Months": {
+    platforms: ["Amazon","Flipkart","Meesho","Myntra"],
+    maxProfit: 80
+  },
+  "Quick Commerce 1 Month": {
     platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
     maxProfit: 80
   },
-  ALL: {
+  "Quick Commerce 3 Months": {
+    platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+    maxProfit: 90
+  },
+  "All-In-One 12 Months": {
     platforms: [
       "Amazon","Flipkart","Meesho","Myntra",
       "Swiggy","Zomato","Zepto","Instamart","Blinkit"
@@ -83,6 +92,12 @@ function initDashboard(userPlan) {
 
   const config = PLAN_CONFIG[userPlan];
 
+  // 🛑 Safety check
+  if (!config) {
+    console.log("Invalid plan from DB:", userPlan);
+    return;
+  }
+
   function random(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
@@ -96,7 +111,7 @@ function initDashboard(userPlan) {
   }
 
   function orderStatus() {
-    return randomFrom(["Accepted","Picked","Out"]);
+    return randomFrom(["Accepted","Picked","Delivered"]);
   }
 
   const orders = [];
@@ -118,6 +133,8 @@ function initDashboard(userPlan) {
   orders.sort((a, b) => b.profit - a.profit);
 
   const tbody = document.querySelector(".table tbody");
+  if (!tbody) return;
+
   tbody.innerHTML = "";
 
   orders.forEach((o, index) => {
@@ -128,11 +145,11 @@ function initDashboard(userPlan) {
 
     tr.innerHTML = `
       <td>
-        <img src="${platformLogo(o.platform)}">
+        <img src="${platformLogo(o.platform)}" width="20">
         ${o.platform}
       </td>
       <td>${o.orderId}</td>
-      <td><span class="tag ${o.status.toLowerCase()}">${o.status}</span></td>
+      <td><span class="tag">${o.status}</span></td>
       <td>${o.km}</td>
       <td class="${o.profit >= 70 ? "green" : ""}">${o.profit}</td>
     `;
@@ -140,10 +157,14 @@ function initDashboard(userPlan) {
     tbody.appendChild(tr);
   });
 
-  document.querySelectorAll(".stat strong")[0].innerText = random(80, 200);
-  document.querySelectorAll(".stat strong")[1].innerText = random(3, 9);
-  document.querySelectorAll(".stat strong")[2].innerText = random(70, 180);
-  document.querySelectorAll(".stat strong")[3].innerText = "₹" + random(3000, 12000);
+  const stats = document.querySelectorAll(".stat strong");
+
+  if (stats.length >= 4) {
+    stats[0].innerText = random(80, 200);
+    stats[1].innerText = random(3, 9);
+    stats[2].innerText = random(70, 180);
+    stats[3].innerText = "₹" + random(3000, 12000);
+  }
 
   const steps = document.querySelectorAll(".step");
 
@@ -151,5 +172,5 @@ function initDashboard(userPlan) {
     if (i < random(1, 3)) s.classList.add("active");
   });
 
-  console.log("Server Plan:", userPlan);
+  console.log("Dashboard Loaded Successfully");
 }
