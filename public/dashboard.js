@@ -1,12 +1,11 @@
 /************************************************
- * Vitaran - FINAL Dashboard (Ultra Stable)
+ * Vitaran - FINAL Stable Dashboard
  ************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
 
   const token = localStorage.getItem("token");
 
-  // 🔐 If token missing → login
   if (!token) {
     window.location.href = "login.html";
     return;
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
 
     if (!data.success) {
-      console.log("Auth failed");
+      window.location.href = "login.html";
       return;
     }
 
@@ -41,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const badge = document.querySelector(".badge");
     if (badge) {
-      badge.innerText = userPlan + " Plan Active";
+      badge.innerText = userPlan + " Active";
     }
 
     initDashboard(userPlan);
@@ -53,9 +52,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-/* ================= PLAN CONFIG ================= */
+/* ================= PLAN MAPPING ================= */
 
 const PLAN_CONFIG = {
+
+  // E-Commerce
   "E-Commerce 1 Month": {
     platforms: ["Amazon","Flipkart","Meesho","Myntra"],
     maxProfit: 60
@@ -68,21 +69,72 @@ const PLAN_CONFIG = {
     platforms: ["Amazon","Flipkart","Meesho","Myntra"],
     maxProfit: 80
   },
-  "Quick Commerce 1 Month": {
-    platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+
+  // Food
+  "Food 1 Month": {
+    platforms: ["Swiggy","Zomato"],
     maxProfit: 80
   },
-  "Quick Commerce 3 Months": {
+  "Food 3 Months": {
+    platforms: ["Swiggy","Zomato"],
+    maxProfit: 90
+  },
+  "Food 12 Months": {
+    platforms: ["Swiggy","Zomato"],
+    maxProfit: 100
+  },
+
+  // Grocery
+  "Grocery 1 Month": {
+    platforms: ["Zepto","Instamart","Blinkit"],
+    maxProfit: 80
+  },
+  "Grocery 3 Months": {
+    platforms: ["Zepto","Instamart","Blinkit"],
+    maxProfit: 90
+  },
+  "Grocery 12 Months": {
+    platforms: ["Zepto","Instamart","Blinkit"],
+    maxProfit: 100
+  },
+
+  // Food + Grocery
+  "Food+Grocery 1 Month": {
     platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
     maxProfit: 90
   },
-  "All-In-One 12 Months": {
+  "Food+Grocery 3 Months": {
+    platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+    maxProfit: 100
+  },
+  "Food+Grocery 12 Months": {
+    platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+    maxProfit: 110
+  },
+
+  // All-in-One
+  "All-in-One 1 Month": {
     platforms: [
       "Amazon","Flipkart","Meesho","Myntra",
       "Swiggy","Zomato","Zepto","Instamart","Blinkit"
     ],
     maxProfit: 100
+  },
+  "All-in-One 3 Months": {
+    platforms: [
+      "Amazon","Flipkart","Meesho","Myntra",
+      "Swiggy","Zomato","Zepto","Instamart","Blinkit"
+    ],
+    maxProfit: 110
+  },
+  "All-in-One 12 Months": {
+    platforms: [
+      "Amazon","Flipkart","Meesho","Myntra",
+      "Swiggy","Zomato","Zepto","Instamart","Blinkit"
+    ],
+    maxProfit: 120
   }
+
 };
 
 
@@ -92,7 +144,6 @@ function initDashboard(userPlan) {
 
   const config = PLAN_CONFIG[userPlan];
 
-  // 🛑 Safety check
   if (!config) {
     console.log("Invalid plan from DB:", userPlan);
     return;
