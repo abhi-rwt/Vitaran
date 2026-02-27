@@ -459,12 +459,18 @@ async function buyPlan(plan, amount){
 
   try{
 
-    // 🔹 Step 1: Create Razorpay Order
+    /* ================= STEP 1: CREATE ORDER ================= */
+
     const orderRes = await fetch("/api/payment/create-order",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ amount })
     });
+
+    if(!orderRes.ok){
+      alert("Server not responding. Try again.");
+      return;
+    }
 
     const orderData = await orderRes.json();
 
@@ -473,7 +479,8 @@ async function buyPlan(plan, amount){
       return;
     }
 
-    // 🔹 Step 2: Razorpay Options
+    /* ================= STEP 2: RAZORPAY ================= */
+
     var options = {
       key: orderData.key,
       amount: amount * 100,
@@ -493,7 +500,8 @@ async function buyPlan(plan, amount){
           return;
         }
 
-        // 🔹 Step 3: Save Subscription Plan in DB
+        /* ================= STEP 3: SAVE PLAN IN DATABASE ================= */
+
         const saveRes = await fetch("/api/subscription/save",{
           method:"POST",
           headers:{ "Content-Type":"application/json" },
@@ -506,10 +514,18 @@ async function buyPlan(plan, amount){
         const saveData = await saveRes.json();
 
         if(saveData.success){
+
+          // 🔥 IMPORTANT FIX
+          localStorage.setItem("plan", plan);
+
+          console.log("Plan saved:", plan);
+
           window.location.href = "dashboard.html";
+
         } else {
-          alert("Plan saved failed");
+          alert("Plan save failed. Try again.");
         }
+
       },
 
       theme: {
