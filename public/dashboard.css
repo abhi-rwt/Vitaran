@@ -88,6 +88,20 @@ color:#1e88ff;
 background:#dce7ff;
 }
 
+/* 🔥 ORDER ACCEPT BUTTON */
+
+.btn.accept{
+background:#0a58ff;
+color:#fff;
+padding:6px 12px;
+border-radius:8px;
+font-size:12px;
+}
+
+.btn.accept:hover{
+background:#0847c5;
+}
+
 /* ================= MAIN ================= */
 
 .container{
@@ -194,24 +208,30 @@ color:#00a65a;
 font-weight:bold;
 }
 
-/* TAG */
+/* STATUS TAG */
 
 .tag{
 padding:4px 10px;
 border-radius:14px;
 font-size:12px;
+font-weight:500;
 }
+
+/* STATUS COLORS */
 
 .accepted{
 background:#ede7f6;
+color:#5b3cc4;
 }
 
 .picked{
 background:#fff3cd;
+color:#9c7c00;
 }
 
 .delivered{
 background:#e3f2fd;
+color:#0a58ff;
 }
 
 /* ================= TRACKING ================= */
@@ -229,6 +249,7 @@ background:#f1f1f1;
 border-radius:10px;
 text-align:center;
 font-size:13px;
+font-weight:500;
 }
 
 .step.active{
