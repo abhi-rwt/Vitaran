@@ -1,187 +1,310 @@
 /************************************************
- * Vitaran - FINAL Production Dashboard
+ * Vitaran - Production Dashboard
  ************************************************/
+
+let currentPlan = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("token");
 
-  // 🔐 No token → Login
-  if (!token) {
-    window.location.href = "login.html";
-    return;
-  }
+/* 🔐 LOGIN CHECK */
 
-  try {
+if(!token){
+window.location.href = "login.html";
+return;
+}
 
-    const res = await fetch("/api/auth/me", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token })
-    });
+try{
 
-    if (!res.ok) {
-      console.log("Server not responding");
-      return;
-    }
+const res = await fetch("/api/auth/me",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ token })
+});
 
-    const data = await res.json();
+if(!res.ok){
+console.log("Server not responding");
+return;
+}
 
-    if (!data.success) {
-      window.location.href = "login.html";
-      return;
-    }
+const data = await res.json();
 
-    if (!data.user.plan) {
-      window.location.href = "subscription.html";
-      return;
-    }
+if(!data.success){
+window.location.href = "login.html";
+return;
+}
 
-    const userPlan = data.user.plan;
+if(!data.user.plan){
+window.location.href = "subscription.html";
+return;
+}
 
-    const badge = document.querySelector(".badge");
-    if (badge) {
-      badge.innerText = userPlan + " Active";
-    }
+currentPlan = data.user.plan;
 
-    initDashboard(userPlan);
+/* PLAN BADGE */
 
-  } catch (err) {
-    console.log("Dashboard error:", err);
-  }
+const badge = document.querySelector(".badge");
+
+if(badge){
+badge.innerText = currentPlan + " Active";
+}
+
+/* INIT DASHBOARD */
+
+initDashboard(currentPlan);
+
+/* AUTO REFRESH ORDERS */
+
+setInterval(()=>{
+initDashboard(currentPlan);
+},15000);
+
+}
+catch(err){
+console.log("Dashboard error:",err);
+}
 
 });
 
 
+/* ================= LOGOUT ================= */
+
+function logout(){
+
+localStorage.removeItem("token");
+
+window.location.href="login.html";
+
+}
+
+
 /* ================= PLAN CONFIG ================= */
 
-const PLAN_CONFIG = {
+const PLAN_CONFIG={
 
-  // E-Commerce
-  "E-Commerce 1 Month": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 60 },
-  "E-Commerce 3 Months": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 70 },
-  "E-Commerce 12 Months": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 80 },
+"E-Commerce 1 Month":{
+platforms:["Amazon","Flipkart","Meesho","Myntra"],
+maxProfit:60
+},
 
-  // Food
-  "Food 1 Month": { platforms: ["Swiggy","Zomato"], maxProfit: 80 },
-  "Food 3 Months": { platforms: ["Swiggy","Zomato"], maxProfit: 90 },
-  "Food 12 Months": { platforms: ["Swiggy","Zomato"], maxProfit: 100 },
+"E-Commerce 3 Months":{
+platforms:["Amazon","Flipkart","Meesho","Myntra"],
+maxProfit:70
+},
 
-  // Grocery
-  "Grocery 1 Month": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 80 },
-  "Grocery 3 Months": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 90 },
-  "Grocery 12 Months": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 100 },
+"E-Commerce 12 Months":{
+platforms:["Amazon","Flipkart","Meesho","Myntra"],
+maxProfit:80
+},
 
-  // Food + Grocery
-  "Food+Grocery 1 Month": { platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"], maxProfit: 90 },
-  "Food+Grocery 3 Months": { platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"], maxProfit: 100 },
-  "Food+Grocery 12 Months": { platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"], maxProfit: 110 },
+"Food 1 Month":{
+platforms:["Swiggy","Zomato"],
+maxProfit:80
+},
 
-  // All-in-One
-  "All-in-One 1 Month": {
-    platforms: ["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
-    maxProfit: 100
-  },
-  "All-in-One 3 Months": {
-    platforms: ["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
-    maxProfit: 110
-  },
-  "All-in-One 12 Months": {
-    platforms: ["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
-    maxProfit: 120
-  }
+"Food 3 Months":{
+platforms:["Swiggy","Zomato"],
+maxProfit:90
+},
+
+"Food 12 Months":{
+platforms:["Swiggy","Zomato"],
+maxProfit:100
+},
+
+"Grocery 1 Month":{
+platforms:["Zepto","Instamart","Blinkit"],
+maxProfit:80
+},
+
+"Grocery 3 Months":{
+platforms:["Zepto","Instamart","Blinkit"],
+maxProfit:90
+},
+
+"Grocery 12 Months":{
+platforms:["Zepto","Instamart","Blinkit"],
+maxProfit:100
+},
+
+"Food+Grocery 1 Month":{
+platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:90
+},
+
+"Food+Grocery 3 Months":{
+platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:100
+},
+
+"Food+Grocery 12 Months":{
+platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:110
+},
+
+"All-in-One 1 Month":{
+platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:100
+},
+
+"All-in-One 3 Months":{
+platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:110
+},
+
+"All-in-One 12 Months":{
+platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:120
+}
 
 };
 
 
-/* ================= DASHBOARD INIT ================= */
+/* ================= DASHBOARD ================= */
 
-function initDashboard(userPlan) {
+function initDashboard(userPlan){
 
-  let config = PLAN_CONFIG[userPlan];
+let config=PLAN_CONFIG[userPlan];
 
-  // 🛑 Safety fallback
-  if (!config) {
-    console.log("Invalid plan from DB:", userPlan);
-    config = PLAN_CONFIG["E-Commerce 1 Month"];
-  }
+/* fallback */
 
-  function random(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+if(!config){
+console.log("Invalid plan:",userPlan);
+config=PLAN_CONFIG["E-Commerce 1 Month"];
+}
 
-  function randomFrom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
+/* RANDOM HELPERS */
 
-  function platformLogo(name) {
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
 
-    const lower = name.toLowerCase();
+function randomFrom(arr){
+return arr[Math.floor(Math.random()*arr.length)];
+}
 
-    // 🔥 Myntra fix (jpeg file)
-    if (lower === "myntra") return "/logos/myntra.jpeg";
+/* LOGO SYSTEM */
 
-    return `/logos/${lower}.png`;
-  }
+function platformLogo(name){
 
-  function orderStatus() {
-    return randomFrom(["Accepted","Picked","Delivered"]);
-  }
+const lower=name.toLowerCase();
 
-  const orders = [];
+const logos={
+myntra:"/logos/myntra.jpeg"
+};
 
-  for (let i = 0; i < random(5, 9); i++) {
+return logos[lower] || `/logos/${lower}.png`;
 
-    orders.push({
-      platform: randomFrom(config.platforms),
-      orderId: "#VT" + random(1000, 9999),
-      status: orderStatus(),
-      km: (Math.random() * 8 + 1).toFixed(1),
-      profit: random(20, config.maxProfit)
-    });
+}
 
-  }
+/* STATUS */
 
-  orders.sort((a, b) => b.profit - a.profit);
+function orderStatus(){
+return randomFrom(["Accepted","Picked","Delivered"]);
+}
 
-  const tbody = document.querySelector(".table tbody");
-  if (!tbody) return;
+/* GENERATE ORDERS */
 
-  tbody.innerHTML = "";
+const orders=[];
 
-  orders.forEach((o, index) => {
+for(let i=0;i<random(5,9);i++){
 
-    const tr = document.createElement("tr");
-    if (index === 0) tr.classList.add("priority");
+orders.push({
 
-    tr.innerHTML = `
-      <td>
-        <img src="${platformLogo(o.platform)}" width="20">
-        ${o.platform}
-      </td>
-      <td>${o.orderId}</td>
-      <td><span class="tag">${o.status}</span></td>
-      <td>${o.km}</td>
-      <td class="${o.profit >= 70 ? "green" : ""}">${o.profit}</td>
-    `;
+platform:randomFrom(config.platforms),
 
-    tbody.appendChild(tr);
-  });
+orderId:"#VT"+random(1000,9999),
 
-  const stats = document.querySelectorAll(".stat strong");
+status:orderStatus(),
 
-  if (stats.length >= 4) {
-    stats[0].innerText = random(80, 200);
-    stats[1].innerText = random(3, 9);
-    stats[2].innerText = random(70, 180);
-    stats[3].innerText = "₹" + random(3000, 12000);
-  }
+km:(Math.random()*8+1).toFixed(1),
 
-  const steps = document.querySelectorAll(".step");
+profit:random(20,config.maxProfit)
 
-  steps.forEach((s, i) => {
-    if (i < random(1, 3)) s.classList.add("active");
-  });
+});
 
-  console.log("Dashboard Loaded Successfully");
+}
+
+/* SORT BY PROFIT */
+
+orders.sort((a,b)=>b.profit-a.profit);
+
+/* TABLE */
+
+const tbody=document.querySelector(".table tbody");
+
+if(!tbody) return;
+
+tbody.innerHTML="";
+
+orders.forEach((o,index)=>{
+
+const tr=document.createElement("tr");
+
+if(index===0) tr.classList.add("priority");
+
+tr.innerHTML=`
+<td>
+<img src="${platformLogo(o.platform)}">
+${o.platform}
+</td>
+
+<td>${o.orderId}</td>
+
+<td>
+<span class="tag ${o.status.toLowerCase()}">
+${o.status}
+</span>
+</td>
+
+<td>${o.km}</td>
+
+<td class="${o.profit>=70?'green':''}">
+₹${o.profit}
+</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+
+/* ================= STATS ================= */
+
+const stats=document.querySelectorAll(".stat strong");
+
+if(stats.length>=4){
+
+const active=random(3,9);
+
+const completed=random(70,120);
+
+const total=active+completed;
+
+stats[0].innerText=total;
+
+stats[1].innerText=active;
+
+stats[2].innerText=completed;
+
+stats[3].innerText="₹"+random(3000,12000);
+
+}
+
+
+/* ================= TRACKING ================= */
+
+const steps=document.querySelectorAll(".step");
+
+steps.forEach(s=>s.classList.remove("active"));
+
+const progress=random(1,3);
+
+for(let i=0;i<progress;i++){
+steps[i].classList.add("active");
+}
+
+console.log("Dashboard Loaded");
+
 }
