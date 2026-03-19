@@ -53,6 +53,7 @@
 <!-- LEFT COLUMN -->
 <div class="left-col">
 
+<!-- STATS -->
 <section class="card">
 
 <div class="stats">
@@ -83,6 +84,7 @@
 
 
 
+<!-- ORDERS TABLE -->
 <section class="card">
 
 <div class="card-head">
@@ -96,13 +98,16 @@
 <tr>
 <th>Platform</th>
 <th>Order</th>
-<th>Status</th>
+<th>Payment</th>
+<th>Amount</th>
 <th>KM</th>
-<th>₹</th>
+<th>Profit</th>
+<th>Action</th>
 </tr>
 </thead>
 
 <tbody>
+<!-- Orders injected by dashboard.js -->
 </tbody>
 
 </table>
@@ -116,24 +121,22 @@
 <!-- RIGHT COLUMN -->
 <div class="right-col">
 
-<!-- 🔥 TRACKING (hidden by default) -->
-<section class="card" id="trackingBox" style="display:none;">
-
-<h3>Live Tracking</h3>
-
-<div class="steps">
-<div class="step">Accepted</div>
-<div class="step">Picked</div>
-<div class="step">Delivered</div>
-</div>
-
-</section>
-
-
 <section class="card note">
 
 <strong>Tip</strong>
 <p>Orders above ₹70 profit are auto-highlighted.</p>
+
+</section>
+
+<section class="card note">
+
+<strong>How it works</strong>
+<p>
+1. Accept the order<br>
+2. Navigate to pickup<br>
+3. Deliver to customer<br>
+4. Delivery fee credited to wallet
+</p>
 
 </section>
 

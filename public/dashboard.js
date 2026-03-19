@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Production Dashboard
+ * Vitaran - Dashboard (Delivery System Ready)
  ************************************************/
 
 let currentPlan = null;
@@ -7,8 +7,6 @@ let currentPlan = null;
 document.addEventListener("DOMContentLoaded", async () => {
 
 const token = localStorage.getItem("token");
-
-/* LOGIN CHECK */
 
 if(!token){
 window.location.href="login.html";
@@ -35,24 +33,21 @@ window.location.href="subscription.html";
 return;
 }
 
-currentPlan=data.user.plan;
+currentPlan = data.user.plan;
 
 /* PLAN BADGE */
 
-const badge=document.querySelector(".badge");
-
+const badge = document.querySelector(".badge");
 if(badge){
-badge.innerText=currentPlan+" Active";
+badge.innerText = currentPlan + " Active";
 }
 
-/* INIT */
+/* INIT DASHBOARD */
 
 initDashboard(currentPlan);
 
 }catch(err){
-
-console.log("Dashboard error:",err);
-
+console.log("Dashboard error:", err);
 }
 
 });
@@ -61,39 +56,29 @@ console.log("Dashboard error:",err);
 /* LOGOUT */
 
 function logout(){
-
 localStorage.removeItem("token");
 window.location.href="login.html";
-
 }
 
 
-/* ================= PLAN CONFIG ================= */
+/* ================= PLAN CONFIG (UNCHANGED) ================= */
 
-const PLAN_CONFIG={
+const PLAN_CONFIG = {
 
 "E-Commerce 1 Month":{platforms:["Amazon","Flipkart","Meesho","Myntra"],maxProfit:60},
-
 "E-Commerce 3 Months":{platforms:["Amazon","Flipkart","Meesho","Myntra"],maxProfit:70},
-
 "E-Commerce 12 Months":{platforms:["Amazon","Flipkart","Meesho","Myntra"],maxProfit:80},
 
 "Food 1 Month":{platforms:["Swiggy","Zomato"],maxProfit:80},
-
 "Food 3 Months":{platforms:["Swiggy","Zomato"],maxProfit:90},
-
 "Food 12 Months":{platforms:["Swiggy","Zomato"],maxProfit:100},
 
 "Grocery 1 Month":{platforms:["Zepto","Instamart","Blinkit"],maxProfit:80},
-
 "Grocery 3 Months":{platforms:["Zepto","Instamart","Blinkit"],maxProfit:90},
-
 "Grocery 12 Months":{platforms:["Zepto","Instamart","Blinkit"],maxProfit:100},
 
 "Food+Grocery 1 Month":{platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],maxProfit:90},
-
 "Food+Grocery 3 Months":{platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],maxProfit:100},
-
 "Food+Grocery 12 Months":{platforms:["Swiggy","Zomato","Zepto","Instamart","Blinkit"],maxProfit:110},
 
 "All-in-One 1 Month":{
@@ -118,10 +103,10 @@ maxProfit:120
 
 function initDashboard(userPlan){
 
-let config=PLAN_CONFIG[userPlan];
+let config = PLAN_CONFIG[userPlan];
 
 if(!config){
-config=PLAN_CONFIG["E-Commerce 1 Month"];
+config = PLAN_CONFIG["E-Commerce 1 Month"];
 }
 
 function random(min,max){
@@ -132,53 +117,55 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* LOGO */
+/* LOGO FIX */
 
 function platformLogo(name){
+const lower = name.toLowerCase();
+if(lower === "myntra") return "/logos/myntra.jpeg";
+return `/logos/${lower}.png`;
+}
 
-const lower=name.toLowerCase();
+/* PAYMENT TYPE */
 
-const logos={
-myntra:"/logos/myntra.jpeg"
-};
-
-return logos[lower] || `/logos/${lower}.png`;
-
+function paymentType(){
+return Math.random() > 0.5 ? "PAID" : "COD";
 }
 
 /* GENERATE ORDERS */
 
-const orders=[];
+const orders = [];
 
 for(let i=0;i<random(5,9);i++){
 
+const payment = paymentType();
+const amount = random(150,1000);
+
 orders.push({
 
-platform:randomFrom(config.platforms),
-
-orderId:"#VT"+random(1000,9999),
-
-km:(Math.random()*8+1).toFixed(1),
-
-profit:random(20,config.maxProfit)
+platform: randomFrom(config.platforms),
+orderId: "VT" + random(1000,9999),
+payment: payment,
+amount: amount,
+km: (Math.random()*8+1).toFixed(1),
+profit: random(20,config.maxProfit)
 
 });
 
 }
 
-/* SORT */
+/* SORT BY PROFIT */
 
 orders.sort((a,b)=>b.profit-a.profit);
 
-/* TABLE */
+/* TABLE RENDER */
 
-const tbody=document.querySelector(".table tbody");
+const tbody = document.querySelector(".table tbody");
 
 tbody.innerHTML="";
 
 orders.forEach((o,index)=>{
 
-const tr=document.createElement("tr");
+const tr = document.createElement("tr");
 
 if(index===0) tr.classList.add("priority");
 
@@ -188,18 +175,24 @@ tr.innerHTML=`
 ${o.platform}
 </td>
 
-<td>${o.orderId}</td>
+<td>#${o.orderId}</td>
 
 <td>
-<button class="btn accept" onclick="acceptOrder('${o.orderId}')">
-Accept
-</button>
+<span class="tag">${o.payment}</span>
 </td>
+
+<td>₹${o.amount}</td>
 
 <td>${o.km}</td>
 
 <td class="${o.profit>=70?'green':''}">
 ₹${o.profit}
+</td>
+
+<td>
+<button class="btn accept" onclick="acceptOrder('${o.orderId}','${o.payment}',${o.amount},${o.profit})">
+Accept
+</button>
 </td>
 `;
 
@@ -230,36 +223,12 @@ stats[3].innerText="₹"+random(3000,12000);
 
 /* ================= ACCEPT ORDER ================= */
 
-function acceptOrder(orderId){
+function acceptOrder(id,payment,amount,profit){
 
-console.log("Order accepted:",orderId);
+console.log("Order accepted:",id);
 
-/* SHOW TRACKING */
+/* 🔥 ORDER PAGE OPEN */
 
-const tracking=document.getElementById("trackingBox");
-
-tracking.style.display="block";
-
-/* RESET */
-
-const steps=document.querySelectorAll(".step");
-
-steps.forEach(s=>s.classList.remove("active"));
-
-/* ACCEPTED */
-
-steps[0].classList.add("active");
-
-/* PICKED */
-
-setTimeout(()=>{
-steps[1].classList.add("active");
-},3000);
-
-/* DELIVERED */
-
-setTimeout(()=>{
-steps[2].classList.add("active");
-},6000);
+window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
 
 }
