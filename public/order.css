@@ -1,0 +1,112 @@
+/* ================= RESET ================= */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui, Arial;
+}
+
+body{
+  background:#f3f9fd;
+  color:#222;
+}
+
+/* ================= HEADER ================= */
+.header{
+  background:linear-gradient(180deg,#eaf7ff 0%,#ffffff 100%);
+  padding:20px 30px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.05);
+}
+
+/* ================= MAIN ================= */
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:25px;
+}
+
+/* ================= CARD ================= */
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 8px 18px rgba(0,0,0,.04);
+  margin-bottom:20px;
+}
+
+/* ================= ORDER BOX ================= */
+.order-box h3{
+  margin-bottom:10px;
+  font-size:20px;
+}
+
+.order-box p{
+  margin:6px 0;
+  font-size:15px;
+}
+
+/* ================= MAP ================= */
+.map-box{
+  width:100%;
+  height:350px;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* ================= BUTTONS ================= */
+#buttons{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+}
+
+#buttons button{
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+/* COLORS */
+.pickup{
+  background:#ff9800;
+  color:#fff;
+}
+
+.picked{
+  background:#2196f3;
+  color:#fff;
+}
+
+.delivered{
+  background:#00c853;
+  color:#fff;
+}
+
+/* HOVER */
+#buttons button:hover{
+  transform:scale(1.05);
+  opacity:0.9;
+}
+
+/* DISABLED */
+button:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+/* ================= MOBILE ================= */
+@media(max-width:768px){
+
+  .container{
+    padding:15px;
+  }
+
+  #buttons{
+    flex-direction:column;
+  }
+
+}

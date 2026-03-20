@@ -1,8 +1,8 @@
 /************************************************
- * Order Page Logic
+ * Vitaran - Order Page Logic (Final)
  ************************************************/
 
-/* GET URL DATA */
+/* ================= GET URL DATA ================= */
 
 const params = new URLSearchParams(window.location.search);
 
@@ -11,7 +11,7 @@ const payment = params.get("payment");
 const amount = params.get("amount");
 const profit = params.get("profit");
 
-/* SET DATA */
+/* ================= SET DATA ================= */
 
 document.getElementById("orderId").innerText = "Order #" + orderId;
 document.getElementById("paymentType").innerText = payment;
@@ -21,70 +21,79 @@ document.getElementById("profit").innerText = profit;
 
 /* ================= MAP ================= */
 
-var map = new mappls.Map("map", {
-center: [28.6139, 77.2090], // Delhi
-zoom: 12
-});
+let map;
 
-/* DRIVER MARKER */
-new mappls.Marker({
-map: map,
-position: [28.6139,77.2090],
-title: "Driver"
-});
+function initMap(){
 
-/* PICKUP MARKER */
-new mappls.Marker({
-map: map,
-position: [28.6220,77.2100],
-title: "Pickup"
-});
+  map = new mappls.Map("map", {
+    center: [28.6139, 77.2090], // Delhi
+    zoom: 13
+  });
 
-/* DROP MARKER */
-new mappls.Marker({
-map: map,
-position: [28.6300,77.2200],
-title: "Drop"
-});
+  /* DRIVER */
+  new mappls.Marker({
+    map: map,
+    position: [28.6139, 77.2090],
+    title: "You"
+  });
+
+  /* PICKUP */
+  new mappls.Marker({
+    map: map,
+    position: [28.6220, 77.2100],
+    title: "Pickup"
+  });
+
+  /* DELIVERY */
+  new mappls.Marker({
+    map: map,
+    position: [28.6300, 77.2200],
+    title: "Delivery"
+  });
+
+}
+
+/* LOAD MAP */
+window.onload = initMap;
 
 
 /* ================= DELIVERY FLOW ================= */
 
 function arrived(){
 
-alert("Reached Pickup Location");
+  alert("📍 You reached pickup location");
 
-document.getElementById("pickedBtn").disabled = false;
+  document.getElementById("pickedBtn").disabled = false;
 
 }
 
 function picked(){
 
-alert("Order Picked");
+  alert("📦 Order picked successfully");
 
-document.getElementById("deliverBtn").disabled = false;
+  document.getElementById("deliverBtn").disabled = false;
 
 }
 
 function delivered(){
 
-if(payment === "COD"){
+  /* COD CASE */
+  if(payment === "COD"){
 
-const cash = prompt("Enter cash received:");
+    const cash = prompt("Enter cash received:");
 
-if(!cash){
-alert("Enter amount");
-return;
-}
+    if(!cash){
+      alert("Please enter amount");
+      return;
+    }
 
-alert("Cash ₹" + cash + " collected");
+    alert("💰 ₹" + cash + " collected");
+  }
 
-}
+  /* FINAL */
+  alert("✅ Delivery Completed!\nEarnings: ₹" + profit);
 
-alert("Delivery Completed! ₹" + profit + " earned");
-
-/* GO TO DASHBOARD */
-
-window.location.href = "dashboard.html";
+  /* BACK TO DASHBOARD */
+  window.location.href = "dashboard.html";
 
 }
