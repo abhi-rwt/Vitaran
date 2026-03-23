@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Order Page Logic (Final)
+ * Order Page Logic
  ************************************************/
 
 /* ================= GET URL DATA ================= */
@@ -19,81 +19,73 @@ document.getElementById("amount").innerText = amount;
 document.getElementById("profit").innerText = profit;
 
 
-/* ================= MAP ================= */
+/* ================= MAP FIX ================= */
 
-let map;
+function waitForMappls(callback){
+  if(typeof mappls !== "undefined"){
+    callback();
+  } else {
+    setTimeout(() => waitForMappls(callback), 300);
+  }
+}
 
 function initMap(){
 
-  map = new mappls.Map("map", {
-    center: [28.6139, 77.2090], // Delhi
+  var map = new mappls.Map("map", {
+    center: [28.6139, 77.2090],
     zoom: 13
   });
 
-  /* DRIVER */
   new mappls.Marker({
     map: map,
-    position: [28.6139, 77.2090],
+    position: [28.6139,77.2090],
     title: "You"
   });
 
-  /* PICKUP */
   new mappls.Marker({
     map: map,
-    position: [28.6220, 77.2100],
+    position: [28.6220,77.2100],
     title: "Pickup"
   });
 
-  /* DELIVERY */
   new mappls.Marker({
     map: map,
-    position: [28.6300, 77.2200],
+    position: [28.6300,77.2200],
     title: "Delivery"
   });
 
 }
 
-/* LOAD MAP */
-window.onload = initMap;
+/* 🔥 WAIT UNTIL MAPPLS LOADS */
+window.onload = () => {
+  waitForMappls(initMap);
+};
 
 
 /* ================= DELIVERY FLOW ================= */
 
 function arrived(){
-
-  alert("📍 You reached pickup location");
-
+  alert("📍 Reached Pickup");
   document.getElementById("pickedBtn").disabled = false;
-
 }
 
 function picked(){
-
-  alert("📦 Order picked successfully");
-
+  alert("📦 Order Picked");
   document.getElementById("deliverBtn").disabled = false;
-
 }
 
 function delivered(){
 
-  /* COD CASE */
   if(payment === "COD"){
-
     const cash = prompt("Enter cash received:");
-
     if(!cash){
-      alert("Please enter amount");
+      alert("Enter amount");
       return;
     }
-
     alert("💰 ₹" + cash + " collected");
   }
 
-  /* FINAL */
   alert("✅ Delivery Completed!\nEarnings: ₹" + profit);
 
-  /* BACK TO DASHBOARD */
   window.location.href = "dashboard.html";
-
 }
