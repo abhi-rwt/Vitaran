@@ -4,62 +4,52 @@
 <meta charset="UTF-8">
 <title>Order Delivery - Vitaran</title>
 
-<!-- CSS -->
 <link rel="stylesheet" href="order.css">
 
-<!-- ✅ MAPPLS (API KEY ADDED) -->
-<script src="https://apis.mappls.com/advancedmaps/api/ynvozjacditswkrzyjlwnatcflinaoupnszb/map_sdk?layer=vector&v=3.0"></script>
+<!-- ✅ LEAFLET CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<!-- JS -->
+<!-- ✅ LEAFLET JS (NO DEFER ISSUE) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- ✅ FALLBACK CDN (agar upar wala fail ho jaye) -->
+<script>
+if(typeof L === "undefined"){
+  document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"><\/script>');
+}
+</script>
+
+<!-- YOUR JS -->
 <script src="order.js" defer></script>
+
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
 <header class="header">
   <h2>🚚 Order Delivery</h2>
 </header>
 
-<!-- ================= MAIN ================= -->
 <main class="container">
 
-  <!-- 🔥 ORDER INFO -->
-  <section class="card order-box">
-    <h3 id="orderId">Order #</h3>
+<section class="card order-box">
+<h3 id="orderId"></h3>
+<p><strong>Payment:</strong> <span id="paymentType"></span></p>
+<p><strong>Amount:</strong> ₹<span id="amount"></span></p>
+<p><strong>Profit:</strong> ₹<span id="profit"></span></p>
+</section>
 
-    <p><strong>Payment:</strong> <span id="paymentType"></span></p>
-    <p><strong>Amount:</strong> ₹<span id="amount"></span></p>
-    <p><strong>Profit:</strong> 
-      <span style="color:#00c853; font-weight:600;">
-        ₹<span id="profit"></span>
-      </span>
-    </p>
-  </section>
+<section class="card">
+<div id="map" class="map-box" style="height:400px;"></div>
+</section>
 
-  <!-- 🗺 MAP -->
-  <section class="card">
-    <div id="map" class="map-box"></div>
-  </section>
-
-  <!-- 🚀 ACTION BUTTONS -->
-  <section class="card">
-    <div id="buttons">
-
-      <button class="pickup" onclick="arrived()">
-        📍 Arrived
-      </button>
-
-      <button class="picked" onclick="picked()" disabled id="pickedBtn">
-        📦 Picked
-      </button>
-
-      <button class="delivered" onclick="delivered()" disabled id="deliverBtn">
-        ✅ Delivered
-      </button>
-
-    </div>
-  </section>
+<section class="card">
+<div id="buttons">
+<button class="pickup" onclick="arrived()">📍 Arrived</button>
+<button class="picked" onclick="picked()" disabled id="pickedBtn">📦 Picked</button>
+<button class="delivered" onclick="delivered()" disabled id="deliverBtn">✅ Delivered</button>
+</div>
+</section>
 
 </main>
 
