@@ -1,6 +1,7 @@
 /************************************************
- * Vitaran - Dashboard (Delivery System Ready)
- ************************************************/
+
+* Vitaran - Dashboard (Delivery System Ready)
+  ************************************************/
 
 let currentPlan = null;
 
@@ -52,7 +53,6 @@ console.log("Dashboard error:", err);
 
 });
 
-
 /* LOGOUT */
 
 function logout(){
@@ -60,8 +60,7 @@ localStorage.removeItem("token");
 window.location.href="login.html";
 }
 
-
-/* ================= PLAN CONFIG (UNCHANGED) ================= */
+/* ================= PLAN CONFIG ================= */
 
 const PLAN_CONFIG = {
 
@@ -98,7 +97,6 @@ maxProfit:120
 
 };
 
-
 /* ================= DASHBOARD ================= */
 
 function initDashboard(userPlan){
@@ -117,12 +115,12 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* LOGO FIX */
+/* LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
 if(lower === "myntra") return "/logos/myntra.jpeg";
-return `/logos/${lower}.png`;
+return "/logos/${lower}.png";
 }
 
 /* PAYMENT TYPE */
@@ -139,6 +137,13 @@ for(let i=0;i<random(5,9);i++){
 
 const payment = paymentType();
 const amount = random(150,1000);
+const km = (Math.random()*8+1).toFixed(1);
+
+const FUEL_COST = 8;
+
+const profit = Math.floor(amount - (km * FUEL_COST));
+
+const createdAt = Date.now() - random(1,15)*60000;
 
 orders.push({
 
@@ -146,16 +151,27 @@ platform: randomFrom(config.platforms),
 orderId: "VT" + random(1000,9999),
 payment: payment,
 amount: amount,
-km: (Math.random()*8+1).toFixed(1),
-profit: random(20,config.maxProfit)
+km: km,
+profit: profit,
+createdAt: createdAt
 
 });
 
 }
 
-/* SORT BY PROFIT */
+/* PRIORITY SYSTEM */
 
-orders.sort((a,b)=>b.profit-a.profit);
+orders.forEach(o => {
+
+o.waitingTime = Math.floor((Date.now() - o.createdAt)/60000);
+
+o.priorityScore = (o.profit * 0.6) + (o.waitingTime * 2);
+
+});
+
+/* SORT */
+
+orders.sort((a,b)=>b.priorityScore - a.priorityScore);
 
 /* TABLE RENDER */
 
@@ -170,36 +186,25 @@ const tr = document.createElement("tr");
 if(index===0) tr.classList.add("priority");
 
 tr.innerHTML=`
+
 <td>
 <img src="${platformLogo(o.platform)}">
 ${o.platform}
-</td>
-
-<td>#${o.orderId}</td>
-
-<td>
+</td><td>#${o.orderId}</td><td>
 <span class="tag">${o.payment}</span>
-</td>
-
-<td>₹${o.amount}</td>
-
-<td>${o.km}</td>
-
-<td class="${o.profit>=70?'green':''}">
+${o.waitingTime>10 ? '<span class="tag urgent">URGENT</span>' : ''}
+</td><td>₹${o.amount}</td><td>${o.km} km</td><td class="${o.waitingTime>10 ? 'urgent' : (o.profit>=70?'green':'')}">
 ₹${o.profit}
-</td>
-
-<td>
+<br>
+<small>${o.waitingTime} min</small>
+</td><td>
 <button class="btn accept" onclick="acceptOrder('${o.orderId}','${o.payment}',${o.amount},${o.profit})">
 Accept
 </button>
 </td>
-`;
-
-tbody.appendChild(tr);
+`;tbody.appendChild(tr);
 
 });
-
 
 /* STATS */
 
@@ -220,15 +225,12 @@ stats[3].innerText="₹"+random(3000,12000);
 
 }
 
-
 /* ================= ACCEPT ORDER ================= */
 
 function acceptOrder(id,payment,amount,profit){
 
 console.log("Order accepted:",id);
 
-/* 🔥 ORDER PAGE OPEN */
-
-window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
+window.location.href = "order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}";
 
 }
