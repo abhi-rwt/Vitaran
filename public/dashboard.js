@@ -5,7 +5,7 @@
 
 let currentPlan = null;
 
-// track last order type (HIGH / NORMAL)
+// track last order type
 let lastOrderType = localStorage.getItem("lastOrderType") || "NORMAL";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -52,8 +52,6 @@ console.log("Dashboard error:", err);
 
 });
 
-/* LOGOUT */
-
 function logout(){
 localStorage.removeItem("token");
 window.location.href="login.html";
@@ -62,13 +60,16 @@ window.location.href="login.html";
 /* ================= PLAN CONFIG ================= */
 
 const PLAN_CONFIG = {
+
 "E-Commerce 1 Month":{platforms:["Amazon","Flipkart","Meesho","Myntra"],maxProfit:60},
 "Food 1 Month":{platforms:["Swiggy","Zomato"],maxProfit:80},
 "Grocery 1 Month":{platforms:["Zepto","Instamart","Blinkit"],maxProfit:80},
+
 "All-in-One 1 Month":{
 platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
 maxProfit:100
 }
+
 };
 
 /* ================= DASHBOARD ================= */
@@ -85,12 +86,12 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* FIXED LOGO */
+/* LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
 if(lower === "myntra") return "/logos/myntra.jpeg";
-return "/logos/${lower}.png"; // FIXED
+return "/logos/${lower}.png";
 }
 
 /* PAYMENT */
@@ -107,14 +108,13 @@ for(let i=0;i<random(5,9);i++){
 
 const payment = paymentType();
 const amount = random(150,1000);
-const km = (Math.random()*8+1).toFixed(1);
 
 orders.push({
 platform: randomFrom(config.platforms),
 orderId: "VT" + random(1000,9999),
-payment,
-amount,
-km,
+payment: payment,
+amount: amount,
+km: (Math.random()*8+1).toFixed(1),
 profit: random(20,config.maxProfit)
 });
 
@@ -132,14 +132,17 @@ tbody.innerHTML="";
 orders.forEach((o,index)=>{
 
 const tr = document.createElement("tr");
+
 if(index===0) tr.classList.add("priority");
 
-/* HIGH LOGIC */
+/* ✅ HIGH-LOW LOGIC */
+
 let isHigh = o.profit >= 70;
 let disableHigh = (lastOrderType === "HIGH" && isHigh);
 
-/* BUTTON FIX */
-let btnHTML;
+/* SAFE BUTTON */
+
+let btnHTML = '';
 
 if(disableHigh){
 btnHTML = '<button class="btn disabled">Locked</button>';
@@ -168,6 +171,7 @@ ${btnHTML}
 const stats=document.querySelectorAll(".stat strong");
 
 if(stats.length>=4){
+
 const active=random(3,9);
 const completed=random(70,120);
 const total=active+completed;
@@ -176,6 +180,7 @@ stats[0].innerText=total;
 stats[1].innerText=active;
 stats[2].innerText=completed;
 stats[3].innerText="₹"+random(3000,12000);
+
 }
 
 }
@@ -187,13 +192,13 @@ function acceptOrder(id,payment,amount,profit,isHigh){
 console.log("Order accepted:",id);
 
 /* SAVE TYPE */
+
 if(isHigh){
 localStorage.setItem("lastOrderType","HIGH");
 }else{
 localStorage.setItem("lastOrderType","NORMAL");
 }
 
-/* FIXED URL */
 window.location.href = "order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}";
 
 }
