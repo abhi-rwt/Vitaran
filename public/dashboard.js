@@ -86,7 +86,7 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* LOGO */
+/* FIXED LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
@@ -135,14 +135,14 @@ const tr = document.createElement("tr");
 
 if(index===0) tr.classList.add("priority");
 
-/* ✅ HIGH-LOW LOGIC */
+/* HIGH-LOW LOGIC */
 
 let isHigh = o.profit >= 70;
 let disableHigh = (lastOrderType === "HIGH" && isHigh);
 
 /* SAFE BUTTON */
 
-let btnHTML = '';
+let btnHTML;
 
 if(disableHigh){
 btnHTML = '<button class="btn disabled">Locked</button>';
@@ -190,8 +190,6 @@ stats[3].innerText="₹"+random(3000,12000);
 function acceptOrder(id,payment,amount,profit,isHigh){
 
 console.log("Order accepted:",id);
-
-/* SAVE TYPE */
 
 if(isHigh){
 localStorage.setItem("lastOrderType","HIGH");
