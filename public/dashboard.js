@@ -86,7 +86,7 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* FIXED LOGO */
+/* ✅ FIXED LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
@@ -140,7 +140,7 @@ if(index===0) tr.classList.add("priority");
 let isHigh = o.profit >= 70;
 let disableHigh = (lastOrderType === "HIGH" && isHigh);
 
-/* SAFE BUTTON */
+/* ✅ FIXED BUTTON */
 
 let btnHTML;
 
@@ -197,6 +197,7 @@ localStorage.setItem("lastOrderType","HIGH");
 localStorage.setItem("lastOrderType","NORMAL");
 }
 
+/* ✅ FIXED URL */
 window.location.href = "order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}";
 
 }
