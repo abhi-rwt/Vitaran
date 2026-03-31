@@ -1,8 +1,12 @@
 /************************************************
- * Vitaran - Dashboard (Delivery System Ready)
- ************************************************/
+
+* Vitaran - Dashboard (Delivery System Ready)
+  ************************************************/
 
 let currentPlan = null;
+
+// track last order type (HIGH / NORMAL)
+let lastOrderType = localStorage.getItem("lastOrderType") || "NORMAL";
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -52,7 +56,6 @@ console.log("Dashboard error:", err);
 
 });
 
-
 /* LOGOUT */
 
 function logout(){
@@ -60,8 +63,7 @@ localStorage.removeItem("token");
 window.location.href="login.html";
 }
 
-
-/* ================= PLAN CONFIG (UNCHANGED) ================= */
+/* ================= PLAN CONFIG ================= */
 
 const PLAN_CONFIG = {
 
@@ -98,7 +100,6 @@ maxProfit:120
 
 };
 
-
 /* ================= DASHBOARD ================= */
 
 function initDashboard(userPlan){
@@ -117,15 +118,15 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* LOGO FIX */
+/* LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
 if(lower === "myntra") return "/logos/myntra.jpeg";
-return `/logos/${lower}.png`;
+return "/logos/${lower}.png";
 }
 
-/* PAYMENT TYPE */
+/* PAYMENT */
 
 function paymentType(){
 return Math.random() > 0.5 ? "PAID" : "COD";
@@ -139,6 +140,7 @@ for(let i=0;i<random(5,9);i++){
 
 const payment = paymentType();
 const amount = random(150,1000);
+const km = (Math.random()*8+1).toFixed(1);
 
 orders.push({
 
@@ -146,21 +148,20 @@ platform: randomFrom(config.platforms),
 orderId: "VT" + random(1000,9999),
 payment: payment,
 amount: amount,
-km: (Math.random()*8+1).toFixed(1),
+km: km,
 profit: random(20,config.maxProfit)
 
 });
 
 }
 
-/* SORT BY PROFIT */
+/* SORT */
 
 orders.sort((a,b)=>b.profit-a.profit);
 
-/* TABLE RENDER */
+/* TABLE */
 
 const tbody = document.querySelector(".table tbody");
-
 tbody.innerHTML="";
 
 orders.forEach((o,index)=>{
@@ -169,37 +170,30 @@ const tr = document.createElement("tr");
 
 if(index===0) tr.classList.add("priority");
 
+/* HIGH LOGIC */
+let isHigh = o.profit >= 60;
+let disableHigh = (lastOrderType === "HIGH" && isHigh);
+
+/* BUTTON */
+let btnHTML = disableHigh
+? "<button class="btn disabled">Locked</button>"
+: "<button class="btn accept" onclick="acceptOrder('${o.orderId}','${o.payment}',${o.amount},${o.profit},${isHigh})">Accept</button>";
+
 tr.innerHTML=`
+
 <td>
 <img src="${platformLogo(o.platform)}">
 ${o.platform}
-</td>
-
-<td>#${o.orderId}</td>
-
-<td>
+</td><td>#${o.orderId}</td><td>
 <span class="tag">${o.payment}</span>
-</td>
-
-<td>₹${o.amount}</td>
-
-<td>${o.km}</td>
-
-<td class="${o.profit>=70?'green':''}">
+</td><td>₹${o.amount}</td><td>${o.km}</td><td class="${o.profit>=70?'green':''}">
 ₹${o.profit}
+</td><td>
+${btnHTML}
 </td>
-
-<td>
-<button class="btn accept" onclick="acceptOrder('${o.orderId}','${o.payment}',${o.amount},${o.profit})">
-Accept
-</button>
-</td>
-`;
-
-tbody.appendChild(tr);
+`;tbody.appendChild(tr);
 
 });
-
 
 /* STATS */
 
@@ -220,15 +214,19 @@ stats[3].innerText="₹"+random(3000,12000);
 
 }
 
+/* ================= ACCEPT ================= */
 
-/* ================= ACCEPT ORDER ================= */
-
-function acceptOrder(id,payment,amount,profit){
+function acceptOrder(id,payment,amount,profit,isHigh){
 
 console.log("Order accepted:",id);
 
-/* 🔥 ORDER PAGE OPEN */
+/* SAVE TYPE */
+if(isHigh){
+localStorage.setItem("lastOrderType","HIGH");
+}else{
+localStorage.setItem("lastOrderType","NORMAL");
+}
 
-window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
+window.location.href = "order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}";
 
 }
