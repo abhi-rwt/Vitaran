@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (Fixed & Updated)
+ * Vitaran - Dashboard (Logistics Optimized)
  ************************************************/
 
 let currentPlan = null;
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* LOGOUT */
 function logout() {
     localStorage.removeItem("token");
-    localStorage.removeItem("lastOrderType"); // Clear state on logout
+    localStorage.removeItem("lastOrderType");
     window.location.href = "login.html";
 }
 
@@ -105,30 +105,41 @@ function initDashboard(userPlan) {
         return `/logos/${lower}.png`;
     }
 
-    /* GENERATE ORDERS */
+    /* 🚚 REALISTIC LOGISTICS LOGIC 🚚 */
+    const BASE_PAY = 25;       // Minimum pickup fee
+    const PER_KM_RATE = 8;     // Fuel & Maintenance per KM
+    const COMM_RATE = 0.02;    // 2% Bonus of Order Amount
+
     const orders = [];
     for (let i = 0; i < random(5, 9); i++) {
-        const payment = Math.random() > 0.5 ? "PAID" : "COD";
         const amount = random(150, 1000);
-        const profit = random(20, config.maxProfit);
+        const km = parseFloat((Math.random() * 8 + 1).toFixed(1));
+
+        // Calculation: Base + (Distance * Rate) + (Order Commission)
+        let calculatedProfit = Math.round(BASE_PAY + (km * PER_KM_RATE) + (amount * COMM_RATE));
+
+        // Sync with Plan limit
+        if (calculatedProfit > config.maxProfit) {
+            calculatedProfit = config.maxProfit;
+        }
 
         orders.push({
             platform: randomFrom(config.platforms),
             orderId: "VT" + random(1000, 9999),
-            payment: payment,
+            payment: Math.random() > 0.5 ? "PAID" : "COD",
             amount: amount,
-            km: (Math.random() * 8 + 1).toFixed(1),
-            profit: profit
+            km: km,
+            profit: calculatedProfit
         });
     }
 
+    // Sort by profit (Higher profit on top)
     orders.sort((a, b) => b.profit - a.profit);
 
     /* TABLE RENDER */
     const tbody = document.querySelector(".table tbody");
     tbody.innerHTML = "";
 
-    // Track state for High Profit lock
     const lastOrderType = localStorage.getItem("lastOrderType");
 
     orders.forEach((o, index) => {
@@ -146,12 +157,11 @@ function initDashboard(userPlan) {
             <td>#${o.orderId}</td>
             <td><span class="tag">${o.payment}</span></td>
             <td>₹${o.amount}</td>
-            <td>${o.km}</td>
+            <td>${o.km} KM</td>
             <td class="${isHighProfit ? 'green' : ''}">₹${o.profit}</td>
             <td class="action-cell"></td>
         `;
 
-        // Safe Button Creation
         const btn = document.createElement("button");
         btn.className = "btn accept";
         btn.innerText = isDisabled ? "Locked" : "Accept";
@@ -168,7 +178,7 @@ function initDashboard(userPlan) {
         tbody.appendChild(tr);
     });
 
-    /* UPDATE STATS */
+    /* STATS */
     const stats = document.querySelectorAll(".stat strong");
     if (stats.length >= 4) {
         const active = random(3, 9);
@@ -184,12 +194,7 @@ function initDashboard(userPlan) {
 /* ================= ACCEPT ORDER ================= */
 
 function acceptOrder(id, payment, amount, profit) {
-    console.log("Order accepted:", id);
-
-    // Update state logic
     const currentType = profit >= 70 ? "HIGH" : "NORMAL";
     localStorage.setItem("lastOrderType", currentType);
-
-    /* REDIRECT */
     window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
 }
