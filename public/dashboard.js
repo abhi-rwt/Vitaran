@@ -81,12 +81,12 @@ function randomFrom(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* FIXED LOGO */
+/* ✅ FIXED LOGO */
 
 function platformLogo(name){
 const lower = name.toLowerCase();
 if(lower === "myntra") return "/logos/myntra.jpeg";
-return "/logos/${lower}.png"; // FIXED
+return "/logos/${lower}.png";
 }
 
 /* PAYMENT */
@@ -103,17 +103,21 @@ for(let i=0;i<random(5,9);i++){
 
 const payment = paymentType();
 const amount = random(150,1000);
-const km = (Math.random()*8+1).toFixed(1);
+const km = parseFloat((Math.random()*8+1).toFixed(1));
 
-/* ✅ REALISTIC PROFIT */
+/* ✅ FINAL REALISTIC PROFIT */
 
-const BASE_PAY = random(20,40);
-const PER_KM = random(5,8);
+const BASE_PAY = random(20,30);
+const PER_KM = random(4,6);
 
 let profit = Math.floor(BASE_PAY + (km * PER_KM));
 
+/* LIMIT PROFIT */
+if(profit > 80) profit = random(60,80);
+
+/* COD BONUS */
 if(payment === "COD"){
-profit += 10; // bonus
+profit += 5;
 }
 
 /* WAITING TIME */
@@ -161,7 +165,7 @@ ${o.platform}
 </td><td>#${o.orderId}</td><td>
 <span class="tag">${o.payment}</span>
 ${o.waitingTime>10 ? '<span class="tag urgent">URGENT</span>' : ''}
-</td><td>₹${o.amount}</td><td>${o.km} km</td><td class="${o.waitingTime>10 ? 'urgent' : (o.profit>=80?'green':'')}">
+</td><td>₹${o.amount}</td><td>${o.km} km</td><td class="${o.waitingTime>10 ? 'urgent' : (o.profit>=70?'green':'')}">
 ₹${o.profit}
 <br>
 <small>${o.waitingTime} min</small>
@@ -197,7 +201,7 @@ function acceptOrder(id,payment,amount,profit){
 
 console.log("Order accepted:",id);
 
-/* FIXED URL */
+/* ✅ FIXED URL */
 window.location.href = "order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}";
 
 }
