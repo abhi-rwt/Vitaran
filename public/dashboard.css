@@ -48,7 +48,7 @@ align-items:center;
 gap:14px;
 }
 
-/* PLAN BADGE */
+/* BADGE */
 
 .badge{
 background:#e8f1ff;
@@ -59,7 +59,7 @@ font-size:13px;
 font-weight:600;
 }
 
-/* BUTTONS */
+/* ================= BUTTONS ================= */
 
 .btn{
 padding:10px 18px;
@@ -88,8 +88,6 @@ color:#1e88ff;
 background:#dce7ff;
 }
 
-/* 🔥 ORDER ACCEPT BUTTON */
-
 .btn.accept{
 background:#0a58ff;
 color:#fff;
@@ -110,15 +108,11 @@ margin:auto;
 padding:30px;
 }
 
-/* GRID */
-
 .grid{
 display:grid;
 grid-template-columns:2fr 1fr;
 gap:25px;
 }
-
-/* CARD */
 
 .card{
 background:#fff;
@@ -128,7 +122,7 @@ box-shadow:0 8px 18px rgba(0,0,0,.04);
 margin-bottom:22px;
 }
 
-/* PROFILE CARD */
+/* PROFILE */
 
 .profile-card{
 display:flex;
@@ -195,8 +189,6 @@ vertical-align:middle;
 margin-right:6px;
 }
 
-/* PRIORITY ORDER */
-
 .priority{
 background:#e9fbf2;
 border-left:6px solid #00c853;
@@ -208,30 +200,11 @@ color:#00a65a;
 font-weight:bold;
 }
 
-/* STATUS TAG */
-
 .tag{
 padding:4px 10px;
 border-radius:14px;
 font-size:12px;
 font-weight:500;
-}
-
-/* STATUS COLORS */
-
-.accepted{
-background:#ede7f6;
-color:#5b3cc4;
-}
-
-.picked{
-background:#fff3cd;
-color:#9c7c00;
-}
-
-.delivered{
-background:#e3f2fd;
-color:#0a58ff;
 }
 
 /* ================= TRACKING ================= */
@@ -257,11 +230,93 @@ background:#0a58ff;
 color:#fff;
 }
 
-/* NOTE CARD */
+/* NOTE */
 
 .note{
 background:#f7faff;
 font-size:14px;
+}
+
+/* ================= POPUP ================= */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,0.4);
+backdrop-filter:blur(6px);
+z-index:999;
+animation:fadeIn .3s ease;
+}
+
+.modal-box{
+background:#ffffff;
+padding:28px;
+border-radius:16px;
+width:340px;
+text-align:center;
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
+animation:popUp .35s ease;
+}
+
+.modal-box h2{
+margin-bottom:10px;
+}
+
+.modal-box p{
+font-size:14px;
+color:#666;
+margin-bottom:10px;
+}
+
+.modal-box input,
+.modal-box select{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:14px;
+}
+
+.modal-box button{
+margin-top:16px;
+width:100%;
+padding:12px;
+background:#1e88ff;
+color:#fff;
+border:none;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+transition:.2s;
+}
+
+.modal-box button:hover{
+background:#0f6de2;
+}
+
+/* ANIMATION */
+
+@keyframes popUp{
+0%{
+transform:scale(0.8);
+opacity:0;
+}
+100%{
+transform:scale(1);
+opacity:1;
+}
+}
+
+@keyframes fadeIn{
+from{opacity:0;}
+to{opacity:1;}
 }
 
 /* ================= MOBILE ================= */

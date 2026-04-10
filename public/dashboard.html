@@ -41,7 +41,7 @@
 <p>Add documents & vehicle details to unlock more orders.</p>
 </div>
 
-<button class="btn primary">Complete Profile</button>
+<button class="btn primary" onclick="openVerify()">Complete Profile</button>
 
 </section>
 
@@ -146,6 +146,31 @@
 </section>
 
 </main>
+
+
+<!-- 🔥 VERIFY POPUP -->
+<div id="verifyModal" class="modal" style="display:none;">
+
+  <div class="modal-box">
+
+    <h2>Complete Your Profile</h2>
+    <p>Add your details to start receiving orders</p>
+
+    <input type="file" id="profilePhoto">
+
+    <select id="idType">
+      <option value="">Select ID Proof</option>
+      <option value="aadhaar">Aadhaar Card</option>
+      <option value="pan">PAN Card</option>
+    </select>
+
+    <input type="text" id="idNumber" placeholder="Enter ID Number">
+
+    <button onclick="verifyUser()">Complete Verification</button>
+
+  </div>
+
+</div>
 
 </body>
 </html>
