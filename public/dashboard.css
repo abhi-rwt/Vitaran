@@ -1,3 +1,5 @@
+/* ================= RESET ================= */
+
 *{
 margin:0;
 padding:0;
@@ -9,6 +11,7 @@ body{
 background:#f3f9fd;
 color:#222;
 }
+
 
 /* ================= HEADER ================= */
 
@@ -57,7 +60,8 @@ object-fit:cover;
 border:2px solid #1e88ff;
 }
 
-/* BADGE */
+
+/* ================= BADGE ================= */
 
 .badge{
 background:#e8f1ff;
@@ -68,6 +72,7 @@ font-size:13px;
 font-weight:600;
 }
 
+
 /* ================= BUTTON ================= */
 
 .btn{
@@ -76,7 +81,7 @@ border-radius:12px;
 font-size:14px;
 border:none;
 cursor:pointer;
-transition:.2s;
+transition:.25s;
 }
 
 .btn.primary{
@@ -109,6 +114,7 @@ font-size:12px;
 background:#0847c5;
 }
 
+
 /* ================= MAIN ================= */
 
 .container{
@@ -123,7 +129,8 @@ grid-template-columns:2fr 1fr;
 gap:25px;
 }
 
-/* CARD */
+
+/* ================= CARD ================= */
 
 .card{
 background:#fff;
@@ -133,13 +140,15 @@ box-shadow:0 8px 18px rgba(0,0,0,.04);
 margin-bottom:22px;
 }
 
-/* PROFILE */
+
+/* ================= PROFILE ================= */
 
 .profile-card{
 display:flex;
 justify-content:space-between;
 align-items:center;
 }
+
 
 /* ================= STATS ================= */
 
@@ -165,6 +174,7 @@ margin-top:6px;
 background:#e8f1ff;
 color:#0a58ff;
 }
+
 
 /* ================= TABLE ================= */
 
@@ -218,25 +228,60 @@ border-radius:14px;
 font-size:12px;
 }
 
+
 /* ================= MAP ================= */
 
-.map-card{
-height:320px;
-display:flex;
-flex-direction:column;
-gap:10px;
+.map-box{
+height:100%;
+background:#fff;
+border-radius:14px;
+overflow:hidden;
+box-shadow:0 8px 18px rgba(0,0,0,.05);
+transition:.4s;
 }
 
-#mapPreview{
-flex:1;
-border-radius:12px;
-background:linear-gradient(135deg,#e3f2fd,#ffffff);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:14px;
-color:#555;
+#map{
+height:500px;
+width:100%;
 }
+
+/* 🔥 FULL SCREEN MAP */
+
+.map-full{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:999;
+background:#fff;
+animation:zoomMap .4s ease;
+}
+
+.map-full #map{
+height:100%;
+}
+
+/* MAP ANIMATION */
+
+@keyframes zoomMap{
+from{
+transform:scale(.95);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+
+/* ================= TABLE HIDE ANIMATION ================= */
+
+#ordersCard{
+transition:all .3s ease;
+}
+
 
 /* ================= POPUP ================= */
 
@@ -266,8 +311,6 @@ box-shadow:0 25px 60px rgba(0,0,0,0.25);
 animation:popUp .35s ease;
 }
 
-/* HEADINGS */
-
 .modal-box h2{
 margin-bottom:6px;
 font-size:20px;
@@ -280,8 +323,6 @@ color:#666;
 margin-bottom:16px;
 }
 
-/* LABEL */
-
 .input-label{
 display:block;
 font-size:12px;
@@ -291,12 +332,10 @@ font-weight:600;
 text-align:left;
 }
 
-/* INPUT */
-
 .modal-box input,
 .modal-box select{
 width:100%;
-padding:11px;
+padding:10px;
 border-radius:10px;
 border:1px solid #ddd;
 margin-bottom:12px;
@@ -305,15 +344,11 @@ outline:none;
 transition:.2s;
 }
 
-/* FOCUS */
-
 .modal-box input:focus,
 .modal-box select:focus{
 border-color:#0a58ff;
 box-shadow:0 0 0 2px rgba(10,88,255,0.15);
 }
-
-/* BUTTON */
 
 .modal-box button{
 width:100%;
@@ -333,7 +368,7 @@ transform:translateY(-2px);
 box-shadow:0 10px 20px rgba(10,88,255,0.3);
 }
 
-/* PHOTO */
+/* PHOTO PREVIEW */
 
 #preview{
 display:none;
@@ -344,6 +379,7 @@ object-fit:cover;
 margin:10px auto 14px;
 border:3px solid #eaf1ff;
 }
+
 
 /* ================= ANIMATION ================= */
 
@@ -362,6 +398,7 @@ transform:scale(1);
 opacity:1;
 }
 }
+
 
 /* ================= MOBILE ================= */
 
@@ -387,6 +424,10 @@ padding:18px;
 
 .container{
 padding:20px;
+}
+
+#map{
+height:300px;
 }
 
 }

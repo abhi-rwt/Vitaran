@@ -1,8 +1,11 @@
 /************************************************
- * Vitaran - Dashboard (ULTRA PRO FINAL)
+ * Vitaran - Dashboard (ULTRA FINAL VERSION)
  ************************************************/
 
 let currentPlan = null;
+let map;
+
+/* ================= INIT ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -14,56 +17,61 @@ if (!token) {
 }
 
 try {
-    const res = await fetch("/api/auth/me", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token })
-    });
 
-    const data = await res.json();
+const res = await fetch("/api/auth/me", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ token })
+});
 
-    if (!data.success) {
-        window.location.href = "login.html";
-        return;
-    }
+const data = await res.json();
 
-    /* 🔥 POPUP FIRST TIME */
-    if(localStorage.getItem("isVerified") !== "true"){
-        setTimeout(()=>{
-            document.getElementById("verifyModal").style.display = "flex";
-        },300);
-    }
+if (!data.success) {
+window.location.href = "login.html";
+return;
+}
 
-    /* 🔥 HIDE PROFILE CARD */
-    if(localStorage.getItem("isVerified") === "true"){
-        const card = document.querySelector(".profile-card");
-        if(card) card.style.display = "none";
-    }
+/* 🔥 VERIFY POPUP */
+if(localStorage.getItem("isVerified") !== "true"){
+setTimeout(()=>{
+document.getElementById("verifyModal").style.display = "flex";
+},300);
+}
 
-    /* 🔥 LOAD PHOTO */
-    const savedPhoto = localStorage.getItem("profilePhoto");
-    if(savedPhoto){
-        const img = document.getElementById("userPhoto");
-        if(img) img.src = savedPhoto;
-    }
+/* 🔥 HIDE PROFILE CARD */
+if(localStorage.getItem("isVerified") === "true"){
+const card = document.querySelector(".profile-card");
+if(card) card.style.display = "none";
+}
 
-    if (!data.user.plan) {
-        window.location.href = "subscription.html";
-        return;
-    }
+/* 🔥 LOAD PROFILE PHOTO */
+const savedPhoto = localStorage.getItem("profilePhoto");
+if(savedPhoto){
+const img = document.getElementById("userPhoto");
+if(img) img.src = savedPhoto;
+}
 
-    currentPlan = data.user.plan;
+/* PLAN CHECK */
+if (!data.user.plan) {
+window.location.href = "subscription.html";
+return;
+}
 
-    const badge = document.querySelector(".badge");
-    if (badge) {
-        badge.innerText = currentPlan + " Active";
-    }
+currentPlan = data.user.plan;
 
-    initDashboard(currentPlan);
-    initVerificationUI();
+/* BADGE */
+const badge = document.querySelector(".badge");
+if (badge) {
+badge.innerText = currentPlan + " Active";
+}
+
+/* INIT */
+initDashboard(currentPlan);
+initMap();
+initVerificationUI();
 
 } catch (err) {
-    console.log("Dashboard error:", err);
+console.log("Dashboard error:", err);
 }
 
 });
@@ -74,6 +82,19 @@ try {
 function logout(){
 localStorage.clear();
 window.location.href="login.html";
+}
+
+
+/* ================= MAP ================= */
+
+function initMap(){
+
+map = L.map('map').setView([28.6139, 77.2090], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
 }
 
 
@@ -130,6 +151,7 @@ amount,
 km,
 profit
 });
+
 }
 
 orders.sort((a,b)=>b.profit-a.profit);
@@ -173,7 +195,10 @@ btn.onclick = ()=>acceptOrder(o.orderId,o.payment,o.amount,o.profit);
 
 tr.querySelector(".action-cell").appendChild(btn);
 tbody.appendChild(tr);
+
 });
+
+/* STATS */
 
 const stats = document.querySelectorAll(".stat strong");
 
@@ -186,21 +211,66 @@ stats[1].innerText = active;
 stats[2].innerText = completed;
 stats[3].innerText = "₹" + random(3000,12000);
 }
+
 }
 
 
-/* ================= ACCEPT ================= */
+/* ================= ACCEPT (UBER STYLE) ================= */
 
 function acceptOrder(id,payment,amount,profit){
 
-const type = profit >= 70 ? "HIGH" : "NORMAL";
-localStorage.setItem("lastOrderType", type);
+localStorage.setItem("lastOrderType", profit >= 70 ? "HIGH" : "NORMAL");
 
-window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
+/* 🔥 STEP 1: TABLE FADE */
+const card = document.getElementById("ordersCard");
+card.style.opacity = "0";
+card.style.transform = "translateY(20px)";
+
+/* 🔥 STEP 2: MAP FULL SCREEN */
+setTimeout(()=>{
+card.style.display = "none";
+
+const mapBox = document.getElementById("mapContainer");
+mapBox.classList.add("map-full");
+
+map.invalidateSize();
+
+},300);
+
+/* 🔥 STEP 3: ADD ROUTE */
+setTimeout(()=>{
+
+const pickupLat = 28.61 + (Math.random()*0.02);
+const pickupLng = 77.20 + (Math.random()*0.02);
+
+const userLat = 28.6139;
+const userLng = 77.2090;
+
+/* MARKERS */
+const pickup = L.marker([pickupLat,pickupLng]).addTo(map);
+pickup.bindPopup("Pickup 🚚").openPopup();
+
+const user = L.marker([userLat,userLng]).addTo(map);
+user.bindPopup("You 📍");
+
+/* ROUTE LINE */
+const route = L.polyline([
+[userLat,userLng],
+[pickupLat,pickupLng]
+],{
+color:"#0a58ff",
+weight:5
+}).addTo(map);
+
+/* FIT VIEW */
+map.fitBounds(route.getBounds());
+
+},500);
+
 }
 
 
-/* ================= VERIFICATION UI ================= */
+/* ================= VERIFY UI ================= */
 
 function initVerificationUI(){
 
@@ -225,23 +295,16 @@ idNumber.value = "";
 
 if(idType.value === "aadhaar"){
 idNumber.maxLength = 12;
-idNumber.placeholder = "Enter 12 digit Aadhaar";
-
-idNumber.oninput = () => {
-idNumber.value = idNumber.value.replace(/\D/g,'');
-};
+idNumber.oninput = ()=> idNumber.value = idNumber.value.replace(/\D/g,'');
 }
 
 if(idType.value === "pan"){
 idNumber.maxLength = 10;
-idNumber.placeholder = "ABCDE1234F";
-
-idNumber.oninput = () => {
-idNumber.value = idNumber.value.toUpperCase();
-};
+idNumber.oninput = ()=> idNumber.value = idNumber.value.toUpperCase();
 }
 
 });
+
 }
 
 
@@ -285,18 +348,16 @@ return;
 }
 
 /* SAVE */
-
 localStorage.setItem("isVerified","true");
 
 /* SAVE PHOTO */
-
 const reader = new FileReader();
 
 reader.onload = function(e){
 
 localStorage.setItem("profilePhoto", e.target.result);
 
-/* 🔥 UI UPDATE WITHOUT RELOAD */
+/* UI UPDATE */
 document.getElementById("verifyModal").style.display = "none";
 
 const img = document.getElementById("userPhoto");
@@ -309,4 +370,11 @@ if(card) card.style.display = "none";
 
 reader.readAsDataURL(file);
 
+}
+
+
+/* ================= OPEN POPUP ================= */
+
+function openVerify(){
+document.getElementById("verifyModal").style.display = "flex";
 }

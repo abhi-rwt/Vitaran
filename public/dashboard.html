@@ -3,13 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <title>Dashboard - Vitaran</title>
+
 <link rel="stylesheet" href="dashboard.css">
 <script src="dashboard.js" defer></script>
+
+<!-- 🗺️ MAP -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </head>
 
 <body>
 
-<!-- HEADER -->
+<!-- ================= HEADER ================= -->
 <header class="header">
 
 <div class="header-left">
@@ -32,10 +38,10 @@
 </header>
 
 
-<!-- MAIN -->
+<!-- ================= MAIN ================= -->
 <main class="container">
 
-<!-- PROFILE -->
+<!-- PROFILE CARD -->
 <section class="card profile-card">
 
 <div class="profile-text">
@@ -48,10 +54,9 @@
 </section>
 
 
-
 <section class="grid">
 
-<!-- LEFT -->
+<!-- ================= LEFT ================= -->
 <div class="left-col">
 
 <!-- STATS -->
@@ -84,8 +89,8 @@
 </section>
 
 
-<!-- TABLE -->
-<section class="card">
+<!-- ================= ORDERS ================= -->
+<section class="card" id="ordersCard">
 
 <div class="card-head">
 <h3>High Priority Orders</h3>
@@ -117,20 +122,12 @@
 </div>
 
 
-
-<!-- RIGHT -->
+<!-- ================= RIGHT (MAP) ================= -->
 <div class="right-col">
 
-<!-- 🔥 MAP CARD -->
-<section class="card map-card">
-
-<h3>Live Map</h3>
-
-<div id="mapPreview">
-📍 Waiting for order...
+<div id="mapContainer" class="map-box">
+<div id="map"></div>
 </div>
-
-</section>
 
 </div>
 
@@ -139,41 +136,35 @@
 </main>
 
 
-
-<!-- 🔥 POPUP -->
+<!-- ================= VERIFY POPUP ================= -->
 <div id="verifyModal" class="modal" style="display:none;">
 
-  <div class="modal-box">
+<div class="modal-box">
 
-    <h2>Complete Your Profile</h2>
-    <p>Add your details to start receiving orders</p>
+<h2>Complete Your Profile</h2>
+<p>Add your details to start receiving orders</p>
 
-    <!-- PROFILE PHOTO -->
-    <label class="input-label">Profile Photo</label>
-    <input type="file" id="profilePhoto" accept="image/*" required>
+<!-- PHOTO -->
+<label class="input-label">Profile Photo</label>
+<input type="file" id="profilePhoto" accept="image/*">
 
-    <!-- PREVIEW -->
-    <img id="preview" style="display:none; width:80px; height:80px; border-radius:50%; margin:10px auto; object-fit:cover;">
+<img id="preview">
 
-    <!-- ID TYPE -->
-    <label class="input-label">ID Proof</label>
-    <select id="idType" required>
-      <option value="">Select ID Proof</option>
-      <option value="aadhaar">Aadhaar Card</option>
-      <option value="pan">PAN Card</option>
-    </select>
+<!-- ID TYPE -->
+<label class="input-label">ID Proof</label>
+<select id="idType">
+<option value="">Select ID Proof</option>
+<option value="aadhaar">Aadhaar Card</option>
+<option value="pan">PAN Card</option>
+</select>
 
-    <!-- ID NUMBER -->
-    <label class="input-label">ID Number</label>
-    <input type="text" id="idNumber" placeholder="Enter ID Number" required>
+<!-- ID NUMBER -->
+<label class="input-label">ID Number</label>
+<input type="text" id="idNumber" placeholder="Enter ID Number">
 
-    <!-- ERROR -->
-    <small id="errorMsg" style="color:red; display:none;"></small>
+<button class="btn primary" onclick="verifyUser()">Complete Verification</button>
 
-    <!-- BUTTON -->
-    <button class="btn primary" onclick="verifyUser()">Complete Verification</button>
-
-  </div>
+</div>
 
 </div>
 
