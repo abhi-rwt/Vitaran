@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (Final Clean Version)
+ * Vitaran - Dashboard (Final PRO Version)
  ************************************************/
 
 let currentPlan = null;
@@ -31,7 +31,7 @@ try {
     if(localStorage.getItem("isVerified") !== "true"){
         setTimeout(()=>{
             document.getElementById("verifyModal").style.display = "flex";
-        },500);
+        },300);
     }
 
     /* ✅ HIDE PROFILE CARD AFTER VERIFY */
@@ -61,6 +61,9 @@ try {
     }
 
     initDashboard(currentPlan);
+
+    /* 🔥 INIT VERIFICATION INPUT LOGIC */
+    initVerificationUI();
 
 } catch (err) {
     console.log("Dashboard error:", err);
@@ -217,18 +220,52 @@ const type = profit >= 70 ? "HIGH" : "NORMAL";
 localStorage.setItem("lastOrderType", type);
 
 window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
+}
+
+
+/* ================= VERIFICATION UI ================= */
+
+function initVerificationUI(){
+
+const idType = document.getElementById("idType");
+const idNumber = document.getElementById("idNumber");
+const photoInput = document.getElementById("profilePhoto");
+const preview = document.getElementById("preview");
+
+/* 🔥 PHOTO PREVIEW */
+if(photoInput){
+photoInput.addEventListener("change", ()=>{
+const file = photoInput.files[0];
+if(file){
+preview.src = URL.createObjectURL(file);
+preview.style.display = "block";
+}
+});
+}
+
+/* 🔥 INPUT LIMIT FIX */
+if(idType){
+idType.addEventListener("change", ()=>{
+
+idNumber.value = "";
+
+if(idType.value === "aadhaar"){
+idNumber.maxLength = 12;
+idNumber.placeholder = "12 digit Aadhaar";
+}
+
+if(idType.value === "pan"){
+idNumber.maxLength = 10;
+idNumber.placeholder = "ABCDE1234F";
+}
+
+});
+}
 
 }
 
 
-/* ================= POPUP ================= */
-
-function openVerify(){
-document.getElementById("verifyModal").style.display = "flex";
-}
-
-
-/* VALIDATION */
+/* ================= VALIDATION ================= */
 
 function validateID(type,value){
 
@@ -244,7 +281,7 @@ return false;
 }
 
 
-/* VERIFY */
+/* ================= VERIFY ================= */
 
 function verifyUser(){
 
@@ -270,6 +307,8 @@ return;
 /* SAVE */
 
 localStorage.setItem("isVerified","true");
+
+/* SAVE PHOTO */
 
 const reader = new FileReader();
 
