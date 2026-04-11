@@ -24,7 +24,6 @@
 <div class="header-right">
 <span class="badge">Plan Active</span>
 
-<!-- ✅ USER PHOTO -->
 <img id="userPhoto" class="user-photo" src="/logos/default.png">
 
 <button class="btn ghost" onclick="logout()">Logout</button>
@@ -122,19 +121,15 @@
 <!-- RIGHT -->
 <div class="right-col">
 
-<section class="card note">
-<strong>Tip</strong>
-<p>Orders above ₹70 profit are auto-highlighted.</p>
-</section>
+<!-- 🔥 MAP CARD -->
+<section class="card map-card">
 
-<section class="card note">
-<strong>How it works</strong>
-<p>
-1. Accept the order<br>
-2. Navigate to pickup<br>
-3. Deliver to customer<br>
-4. Delivery fee credited to wallet
-</p>
+<h3>Live Map</h3>
+
+<div id="mapPreview">
+📍 Waiting for order...
+</div>
+
 </section>
 
 </div>
@@ -153,14 +148,14 @@
     <h2>Complete Your Profile</h2>
     <p>Add your details to start receiving orders</p>
 
-    <!-- ✅ PROFILE PHOTO -->
+    <!-- PROFILE PHOTO -->
     <label class="input-label">Profile Photo</label>
     <input type="file" id="profilePhoto" accept="image/*" required>
 
-    <!-- 🔥 PREVIEW -->
+    <!-- PREVIEW -->
     <img id="preview" style="display:none; width:80px; height:80px; border-radius:50%; margin:10px auto; object-fit:cover;">
 
-    <!-- ✅ ID TYPE -->
+    <!-- ID TYPE -->
     <label class="input-label">ID Proof</label>
     <select id="idType" required>
       <option value="">Select ID Proof</option>
@@ -168,18 +163,19 @@
       <option value="pan">PAN Card</option>
     </select>
 
-    <!-- ✅ ID NUMBER -->
+    <!-- ID NUMBER -->
     <label class="input-label">ID Number</label>
     <input type="text" id="idNumber" placeholder="Enter ID Number" required>
 
-    <!-- ❌ ERROR -->
+    <!-- ERROR -->
     <small id="errorMsg" style="color:red; display:none;"></small>
 
-    <!-- ✅ BUTTON -->
+    <!-- BUTTON -->
     <button class="btn primary" onclick="verifyUser()">Complete Verification</button>
 
   </div>
 
 </div>
+
 </body>
 </html>

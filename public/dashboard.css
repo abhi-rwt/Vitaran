@@ -218,10 +218,24 @@ border-radius:14px;
 font-size:12px;
 }
 
-/* NOTE */
+/* ================= MAP ================= */
 
-.note{
-background:#f7faff;
+.map-card{
+height:320px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+#mapPreview{
+flex:1;
+border-radius:12px;
+background:linear-gradient(135deg,#e3f2fd,#ffffff);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:14px;
+color:#555;
 }
 
 /* ================= POPUP ================= */
@@ -241,8 +255,6 @@ z-index:999;
 animation:fadeIn .3s ease;
 }
 
-/* 🔥 POPUP BOX */
-
 .modal-box{
 background:rgba(255,255,255,0.95);
 backdrop-filter:blur(12px);
@@ -252,7 +264,6 @@ width:340px;
 text-align:center;
 box-shadow:0 25px 60px rgba(0,0,0,0.25);
 animation:popUp .35s ease;
-transform:scale(.95);
 }
 
 /* HEADINGS */
@@ -280,12 +291,12 @@ font-weight:600;
 text-align:left;
 }
 
-/* INPUT + SELECT */
+/* INPUT */
 
 .modal-box input,
 .modal-box select{
 width:100%;
-padding:10px;
+padding:11px;
 border-radius:10px;
 border:1px solid #ddd;
 margin-bottom:12px;
@@ -294,7 +305,7 @@ outline:none;
 transition:.2s;
 }
 
-/* FOCUS EFFECT */
+/* FOCUS */
 
 .modal-box input:focus,
 .modal-box select:focus{
@@ -322,7 +333,7 @@ transform:translateY(-2px);
 box-shadow:0 10px 20px rgba(10,88,255,0.3);
 }
 
-/* PHOTO PREVIEW */
+/* PHOTO */
 
 #preview{
 display:none;
@@ -334,7 +345,7 @@ margin:10px auto 14px;
 border:3px solid #eaf1ff;
 }
 
-/* ================= ANIMATIONS ================= */
+/* ================= ANIMATION ================= */
 
 @keyframes fadeIn{
 from{opacity:0;}

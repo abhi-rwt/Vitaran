@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (Final PRO Version)
+ * Vitaran - Dashboard (ULTRA PRO FINAL)
  ************************************************/
 
 let currentPlan = null;
@@ -27,20 +27,20 @@ try {
         return;
     }
 
-    /* ✅ SHOW POPUP FIRST TIME */
+    /* 🔥 POPUP FIRST TIME */
     if(localStorage.getItem("isVerified") !== "true"){
         setTimeout(()=>{
             document.getElementById("verifyModal").style.display = "flex";
         },300);
     }
 
-    /* ✅ HIDE PROFILE CARD AFTER VERIFY */
+    /* 🔥 HIDE PROFILE CARD */
     if(localStorage.getItem("isVerified") === "true"){
         const card = document.querySelector(".profile-card");
         if(card) card.style.display = "none";
     }
 
-    /* ✅ LOAD PROFILE PHOTO */
+    /* 🔥 LOAD PHOTO */
     const savedPhoto = localStorage.getItem("profilePhoto");
     if(savedPhoto){
         const img = document.getElementById("userPhoto");
@@ -54,15 +54,12 @@ try {
 
     currentPlan = data.user.plan;
 
-    /* PLAN BADGE */
     const badge = document.querySelector(".badge");
     if (badge) {
         badge.innerText = currentPlan + " Active";
     }
 
     initDashboard(currentPlan);
-
-    /* 🔥 INIT VERIFICATION INPUT LOGIC */
     initVerificationUI();
 
 } catch (err) {
@@ -80,13 +77,12 @@ window.location.href="login.html";
 }
 
 
-/* ================= PLAN CONFIG ================= */
+/* ================= PLAN ================= */
 
 const PLAN_CONFIG = {
 "E-Commerce 1 Month": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 60 },
 "Food 1 Month": { platforms: ["Swiggy","Zomato"], maxProfit: 80 },
 "Grocery 1 Month": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 80 },
-
 "All-in-One 1 Month":{
 platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
 maxProfit:100
@@ -108,8 +104,6 @@ const lower = name.toLowerCase();
 if(lower === "myntra") return "/logos/myntra.jpeg";
 return `/logos/${lower}.png`;
 }
-
-/* PROFIT LOGIC */
 
 const BASE_PAY = 25;
 const PER_KM = 8;
@@ -136,14 +130,9 @@ amount,
 km,
 profit
 });
-
 }
 
-/* SORT */
-
 orders.sort((a,b)=>b.profit-a.profit);
-
-/* RENDER */
 
 const tbody = document.querySelector(".table tbody");
 tbody.innerHTML="";
@@ -163,17 +152,11 @@ tr.innerHTML = `
 <img src="${platformLogo(o.platform)}" onerror="this.src='/logos/default.png'">
 ${o.platform}
 </td>
-
 <td>#${o.orderId}</td>
-
 <td><span class="tag">${o.payment}</span></td>
-
 <td>₹${o.amount}</td>
-
 <td>${o.km} KM</td>
-
 <td class="${isHigh ? 'green' : ''}">₹${o.profit}</td>
-
 <td class="action-cell"></td>
 `;
 
@@ -190,15 +173,11 @@ btn.onclick = ()=>acceptOrder(o.orderId,o.payment,o.amount,o.profit);
 
 tr.querySelector(".action-cell").appendChild(btn);
 tbody.appendChild(tr);
-
 });
-
-/* STATS */
 
 const stats = document.querySelectorAll(".stat strong");
 
 if(stats.length >= 4){
-
 const active = random(3,9);
 const completed = random(70,120);
 
@@ -206,9 +185,7 @@ stats[0].innerText = active + completed;
 stats[1].innerText = active;
 stats[2].innerText = completed;
 stats[3].innerText = "₹" + random(3000,12000);
-
 }
-
 }
 
 
@@ -232,36 +209,39 @@ const idNumber = document.getElementById("idNumber");
 const photoInput = document.getElementById("profilePhoto");
 const preview = document.getElementById("preview");
 
-/* 🔥 PHOTO PREVIEW */
-if(photoInput){
-photoInput.addEventListener("change", ()=>{
+/* PHOTO PREVIEW */
+photoInput?.addEventListener("change", ()=>{
 const file = photoInput.files[0];
 if(file){
 preview.src = URL.createObjectURL(file);
 preview.style.display = "block";
 }
 });
-}
 
-/* 🔥 INPUT LIMIT FIX */
-if(idType){
-idType.addEventListener("change", ()=>{
+/* INPUT CONTROL */
+idType?.addEventListener("change", ()=>{
 
 idNumber.value = "";
 
 if(idType.value === "aadhaar"){
 idNumber.maxLength = 12;
-idNumber.placeholder = "12 digit Aadhaar";
+idNumber.placeholder = "Enter 12 digit Aadhaar";
+
+idNumber.oninput = () => {
+idNumber.value = idNumber.value.replace(/\D/g,'');
+};
 }
 
 if(idType.value === "pan"){
 idNumber.maxLength = 10;
 idNumber.placeholder = "ABCDE1234F";
+
+idNumber.oninput = () => {
+idNumber.value = idNumber.value.toUpperCase();
+};
 }
 
 });
-}
-
 }
 
 
@@ -313,8 +293,18 @@ localStorage.setItem("isVerified","true");
 const reader = new FileReader();
 
 reader.onload = function(e){
+
 localStorage.setItem("profilePhoto", e.target.result);
-location.reload();
+
+/* 🔥 UI UPDATE WITHOUT RELOAD */
+document.getElementById("verifyModal").style.display = "none";
+
+const img = document.getElementById("userPhoto");
+if(img) img.src = e.target.result;
+
+const card = document.querySelector(".profile-card");
+if(card) card.style.display = "none";
+
 };
 
 reader.readAsDataURL(file);
