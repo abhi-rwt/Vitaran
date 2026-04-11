@@ -23,6 +23,10 @@
 
 <div class="header-right">
 <span class="badge">Plan Active</span>
+
+<!-- ✅ USER PHOTO -->
+<img id="userPhoto" class="user-photo" src="/logos/default.png">
+
 <button class="btn ghost" onclick="logout()">Logout</button>
 </div>
 
@@ -31,7 +35,6 @@
 
 <!-- MAIN -->
 <main class="container">
-
 
 <!-- PROFILE -->
 <section class="card profile-card">
@@ -49,8 +52,7 @@
 
 <section class="grid">
 
-
-<!-- LEFT COLUMN -->
+<!-- LEFT -->
 <div class="left-col">
 
 <!-- STATS -->
@@ -83,8 +85,7 @@
 </section>
 
 
-
-<!-- ORDERS TABLE -->
+<!-- TABLE -->
 <section class="card">
 
 <div class="card-head">
@@ -107,7 +108,7 @@
 </thead>
 
 <tbody>
-<!-- Orders injected by dashboard.js -->
+<!-- JS inject karega -->
 </tbody>
 
 </table>
@@ -118,18 +119,15 @@
 
 
 
-<!-- RIGHT COLUMN -->
+<!-- RIGHT -->
 <div class="right-col">
 
 <section class="card note">
-
 <strong>Tip</strong>
 <p>Orders above ₹70 profit are auto-highlighted.</p>
-
 </section>
 
 <section class="card note">
-
 <strong>How it works</strong>
 <p>
 1. Accept the order<br>
@@ -137,38 +135,40 @@
 3. Deliver to customer<br>
 4. Delivery fee credited to wallet
 </p>
-
 </section>
 
 </div>
-
 
 </section>
 
 </main>
 
 
-<!-- 🔥 VERIFY POPUP -->
+
+<!-- 🔥 POPUP -->
 <div id="verifyModal" class="modal" style="display:none;">
 
-  <div class="modal-box">
+<div class="modal-box">
 
-    <h2>Complete Your Profile</h2>
-    <p>Add your details to start receiving orders</p>
+<h2>Complete Your Profile</h2>
+<p>Add your details to start receiving orders</p>
 
-    <input type="file" id="profilePhoto">
+<!-- ✅ PHOTO FIRST -->
+<input type="file" id="profilePhoto" accept="image/*">
 
-    <select id="idType">
-      <option value="">Select ID Proof</option>
-      <option value="aadhaar">Aadhaar Card</option>
-      <option value="pan">PAN Card</option>
-    </select>
+<!-- ✅ ID TYPE -->
+<select id="idType">
+<option value="">Select ID Proof</option>
+<option value="aadhaar">Aadhaar Card</option>
+<option value="pan">PAN Card</option>
+</select>
 
-    <input type="text" id="idNumber" placeholder="Enter ID Number">
+<!-- ✅ ID NUMBER -->
+<input type="text" id="idNumber" placeholder="Enter ID Number">
 
-    <button onclick="verifyUser()">Complete Verification</button>
+<button onclick="verifyUser()">Complete Verification</button>
 
-  </div>
+</div>
 
 </div>
 

@@ -27,11 +27,24 @@ try {
         return;
     }
 
-    /* ✅ POPUP VERIFICATION (NO REDIRECT) */
+    /* ✅ SHOW POPUP FIRST TIME */
     if(localStorage.getItem("isVerified") !== "true"){
         setTimeout(()=>{
             document.getElementById("verifyModal").style.display = "flex";
         },500);
+    }
+
+    /* ✅ HIDE PROFILE CARD AFTER VERIFY */
+    if(localStorage.getItem("isVerified") === "true"){
+        const card = document.querySelector(".profile-card");
+        if(card) card.style.display = "none";
+    }
+
+    /* ✅ LOAD PROFILE PHOTO */
+    const savedPhoto = localStorage.getItem("profilePhoto");
+    if(savedPhoto){
+        const img = document.getElementById("userPhoto");
+        if(img) img.src = savedPhoto;
     }
 
     if (!data.user.plan) {
@@ -58,37 +71,23 @@ try {
 
 /* ================= LOGOUT ================= */
 
-function logout() {
-localStorage.removeItem("token");
-localStorage.removeItem("lastOrderType");
-localStorage.removeItem("isVerified");
-window.location.href = "login.html";
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
 }
 
 
 /* ================= PLAN CONFIG ================= */
 
 const PLAN_CONFIG = {
-
 "E-Commerce 1 Month": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 60 },
-"E-Commerce 3 Months": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 70 },
-"E-Commerce 12 Months": { platforms: ["Amazon","Flipkart","Meesho","Myntra"], maxProfit: 80 },
-
 "Food 1 Month": { platforms: ["Swiggy","Zomato"], maxProfit: 80 },
-"Food 3 Months": { platforms: ["Swiggy","Zomato"], maxProfit: 90 },
-"Food 12 Months": { platforms: ["Swiggy","Zomato"], maxProfit: 100 },
-
 "Grocery 1 Month": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 80 },
-"Grocery 3 Months": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 90 },
-"Grocery 12 Months": { platforms: ["Zepto","Instamart","Blinkit"], maxProfit: 100 },
 
-"Food+Grocery 1 Month": { platforms: ["Swiggy","Zomato","Zepto","Instamart","Blinkit"], maxProfit: 90 },
-
-"All-in-One 1 Month": {
-    platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
-    maxProfit:100
+"All-in-One 1 Month":{
+platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
+maxProfit:100
 }
-
 };
 
 
@@ -107,7 +106,7 @@ if(lower === "myntra") return "/logos/myntra.jpeg";
 return `/logos/${lower}.png`;
 }
 
-/* REALISTIC PROFIT */
+/* PROFIT LOGIC */
 
 const BASE_PAY = 25;
 const PER_KM = 8;
@@ -217,7 +216,6 @@ function acceptOrder(id,payment,amount,profit){
 const type = profit >= 70 ? "HIGH" : "NORMAL";
 localStorage.setItem("lastOrderType", type);
 
-/* ✅ FIXED TEMPLATE STRING */
 window.location.href = `order.html?order=${id}&payment=${payment}&amount=${amount}&profit=${profit}`;
 
 }
@@ -229,12 +227,57 @@ function openVerify(){
 document.getElementById("verifyModal").style.display = "flex";
 }
 
+
+/* VALIDATION */
+
+function validateID(type,value){
+
+if(type === "aadhaar"){
+return /^[0-9]{12}$/.test(value);
+}
+
+if(type === "pan"){
+return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value);
+}
+
+return false;
+}
+
+
+/* VERIFY */
+
 function verifyUser(){
+
+const file = document.getElementById("profilePhoto").files[0];
+const idType = document.getElementById("idType").value;
+const idNumber = document.getElementById("idNumber").value.trim();
+
+if(!file){
+alert("Photo upload kar ❌");
+return;
+}
+
+if(!idType){
+alert("ID select kar ❌");
+return;
+}
+
+if(!validateID(idType,idNumber)){
+alert("Invalid ID ❌");
+return;
+}
+
+/* SAVE */
 
 localStorage.setItem("isVerified","true");
 
-document.getElementById("verifyModal").style.display = "none";
+const reader = new FileReader();
 
-alert("Profile Completed ✅");
+reader.onload = function(e){
+localStorage.setItem("profilePhoto", e.target.result);
+location.reload();
+};
+
+reader.readAsDataURL(file);
 
 }
