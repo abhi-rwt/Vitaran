@@ -29,14 +29,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        /* 🔥 VERIFY POPUP LOGIC (Same as before) */
+        /* Verification Logic */
         if(localStorage.getItem("isVerified") !== "true"){
             setTimeout(()=>{
-                document.getElementById("verifyModal").style.display = "flex";
+                const modal = document.getElementById("verifyModal");
+                if(modal) modal.style.display = "flex";
             },300);
-        }
-
-        if(localStorage.getItem("isVerified") === "true"){
+        } else {
             const card = document.querySelector(".profile-card");
             if(card) card.style.display = "none";
         }
@@ -54,14 +53,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         currentPlan = data.user.plan;
         const badge = document.querySelector(".badge");
-        if (badge) {
-            badge.innerText = currentPlan + " Active";
-        }
+        if (badge) { badge.innerText = currentPlan + " Active"; }
 
         /* INITIALIZE COMPONENTS */
         initDashboard(currentPlan);
-        // Note: initMap() is called via the callback in HTML script tag
         initVerificationUI();
+        
+        // 🔥 FIX: Check if Mappls is ready before init
+        if (typeof mappls !== 'undefined') {
+            initMap();
+        } else {
+            console.error("Mappls SDK not loaded. Check your HTML script tag.");
+        }
 
     } catch (err) {
         console.log("Dashboard error:", err);
@@ -75,15 +78,25 @@ function logout(){
     window.location.href="login.html";
 }
 
-/* ================= MAP (MAPPLS FIX) ================= */
+/* ================= MAP (FIXED) ================= */
 
 function initMap(){
-    // Leaflet hata kar Mappls initialize kiya
-    map = new mappls.Map('map', {
-        center: [28.6139, 77.2090], // Delhi center
-        zoom: 12,
-        hybrid: true
-    });
+    // Mappls map initialization with fixed height check
+    try {
+        map = new mappls.Map('map', {
+            center: [28.6139, 77.2090], // Delhi center
+            zoom: 12,
+            hybrid: true
+        });
+        
+        // Refresh map size after a short delay
+        setTimeout(() => {
+            if(map) map.invalidateSize();
+        }, 500);
+        
+    } catch (e) {
+        console.error("Map Init Error:", e);
+    }
 }
 
 /* ================= PLAN CONFIG ================= */
@@ -129,6 +142,7 @@ function initDashboard(userPlan){
 
     orders.sort((a,b)=>b.profit-a.profit);
     const tbody = document.querySelector(".table tbody");
+    if(!tbody) return;
     tbody.innerHTML="";
 
     const lastOrderType = localStorage.getItem("lastOrderType");
@@ -175,19 +189,21 @@ function initDashboard(userPlan){
     }
 }
 
-/* ================= ACCEPT ORDER (MAPPLS FIX) ================= */
+/* ================= ACCEPT ORDER (FIXED) ================= */
 
 function acceptOrder(id,payment,amount,profit){
     localStorage.setItem("lastOrderType", profit >= 70 ? "HIGH" : "NORMAL");
 
     const card = document.getElementById("ordersCard");
-    card.style.opacity = "0";
-    
-    setTimeout(()=>{
-        card.style.display = "none";
-        document.getElementById("mapContainer").classList.add("map-full");
-        // Mappls map update
-    },300);
+    if(card) {
+        card.style.opacity = "0";
+        setTimeout(()=>{
+            card.style.display = "none";
+            document.getElementById("mapContainer").classList.add("map-full");
+            // Important for Mappls to redraw when going full screen
+            if(map) map.invalidateSize();
+        },300);
+    }
 
     /* MAP ROUTE LOGIC */
     setTimeout(()=>{
@@ -196,21 +212,23 @@ function acceptOrder(id,payment,amount,profit){
         const userLat = 28.6139;
         const userLng = 77.2090;
 
-        // Add Mappls Marker for User
+        // Clear existing markers if any (Optional)
+        
+        // Add Marker for User
         new mappls.Marker({
             map: map,
             position: { "lat": userLat, "lng": userLng },
             popupHtml: '<div>You 📍</div>'
         });
 
-        // Add Mappls Marker for Pickup
+        // Add Marker for Pickup
         new mappls.Marker({
             map: map,
             position: { "lat": pickupLat, "lng": pickupLng },
             popupHtml: '<div>Pickup 🚚</div>'
         });
 
-        // Add Mappls Polyline (Route)
+        // Add Polyline (Route)
         const pathPoints = [
             { lat: userLat, lng: userLng },
             { lat: pickupLat, lng: pickupLng }
@@ -231,7 +249,7 @@ function acceptOrder(id,payment,amount,profit){
     },500);
 }
 
-/* ================= VERIFICATION UI (Same as before) ================= */
+/* ================= VERIFICATION UI ================= */
 
 function initVerificationUI(){
     const idType = document.getElementById("idType");
@@ -280,8 +298,10 @@ function verifyUser(){
     const reader = new FileReader();
     reader.onload = function(e){
         localStorage.setItem("profilePhoto", e.target.result);
-        document.getElementById("verifyModal").style.display = "none";
-        document.getElementById("userPhoto").src = e.target.result;
+        const modal = document.getElementById("verifyModal");
+        if(modal) modal.style.display = "none";
+        const userImg = document.getElementById("userPhoto");
+        if(userImg) userImg.src = e.target.result;
         const card = document.querySelector(".profile-card");
         if(card) card.style.display = "none";
     };
@@ -289,5 +309,6 @@ function verifyUser(){
 }
 
 function openVerify(){
-    document.getElementById("verifyModal").style.display = "flex";
+    const modal = document.getElementById("verifyModal");
+    if(modal) modal.style.display = "flex";
 }
