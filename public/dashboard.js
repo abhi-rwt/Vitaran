@@ -1,9 +1,10 @@
 /************************************************
- * Vitaran - Dashboard (Mappls FINAL FIXED)
+ * Vitaran - Dashboard (FINAL WORKING MAP)
  ************************************************/
 
 let currentPlan = null;
 let map;
+let markers = [];
 
 /* ================= INIT ================= */
 
@@ -31,7 +32,7 @@ window.location.href="login.html";
 return;
 }
 
-/* 🔥 VERIFY */
+/* VERIFY */
 if(localStorage.getItem("isVerified") !== "true"){
 setTimeout(()=>{
 document.getElementById("verifyModal").style.display="flex";
@@ -64,8 +65,8 @@ badge.innerText=currentPlan+" Active";
 initDashboard(currentPlan);
 initVerificationUI();
 
-/* 🔥 MAP INIT FIX */
-setTimeout(initMap,1000);
+/* 🔥 MAP INIT */
+initMap();
 
 }catch(err){
 console.log("Dashboard error:",err);
@@ -74,20 +75,11 @@ console.log("Dashboard error:",err);
 });
 
 
-/* ================= LOGOUT ================= */
-
-function logout(){
-localStorage.clear();
-window.location.href="login.html";
-}
-
-
 /* ================= MAP ================= */
 
 function initMap(){
 
 if(typeof mappls === "undefined"){
-console.log("⏳ Mappls loading...");
 setTimeout(initMap,500);
 return;
 }
@@ -97,8 +89,19 @@ center:[28.6139,77.2090],
 zoom:12
 });
 
-console.log("✅ Map Loaded");
+/* 🔥 FIX: force refresh */
+setTimeout(()=>{
+window.dispatchEvent(new Event("resize"));
+},500);
 
+}
+
+
+/* ================= LOGOUT ================= */
+
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
 }
 
 
@@ -159,109 +162,77 @@ if(!tbody) return;
 
 tbody.innerHTML="";
 
-const lastOrderType=localStorage.getItem("lastOrderType");
-
 orders.forEach((o,index)=>{
 
 const tr=document.createElement("tr");
 
 if(index===0) tr.classList.add("priority");
 
-const isHigh=o.profit>=70;
-const isDisabled=(lastOrderType==="HIGH" && isHigh);
-
 tr.innerHTML=`
-<td><img src="${platformLogo(o.platform)}" onerror="this.src='/logos/default.png'"> ${o.platform}</td>
+<td><img src="${platformLogo(o.platform)}"> ${o.platform}</td>
 <td>#${o.orderId}</td>
 <td><span class="tag">${o.payment}</span></td>
 <td>₹${o.amount}</td>
 <td>${o.km} KM</td>
-<td class="${isHigh?'green':''}">₹${o.profit}</td>
+<td class="${o.profit>=70?'green':''}">₹${o.profit}</td>
 <td class="action-cell"></td>
 `;
 
 const btn=document.createElement("button");
 btn.className="btn accept";
-btn.innerText=isDisabled?"Locked":"Accept";
+btn.innerText="Accept";
 
-if(isDisabled){
-btn.disabled=true;
-btn.style.opacity="0.5";
-}else{
 btn.onclick=()=>acceptOrder(o.orderId,o.payment,o.amount,o.profit);
-}
 
 tr.querySelector(".action-cell").appendChild(btn);
 tbody.appendChild(tr);
 
 });
 
-/* STATS */
-
-const stats=document.querySelectorAll(".stat strong");
-
-if(stats.length>=4){
-
-stats[0].innerText=random(80,150);
-stats[1].innerText=random(3,9);
-stats[2].innerText=random(70,120);
-stats[3].innerText="₹"+random(3000,12000);
-
-}
-
 }
 
 
-/* ================= ACCEPT (UBER FLOW) ================= */
+/* ================= ACCEPT (UBER STYLE) ================= */
 
 function acceptOrder(id,payment,amount,profit){
 
-localStorage.setItem("lastOrderType",profit>=70?"HIGH":"NORMAL");
-
-const card=document.getElementById("ordersCard");
-
-if(card){
-
-card.style.opacity="0";
-
-setTimeout(()=>{
-
-card.style.display="none";
-
+/* 🔥 FULLSCREEN MAP */
 const mapBox=document.getElementById("mapContainer");
 mapBox.classList.add("map-full");
 
-/* 🔥 FIX */
-setTimeout(()=>{
-if(map){
-map.resize(); // ✅ correct function
-}
-},400);
-
-},300);
+/* 🔥 FADE TABLE */
+const card=document.getElementById("ordersCard");
+if(card){
+card.classList.add("fade");
 }
 
-/* ROUTE */
+/* 🔥 CLEAR OLD MARKERS */
+markers.forEach(m=>m.remove());
+markers=[];
+
+/* 🔥 ROUTE */
 
 setTimeout(()=>{
-
-const pickupLat=28.61+(Math.random()*0.02);
-const pickupLng=77.20+(Math.random()*0.02);
 
 const userLat=28.6139;
 const userLng=77.2090;
 
+const pickupLat=userLat+(Math.random()*0.02);
+const pickupLng=userLng+(Math.random()*0.02);
+
 /* MARKERS */
 
-new mappls.Marker({
+const userMarker = new mappls.Marker({
 map:map,
 position:{lat:userLat,lng:userLng}
 });
 
-new mappls.Marker({
+const pickupMarker = new mappls.Marker({
 map:map,
 position:{lat:pickupLat,lng:pickupLng}
 });
+
+markers.push(userMarker,pickupMarker);
 
 /* LINE */
 
@@ -275,10 +246,21 @@ strokeColor:"#0a58ff",
 strokeWeight:5
 });
 
-map.setCenter({lat:(userLat+pickupLat)/2,lng:(userLng+pickupLng)/2});
+/* CENTER */
+
+map.setCenter({
+lat:(userLat+pickupLat)/2,
+lng:(userLng+pickupLng)/2
+});
+
 map.setZoom(14);
 
-},600);
+/* 🔥 FORCE REFRESH */
+setTimeout(()=>{
+window.dispatchEvent(new Event("resize"));
+},300);
+
+},400);
 
 }
 
