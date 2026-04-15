@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (FINAL WORKING MAP)
+ * Vitaran - Dashboard (FINAL STABLE MAP)
  ************************************************/
 
 let currentPlan = null;
@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 const token = localStorage.getItem("token");
 
 if (!token) {
-window.location.href = "login.html";
-return;
+    window.location.href = "login.html";
+    return;
 }
 
 try {
@@ -28,45 +28,45 @@ body: JSON.stringify({ token })
 const data = await res.json();
 
 if (!data.success){
-window.location.href="login.html";
-return;
+    window.location.href="login.html";
+    return;
 }
 
 /* VERIFY */
 if(localStorage.getItem("isVerified") !== "true"){
-setTimeout(()=>{
-document.getElementById("verifyModal").style.display="flex";
-},300);
+    setTimeout(()=>{
+        document.getElementById("verifyModal").style.display="flex";
+    },300);
 }else{
-const card=document.querySelector(".profile-card");
-if(card) card.style.display="none";
+    const card=document.querySelector(".profile-card");
+    if(card) card.style.display="none";
 }
 
 /* PHOTO */
 const savedPhoto = localStorage.getItem("profilePhoto");
 if(savedPhoto){
-const img=document.getElementById("userPhoto");
-if(img) img.src=savedPhoto;
+    const img=document.getElementById("userPhoto");
+    if(img) img.src=savedPhoto;
 }
 
 if(!data.user.plan){
-window.location.href="subscription.html";
-return;
+    window.location.href="subscription.html";
+    return;
 }
 
 currentPlan=data.user.plan;
 
 const badge=document.querySelector(".badge");
 if(badge){
-badge.innerText=currentPlan+" Active";
+    badge.innerText=currentPlan+" Active";
 }
 
 /* INIT */
 initDashboard(currentPlan);
 initVerificationUI();
 
-/* 🔥 MAP INIT */
-initMap();
+/* 🔥 SAFE MAP INIT */
+waitForMap();
 
 }catch(err){
 console.log("Dashboard error:",err);
@@ -75,24 +75,38 @@ console.log("Dashboard error:",err);
 });
 
 
-/* ================= MAP ================= */
+/* ================= MAP SAFE LOAD ================= */
+
+function waitForMap(){
+if(typeof mappls === "undefined"){
+    console.log("⏳ waiting map...");
+    setTimeout(waitForMap,500);
+    return;
+}
+initMap();
+}
 
 function initMap(){
 
-if(typeof mappls === "undefined"){
-setTimeout(initMap,500);
-return;
+const mapDiv = document.getElementById("map");
+if(!mapDiv){
+    console.log("❌ map div missing");
+    return;
 }
 
 map = new mappls.Map("map",{
-center:[28.6139,77.2090],
-zoom:12
+    center:[28.6139,77.2090],
+    zoom:12
 });
 
-/* 🔥 FIX: force refresh */
+console.log("✅ Map Loaded");
+
+/* 🔥 IMPORTANT FIX */
 setTimeout(()=>{
-window.dispatchEvent(new Event("resize"));
-},500);
+    if(map){
+        map.resize();
+    }
+},800);
 
 }
 
@@ -192,27 +206,31 @@ tbody.appendChild(tr);
 }
 
 
-/* ================= ACCEPT (UBER STYLE) ================= */
+/* ================= ACCEPT (UBER FLOW FIXED) ================= */
 
 function acceptOrder(id,payment,amount,profit){
 
-/* 🔥 FULLSCREEN MAP */
+/* FULLSCREEN MAP */
 const mapBox=document.getElementById("mapContainer");
 mapBox.classList.add("map-full");
 
-/* 🔥 FADE TABLE */
+/* FADE TABLE */
 const card=document.getElementById("ordersCard");
 if(card){
 card.classList.add("fade");
 }
 
-/* 🔥 CLEAR OLD MARKERS */
+/* CLEAR OLD MARKERS */
 markers.forEach(m=>m.remove());
 markers=[];
 
-/* 🔥 ROUTE */
-
+/* WAIT FOR ANIMATION THEN DRAW */
 setTimeout(()=>{
+
+if(!map) return;
+
+/* 🔥 IMPORTANT */
+map.resize();
 
 const userLat=28.6139;
 const userLng=77.2090;
@@ -234,7 +252,7 @@ position:{lat:pickupLat,lng:pickupLng}
 
 markers.push(userMarker,pickupMarker);
 
-/* LINE */
+/* ROUTE LINE */
 
 new mappls.Polyline({
 map:map,
@@ -255,12 +273,7 @@ lng:(userLng+pickupLng)/2
 
 map.setZoom(14);
 
-/* 🔥 FORCE REFRESH */
-setTimeout(()=>{
-window.dispatchEvent(new Event("resize"));
-},300);
-
-},400);
+},500);
 
 }
 

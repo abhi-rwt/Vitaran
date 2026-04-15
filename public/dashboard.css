@@ -227,7 +227,7 @@ font-size:12px;
 }
 
 
-/* ================= MAP ================= */
+/* ================= MAP (FINAL FIX) ================= */
 
 .right-col{
 position:relative;
@@ -244,11 +244,15 @@ transition:.4s ease;
 position:relative;
 }
 
+/* 🔥 MAIN FIX */
 #map{
-height:100%;
+position:absolute;
+top:0;
+left:0;
 width:100%;
+height:100%;
+min-height:400px;
 }
-
 
 /* 🔥 FULLSCREEN MAP */
 
@@ -267,7 +271,6 @@ animation:zoomMap .4s ease;
 height:100vh !important;
 }
 
-
 /* 🔥 TABLE FADE */
 
 #ordersCard.fade{
@@ -275,7 +278,6 @@ opacity:0;
 transform:translateY(20px);
 pointer-events:none;
 }
-
 
 /* ================= ANIMATION ================= */
 
@@ -289,74 +291,6 @@ transform:scale(1);
 opacity:1;
 }
 }
-
-
-/* ================= POPUP ================= */
-
-.modal{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-display:flex;
-justify-content:center;
-align-items:center;
-background:rgba(0,0,0,0.4);
-backdrop-filter:blur(10px);
-z-index:10000;
-}
-
-.modal-box{
-background:#fff;
-padding:30px 26px;
-border-radius:18px;
-width:340px;
-text-align:center;
-box-shadow:0 25px 60px rgba(0,0,0,0.25);
-}
-
-.input-label{
-display:block;
-font-size:12px;
-margin-bottom:5px;
-color:#555;
-font-weight:600;
-text-align:left;
-}
-
-.modal-box input,
-.modal-box select{
-width:100%;
-padding:10px;
-border-radius:10px;
-border:1px solid #ddd;
-margin-bottom:12px;
-font-size:14px;
-}
-
-.modal-box button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:12px;
-background:linear-gradient(135deg,#1e88ff,#0a58ff);
-color:#fff;
-font-weight:600;
-}
-
-
-/* PREVIEW */
-
-#preview{
-display:none;
-width:80px;
-height:80px;
-border-radius:50%;
-object-fit:cover;
-margin:10px auto;
-}
-
 
 /* ================= MOBILE ================= */
 
