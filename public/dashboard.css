@@ -116,6 +116,16 @@ font-size:12px;
 background:#0847c5;
 }
 
+/* 🔥 NEW SUCCESS BUTTON */
+.btn.success{
+background:#00c853;
+color:#fff;
+}
+
+.btn.success:hover{
+background:#009624;
+}
+
 
 /* ================= MAIN ================= */
 
@@ -227,7 +237,7 @@ font-size:12px;
 }
 
 
-/* ================= MAP (FINAL FIX) ================= */
+/* ================= MAP ================= */
 
 .right-col{
 position:relative;
@@ -244,7 +254,6 @@ border:1px solid #e0eefd;
 position:relative;
 }
 
-/* 🔥 GOOGLE MAP FIX (IMPORTANT) */
 #map{
 width:100%;
 height:100%;
@@ -252,7 +261,81 @@ min-height:400px;
 display:block;
 }
 
-/* 🔥 FULLSCREEN MAP */
+
+/* ================= UBER UI ================= */
+
+.ride-info{
+position:absolute;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:#fff;
+padding:14px 20px;
+border-radius:14px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+z-index:999;
+width:300px;
+animation:fadeDown .4s ease;
+}
+
+.point{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:8px;
+font-size:14px;
+}
+
+.dot{
+width:10px;
+height:10px;
+border-radius:50%;
+}
+
+.pickup{ background:#00c853; }
+.drop{ background:#ff3d00; }
+
+
+/* ================= ACTION BAR ================= */
+
+.action-bar{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:10px;
+z-index:9999;
+animation:fadeUp .4s ease;
+}
+
+
+/* ================= MODAL ================= */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:9999;
+}
+
+.modal-box{
+background:#fff;
+padding:20px;
+border-radius:12px;
+width:300px;
+text-align:center;
+animation:zoomIn .3s ease;
+}
+
+
+/* ================= FULLSCREEN MAP ================= */
 
 .map-full{
 position:fixed !important;
@@ -269,7 +352,8 @@ animation:zoomMap .4s ease;
 height:100vh !important;
 }
 
-/* 🔥 TABLE FADE */
+
+/* ================= TABLE FADE ================= */
 
 #ordersCard.fade{
 opacity:0;
@@ -277,7 +361,8 @@ transform:translateY(20px);
 pointer-events:none;
 }
 
-/* ================= ANIMATION ================= */
+
+/* ================= ANIMATIONS ================= */
 
 @keyframes zoomMap{
 from{
@@ -289,6 +374,22 @@ transform:scale(1);
 opacity:1;
 }
 }
+
+@keyframes fadeDown{
+from{opacity:0; transform:translate(-50%,-20px);}
+to{opacity:1; transform:translate(-50%,0);}
+}
+
+@keyframes fadeUp{
+from{opacity:0; transform:translate(-50%,20px);}
+to{opacity:1; transform:translate(-50%,0);}
+}
+
+@keyframes zoomIn{
+from{transform:scale(.8); opacity:0;}
+to{transform:scale(1); opacity:1;}
+}
+
 
 /* ================= MOBILE ================= */
 
