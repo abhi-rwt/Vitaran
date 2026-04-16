@@ -1,170 +1,170 @@
-<!DOCTYPE html>  
-<html lang="en">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>Dashboard - Vitaran</title>  
-  
-<link rel="stylesheet" href="dashboard.css">  
-  
-<!-- Google Maps API -->
-<script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_NEW_API_KEY&callback=initMap"></script>  
-  
-<script src="dashboard.js" defer></script>  
-</head>  
-  
-<body>  
-  
-<header class="header">  
-<div class="header-left">  
-<img src="/logos/logo.png" class="logo">  
-<div class="brand">  
-<h1>Vitaran</h1>  
-<span>Delivery Partner</span>  
-</div>  
-</div>  
-  
-<div class="header-right">  
-<span class="badge">Plan Active</span>  
-<img id="userPhoto" class="user-photo" src="/logos/default.png">  
-<button class="btn ghost" onclick="logout()">Logout</button>  
-</div>  
-</header>  
-  
-<main class="container">  
-  
-<section class="card profile-card">  
-<div class="profile-text">  
-<h3>Complete Your Profile</h3>  
-<p>Add documents & vehicle details to unlock more orders.</p>  
-</div>  
-<button class="btn primary" onclick="openVerify()">Complete Profile</button>  
-</section>  
-  
-<section class="grid">  
-  
-<div class="left-col">  
-  
-<section class="card">  
-<div class="stats">  
-  
-<div class="stat">  
-<span>Total Orders</span>  
-<strong>0</strong>  
-</div>  
-  
-<div class="stat">  
-<span>Active</span>  
-<strong>0</strong>  
-</div>  
-  
-<div class="stat">  
-<span>Completed</span>  
-<strong>0</strong>  
-</div>  
-  
-<div class="stat highlight">  
-<span>Earnings</span>  
-<strong>₹0</strong>  
-</div>  
-  
-</div>  
-</section>  
-  
-<section class="card" id="ordersCard">  
-  
-<div class="card-head">  
-<h3>High Priority Orders</h3>  
-<small>Sorted by highest profit</small>  
-</div>  
-  
-<table class="table">  
-<thead>  
-<tr>  
-<th>Platform</th>  
-<th>Order</th>  
-<th>Payment</th>  
-<th>Amount</th>  
-<th>KM</th>  
-<th>Profit</th>  
-<th>Action</th>  
-</tr>  
-</thead>  
-<tbody></tbody>  
-</table>  
-  
-</section>  
-  
-</div>  
-  
-<div class="right-col">  
-  
-<div id="mapContainer" class="map-box">  
-
-<!-- 🔥 UBER STYLE PICKUP/DROP INFO -->
-<div class="ride-info">
-  <div class="point">
-    <span class="dot pickup"></span>
-    <span id="pickupText">Pickup Location</span>
-  </div>
-  <div class="point">
-    <span class="dot drop"></span>
-    <span id="dropText">Drop Location</span>
-  </div>
-</div>
-
-<div id="map"></div>  
-
-</div>  
-  
-</div>  
-  
-</section>  
-  
-</main>  
-  
-<!-- ================= VERIFY MODAL ================= -->
-<div id="verifyModal" class="modal" style="display:none;">  
-<div class="modal-box">  
-  
-<h2>Complete Your Profile</h2>  
-<p>Add your details to start receiving orders</p>  
-  
-<label class="input-label">Profile Photo</label>  
-<input type="file" id="profilePhoto" accept="image/*">  
-<img id="preview">  
-  
-<label class="input-label">ID Proof</label>  
-<select id="idType">  
-<option value="">Select ID Proof</option>  
-<option value="aadhaar">Aadhaar Card</option>  
-<option value="pan">PAN Card</option>  
-</select>  
-  
-<label class="input-label">ID Number</label>  
-<input type="text" id="idNumber" placeholder="Enter ID Number">  
-  
-<button class="btn primary" onclick="verifyUser()">Complete Verification</button>  
-  
-</div>  
-</div>  
-  
-<!-- ================= ACTION BAR ================= -->
-<div id="actionBar" class="action-bar" style="display:none;">
-  <button id="pickupBtn" class="btn primary">Reached Pickup</button>
-  <button id="dropBtn" class="btn primary" style="display:none;">Reached Drop</button>
-  <button id="payBtn" class="btn success" style="display:none;">Payment Received</button>
-</div>
-
-<!-- ================= PHOTO MODAL ================= -->
-<div id="photoModal" class="modal" style="display:none;">
-  <div class="modal-box">
-    <h3 id="photoTitle">Upload Photo</h3>
-    <input type="file" id="photoInput" accept="image/*">
-    <img id="photoPreview" style="display:none; width:100%; margin-top:10px;">
-    <button class="btn primary" onclick="submitPhoto()">Submit</button>
-  </div>
-</div>
-
-</body>  
+<!DOCTYPE html>    
+<html lang="en">    
+<head>    
+<meta charset="UTF-8">    
+<meta name="viewport" content="width=device-width, initial-scale=1.0">    
+<title>Dashboard - Vitaran</title>    
+    
+<link rel="stylesheet" href="dashboard.css">    
+    
+<!-- 🔥 MAPPLS MAP SDK -->
+<script src="https://apis.mappls.com/advancedmaps/api/uvvknurfiybrvhaslrcdfuglnjsrpbgodmcs/map_sdk?layer=vector&v=3.0"></script>
+    
+<script src="dashboard.js" defer></script>    
+</head>    
+    
+<body>    
+    
+<header class="header">    
+<div class="header-left">    
+<img src="/logos/logo.png" class="logo">    
+<div class="brand">    
+<h1>Vitaran</h1>    
+<span>Delivery Partner</span>    
+</div>    
+</div>    
+    
+<div class="header-right">    
+<span class="badge">Plan Active</span>    
+<img id="userPhoto" class="user-photo" src="/logos/default.png">    
+<button class="btn ghost" onclick="logout()">Logout</button>    
+</div>    
+</header>    
+    
+<main class="container">    
+    
+<section class="card profile-card">    
+<div class="profile-text">    
+<h3>Complete Your Profile</h3>    
+<p>Add documents & vehicle details to unlock more orders.</p>    
+</div>    
+<button class="btn primary" onclick="openVerify()">Complete Profile</button>    
+</section>    
+    
+<section class="grid">    
+    
+<div class="left-col">    
+    
+<section class="card">    
+<div class="stats">    
+    
+<div class="stat">    
+<span>Total Orders</span>    
+<strong>0</strong>    
+</div>    
+    
+<div class="stat">    
+<span>Active</span>    
+<strong>0</strong>    
+</div>    
+    
+<div class="stat">    
+<span>Completed</span>    
+<strong>0</strong>    
+</div>    
+    
+<div class="stat highlight">    
+<span>Earnings</span>    
+<strong>₹0</strong>    
+</div>    
+    
+</div>    
+</section>    
+    
+<section class="card" id="ordersCard">    
+    
+<div class="card-head">    
+<h3>High Priority Orders</h3>    
+<small>Sorted by highest profit</small>    
+</div>    
+    
+<table class="table">    
+<thead>    
+<tr>    
+<th>Platform</th>    
+<th>Order</th>    
+<th>Payment</th>    
+<th>Amount</th>    
+<th>KM</th>    
+<th>Profit</th>    
+<th>Action</th>    
+</tr>    
+</thead>    
+<tbody></tbody>    
+</table>    
+    
+</section>    
+    
+</div>    
+    
+<div class="right-col">    
+    
+<div id="mapContainer" class="map-box">    
+    
+<!-- 🔥 UBER STYLE PICKUP/DROP INFO -->    
+<div class="ride-info">    
+  <div class="point">    
+    <span class="dot pickup"></span>    
+    <span id="pickupText">Pickup Location</span>    
+  </div>    
+  <div class="point">    
+    <span class="dot drop"></span>    
+    <span id="dropText">Drop Location</span>    
+  </div>    
+</div>    
+    
+<div id="map"></div>    
+    
+</div>    
+    
+</div>    
+    
+</section>    
+    
+</main>    
+    
+<!-- ================= VERIFY MODAL ================= -->    
+<div id="verifyModal" class="modal" style="display:none;">    
+<div class="modal-box">    
+    
+<h2>Complete Your Profile</h2>    
+<p>Add your details to start receiving orders</p>    
+    
+<label class="input-label">Profile Photo</label>    
+<input type="file" id="profilePhoto" accept="image/*">    
+<img id="preview">    
+    
+<label class="input-label">ID Proof</label>    
+<select id="idType">    
+<option value="">Select ID Proof</option>    
+<option value="aadhaar">Aadhaar Card</option>    
+<option value="pan">PAN Card</option>    
+</select>    
+    
+<label class="input-label">ID Number</label>    
+<input type="text" id="idNumber" placeholder="Enter ID Number">    
+    
+<button class="btn primary" onclick="verifyUser()">Complete Verification</button>    
+    
+</div>    
+</div>    
+    
+<!-- ================= ACTION BAR ================= -->    
+<div id="actionBar" class="action-bar" style="display:none;">    
+  <button id="pickupBtn" class="btn primary">Reached Pickup</button>    
+  <button id="dropBtn" class="btn primary" style="display:none;">Reached Drop</button>    
+  <button id="payBtn" class="btn success" style="display:none;">Payment Received</button>    
+</div>    
+    
+<!-- ================= PHOTO MODAL ================= -->    
+<div id="photoModal" class="modal" style="display:none;">    
+  <div class="modal-box">    
+    <h3 id="photoTitle">Upload Photo</h3>    
+    <input type="file" id="photoInput" accept="image/*">    
+    <img id="photoPreview" style="display:none; width:100%; margin-top:10px;">    
+    <button class="btn primary" onclick="submitPhoto()">Submit</button>    
+  </div>    
+</div>    
+    
+</body>    
 </html>

@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (FINAL PRO FLOW)
+ * Vitaran - Dashboard (MAPPLS FINAL FLOW)
  ************************************************/
 
 let currentPlan = null;
@@ -66,9 +66,8 @@ if(badge){
 /* INIT */
 initDashboard(currentPlan);
 initVerificationUI();
-initMap();
-
-initActionFlow(); // 🔥 NEW
+waitForMap();
+initActionFlow();
 
 }catch(err){
 console.log("Dashboard error:",err);
@@ -77,21 +76,24 @@ console.log("Dashboard error:",err);
 });
 
 
-/* ================= GOOGLE MAP ================= */
+/* ================= MAP LOAD SAFE ================= */
+
+function waitForMap(){
+if(typeof mappls === "undefined"){
+    setTimeout(waitForMap,500);
+    return;
+}
+initMap();
+}
 
 function initMap(){
 
-const mapDiv = document.getElementById("map");
-
-if(!mapDiv){
-    console.log("❌ map div missing");
-    return;
-}
-
-map = new google.maps.Map(mapDiv, {
-    center: { lat: 28.6139, lng: 77.2090 },
-    zoom: 12,
+map = new mappls.Map("map", {
+    center: [28.6139, 77.2090],
+    zoom: 12
 });
+
+console.log("✅ Mappls Loaded");
 
 }
 
@@ -100,27 +102,19 @@ map = new google.maps.Map(mapDiv, {
 
 function initActionFlow(){
 
-const pickupBtn = document.getElementById("pickupBtn");
-const dropBtn = document.getElementById("dropBtn");
-const payBtn = document.getElementById("payBtn");
-
-/* PICKUP */
-pickupBtn.onclick = () => {
+document.getElementById("pickupBtn").onclick = () => {
 currentStep = "pickup";
 openPhotoModal("Pickup Photo Required");
 };
 
-/* DROP */
-dropBtn.onclick = () => {
+document.getElementById("dropBtn").onclick = () => {
 currentStep = "drop";
 openPhotoModal("Drop Photo Required");
 };
 
-/* PAYMENT */
-payBtn.onclick = () => {
+document.getElementById("payBtn").onclick = () => {
 
 alert("Payment Received 💰");
-
 document.getElementById("actionBar").style.display = "none";
 location.reload();
 
@@ -131,7 +125,7 @@ location.reload();
 
 /* ================= ACCEPT ================= */
 
-function acceptOrder(id,payment,amount,profit){
+function acceptOrder(){
 
 document.getElementById("mapContainer").classList.add("map-full");
 document.getElementById("ordersCard")?.classList.add("fade");
@@ -142,9 +136,9 @@ document.getElementById("actionBar").style.display="flex";
 },800);
 
 /* CLEAR */
-markers.forEach(m=>m.setMap(null));
+markers.forEach(m=>m.remove());
 markers=[];
-if(polyline) polyline.setMap(null);
+if(polyline) polyline.remove();
 
 setTimeout(()=>{
 
@@ -160,31 +154,43 @@ const drop = {
     lng: pickup.lng + (Math.random()*0.02)
 };
 
-/* TEXT UI */
+/* TEXT */
 document.getElementById("pickupText").innerText = "Pickup: Connaught Place";
 document.getElementById("dropText").innerText = "Drop: India Gate";
 
 /* MARKERS */
-const m1 = new google.maps.Marker({ position:user, map });
-const m2 = new google.maps.Marker({ position:pickup, map });
-const m3 = new google.maps.Marker({ position:drop, map });
+const m1 = new mappls.Marker({
+map: map,
+position: user
+});
+
+const m2 = new mappls.Marker({
+map: map,
+position: pickup
+});
+
+const m3 = new mappls.Marker({
+map: map,
+position: drop
+});
 
 markers.push(m1,m2,m3);
 
-/* ROUTE */
-polyline = new google.maps.Polyline({
-path:[user,pickup,drop],
-strokeColor:"#0a58ff",
-strokeWeight:5
+/* LINE */
+polyline = new mappls.Polyline({
+map: map,
+path: [user, pickup, drop],
+strokeColor: "#0a58ff",
+strokeWeight: 5
 });
 
-polyline.setMap(map);
+/* CENTER */
+map.setCenter({
+lat:(user.lat+drop.lat)/2,
+lng:(user.lng+drop.lng)/2
+});
 
-/* FIT */
-const bounds = new google.maps.LatLngBounds();
-bounds.extend(user);
-bounds.extend(drop);
-map.fitBounds(bounds);
+map.setZoom(14);
 
 },500);
 
@@ -212,21 +218,15 @@ function submitPhoto(){
 document.getElementById("photoModal").style.display="none";
 
 if(currentStep==="pickup"){
-
 alert("Pickup Done ✅");
-
 document.getElementById("pickupBtn").style.display="none";
 document.getElementById("dropBtn").style.display="inline-block";
-
 }
 
 else if(currentStep==="drop"){
-
 alert("Drop Done ✅");
-
 document.getElementById("dropBtn").style.display="none";
 document.getElementById("payBtn").style.display="inline-block";
-
 }
 
 }
@@ -234,50 +234,28 @@ document.getElementById("payBtn").style.display="inline-block";
 
 /* ================= DASHBOARD ================= */
 
-const PLAN_CONFIG = {
-"E-Commerce 1 Month":{platforms:["Amazon","Flipkart","Meesho","Myntra"],maxProfit:60},
-"Food 1 Month":{platforms:["Swiggy","Zomato"],maxProfit:80},
-"Grocery 1 Month":{platforms:["Zepto","Instamart","Blinkit"],maxProfit:80},
-"All-in-One 1 Month":{
-platforms:["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"],
-maxProfit:100
-}
-};
-
-function initDashboard(userPlan){
-
-let config = PLAN_CONFIG[userPlan] || PLAN_CONFIG["All-in-One 1 Month"];
-
-const random=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-const randomFrom=arr=>arr[Math.floor(Math.random()*arr.length)];
+function initDashboard(){
 
 const tbody=document.querySelector(".table tbody");
 if(!tbody) return;
 
 tbody.innerHTML="";
 
-for(let i=0;i<random(5,9);i++){
-
-const amount=random(150,1000);
-const km=(Math.random()*8+1).toFixed(1);
-
-let profit=Math.round(25+(km*8)+(amount*0.02));
-
-if(profit>config.maxProfit) profit=config.maxProfit;
+for(let i=0;i<6;i++){
 
 const tr=document.createElement("tr");
 
 tr.innerHTML=`
-<td>Platform</td>
-<td>#VT${random(1000,9999)}</td>
+<td>Swiggy</td>
+<td>#VT${Math.floor(Math.random()*9000)}</td>
 <td><span class="tag">COD</span></td>
-<td>₹${amount}</td>
-<td>${km} KM</td>
-<td class="${profit>=70?'green':''}">₹${profit}</td>
+<td>₹${Math.floor(Math.random()*800)}</td>
+<td>${(Math.random()*5+1).toFixed(1)} KM</td>
+<td class="green">₹${Math.floor(Math.random()*80)}</td>
 <td><button class="btn accept">Accept</button></td>
 `;
 
-tr.querySelector("button").onclick = ()=>acceptOrder();
+tr.querySelector("button").onclick = acceptOrder;
 
 tbody.appendChild(tr);
 
@@ -290,8 +268,6 @@ tbody.appendChild(tr);
 
 function initVerificationUI(){
 
-const idType=document.getElementById("idType");
-const idNumber=document.getElementById("idNumber");
 const photoInput=document.getElementById("profilePhoto");
 const preview=document.getElementById("preview");
 
@@ -303,34 +279,14 @@ preview.style.display="block";
 }
 });
 
-idType?.addEventListener("change",()=>{
-idNumber.value="";
-if(idType.value==="aadhaar"){
-idNumber.maxLength=12;
-idNumber.oninput=()=>idNumber.value=idNumber.value.replace(/\D/g,'');
-}
-if(idType.value==="pan"){
-idNumber.maxLength=10;
-idNumber.oninput=()=>idNumber.value=idNumber.value.toUpperCase();
-}
-});
-
-}
-
-function validateID(type,value){
-if(type==="aadhaar") return /^[0-9]{12}$/.test(value);
-if(type==="pan") return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value);
-return false;
 }
 
 function verifyUser(){
 
 const file=document.getElementById("profilePhoto").files[0];
-const idType=document.getElementById("idType").value;
-const idNumber=document.getElementById("idNumber").value.trim();
 
-if(!file || !idType || !validateID(idType,idNumber)){
-alert("Details check kar ❌");
+if(!file){
+alert("Photo upload kar ❌");
 return;
 }
 
@@ -341,13 +297,7 @@ const reader=new FileReader();
 reader.onload=function(e){
 
 localStorage.setItem("profilePhoto",e.target.result);
-
-document.getElementById("verifyModal").style.display="none";
-
-const img=document.getElementById("userPhoto");
-if(img) img.src=e.target.result;
-
-document.querySelector(".profile-card")?.remove();
+location.reload();
 
 };
 

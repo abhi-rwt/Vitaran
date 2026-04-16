@@ -116,7 +116,8 @@ font-size:12px;
 background:#0847c5;
 }
 
-/* 🔥 NEW SUCCESS BUTTON */
+/* 🔥 SUCCESS BUTTON */
+
 .btn.success{
 background:#00c853;
 color:#fff;
@@ -309,6 +310,19 @@ z-index:9999;
 animation:fadeUp .4s ease;
 }
 
+.action-bar button{
+min-width:140px;
+}
+
+
+/* ================= PHOTO ================= */
+
+#photoPreview{
+width:100%;
+border-radius:10px;
+margin-top:10px;
+}
+
 
 /* ================= MODAL ================= */
 
@@ -365,14 +379,8 @@ pointer-events:none;
 /* ================= ANIMATIONS ================= */
 
 @keyframes zoomMap{
-from{
-transform:scale(.95);
-opacity:0;
-}
-to{
-transform:scale(1);
-opacity:1;
-}
+from{ transform:scale(.95); opacity:0; }
+to{ transform:scale(1); opacity:1; }
 }
 
 @keyframes fadeDown{
@@ -405,6 +413,15 @@ grid-template-columns:repeat(2,1fr);
 
 .map-box{
 height:400px;
+}
+
+.ride-info{
+width:90%;
+}
+
+.action-bar{
+flex-direction:column;
+bottom:10px;
 }
 
 }
