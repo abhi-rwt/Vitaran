@@ -7,7 +7,9 @@
 
 <link rel="stylesheet" href="dashboard.css">
 
-<script src="https://apis.mappls.com/advancedmaps/api/demo/map_sdk?layer=vector&v=3.0"></script>
+<!-- Google Maps API -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbUeMcaDuEyqjap7kkyu5CVsSLAH1NfDw&callback=initMap"></script>
+
 <script src="dashboard.js" defer></script>
 </head>
 
@@ -29,7 +31,6 @@
 </div>
 </header>
 
-
 <main class="container">
 
 <section class="card profile-card">
@@ -39,7 +40,6 @@
 </div>
 <button class="btn primary" onclick="openVerify()">Complete Profile</button>
 </section>
-
 
 <section class="grid">
 
@@ -71,7 +71,6 @@
 </div>
 </section>
 
-
 <section class="card" id="ordersCard">
 
 <div class="card-head">
@@ -80,7 +79,6 @@
 </div>
 
 <table class="table">
-
 <thead>
 <tr>
 <th>Platform</th>
@@ -92,16 +90,12 @@
 <th>Action</th>
 </tr>
 </thead>
-
-<tbody>
-</tbody>
-
+<tbody></tbody>
 </table>
 
 </section>
 
 </div>
-
 
 <div class="right-col">
 
@@ -114,7 +108,6 @@
 </section>
 
 </main>
-
 
 <div id="verifyModal" class="modal" style="display:none;">
 <div class="modal-box">

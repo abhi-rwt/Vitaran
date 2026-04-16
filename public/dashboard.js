@@ -1,10 +1,11 @@
 /************************************************
- * Vitaran - Dashboard (FINAL STABLE MAP)
+ * Vitaran - Dashboard (FINAL GOOGLE MAP)
  ************************************************/
 
 let currentPlan = null;
 let map;
 let markers = [];
+let polyline;
 
 /* ================= INIT ================= */
 
@@ -65,8 +66,8 @@ if(badge){
 initDashboard(currentPlan);
 initVerificationUI();
 
-/* 🔥 SAFE MAP INIT */
-waitForMap();
+/* 🔥 GOOGLE MAP INIT */
+initMap();
 
 }catch(err){
 console.log("Dashboard error:",err);
@@ -75,38 +76,23 @@ console.log("Dashboard error:",err);
 });
 
 
-/* ================= MAP SAFE LOAD ================= */
-
-function waitForMap(){
-if(typeof mappls === "undefined"){
-    console.log("⏳ waiting map...");
-    setTimeout(waitForMap,500);
-    return;
-}
-initMap();
-}
+/* ================= GOOGLE MAP ================= */
 
 function initMap(){
 
 const mapDiv = document.getElementById("map");
+
 if(!mapDiv){
     console.log("❌ map div missing");
     return;
 }
 
-map = new mappls.Map("map",{
-    center:[28.6139,77.2090],
-    zoom:12
+map = new google.maps.Map(mapDiv, {
+    center: { lat: 28.6139, lng: 77.2090 },
+    zoom: 12,
 });
 
-console.log("✅ Map Loaded");
-
-/* 🔥 IMPORTANT FIX */
-setTimeout(()=>{
-    if(map){
-        map.resize();
-    }
-},800);
+console.log("✅ Google Map Loaded");
 
 }
 
@@ -206,72 +192,62 @@ tbody.appendChild(tr);
 }
 
 
-/* ================= ACCEPT (UBER FLOW FIXED) ================= */
+/* ================= ACCEPT (GOOGLE MAP ROUTE) ================= */
 
 function acceptOrder(id,payment,amount,profit){
 
-/* FULLSCREEN MAP */
 const mapBox=document.getElementById("mapContainer");
 mapBox.classList.add("map-full");
 
-/* FADE TABLE */
 const card=document.getElementById("ordersCard");
 if(card){
 card.classList.add("fade");
 }
 
-/* CLEAR OLD MARKERS */
-markers.forEach(m=>m.remove());
+/* CLEAR */
+markers.forEach(m=>m.setMap(null));
 markers=[];
+if(polyline) polyline.setMap(null);
 
-/* WAIT FOR ANIMATION THEN DRAW */
+/* WAIT */
 setTimeout(()=>{
 
-if(!map) return;
+const user = { lat: 28.6139, lng: 77.2090 };
 
-/* 🔥 IMPORTANT */
-map.resize();
-
-const userLat=28.6139;
-const userLng=77.2090;
-
-const pickupLat=userLat+(Math.random()*0.02);
-const pickupLng=userLng+(Math.random()*0.02);
+const pickup = {
+    lat: user.lat + (Math.random()*0.02),
+    lng: user.lng + (Math.random()*0.02)
+};
 
 /* MARKERS */
-
-const userMarker = new mappls.Marker({
-map:map,
-position:{lat:userLat,lng:userLng}
+const userMarker = new google.maps.Marker({
+    position: user,
+    map: map,
 });
 
-const pickupMarker = new mappls.Marker({
-map:map,
-position:{lat:pickupLat,lng:pickupLng}
+const pickupMarker = new google.maps.Marker({
+    position: pickup,
+    map: map,
 });
 
 markers.push(userMarker,pickupMarker);
 
 /* ROUTE LINE */
-
-new mappls.Polyline({
-map:map,
-path:[
-{lat:userLat,lng:userLng},
-{lat:pickupLat,lng:pickupLng}
-],
-strokeColor:"#0a58ff",
-strokeWeight:5
+polyline = new google.maps.Polyline({
+    path: [user, pickup],
+    geodesic: true,
+    strokeColor: "#0a58ff",
+    strokeOpacity: 1.0,
+    strokeWeight: 5,
 });
+
+polyline.setMap(map);
 
 /* CENTER */
-
-map.setCenter({
-lat:(userLat+pickupLat)/2,
-lng:(userLng+pickupLng)/2
-});
-
-map.setZoom(14);
+const bounds = new google.maps.LatLngBounds();
+bounds.extend(user);
+bounds.extend(pickup);
+map.fitBounds(bounds);
 
 },500);
 
