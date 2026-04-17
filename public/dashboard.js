@@ -220,7 +220,7 @@ function initDashboard(){
         <td class="${isHigh ? 'green':''}">₹${o.profit}</td>
         <td>
             <button class="btn accept ${locked?'disabled':''}" ${locked?'disabled':''}>
-                ${locked?'Do Low First':'Accept'}
+                ${locked?'Locked':'Accept'}
             </button>
         </td>
         `;
