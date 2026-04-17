@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - Dashboard (MAPPLS FINAL FLOW)
+ * Vitaran - Dashboard (LEAFLET FINAL FLOW)
  ************************************************/
 
 let currentPlan = null;
@@ -40,8 +40,7 @@ if(localStorage.getItem("isVerified") !== "true"){
         document.getElementById("verifyModal").style.display="flex";
     },300);
 }else{
-    const card=document.querySelector(".profile-card");
-    if(card) card.style.display="none";
+    document.querySelector(".profile-card")?.remove();
 }
 
 /* PHOTO */
@@ -51,22 +50,14 @@ if(savedPhoto){
     if(img) img.src=savedPhoto;
 }
 
-if(!data.user.plan){
-    window.location.href="subscription.html";
-    return;
-}
+currentPlan=data.user?.plan || "Active";
 
-currentPlan=data.user.plan;
-
-const badge=document.querySelector(".badge");
-if(badge){
-    badge.innerText=currentPlan+" Active";
-}
+document.querySelector(".badge").innerText=currentPlan+" Active";
 
 /* INIT */
-initDashboard(currentPlan);
+initDashboard();
 initVerificationUI();
-waitForMap();
+initMap();
 initActionFlow();
 
 }catch(err){
@@ -76,24 +67,15 @@ console.log("Dashboard error:",err);
 });
 
 
-/* ================= MAP LOAD SAFE ================= */
-
-function waitForMap(){
-if(typeof mappls === "undefined"){
-    setTimeout(waitForMap,500);
-    return;
-}
-initMap();
-}
+/* ================= LEAFLET MAP ================= */
 
 function initMap(){
 
-map = new mappls.Map("map", {
-    center: [28.6139, 77.2090],
-    zoom: 12
-});
+map = L.map('map').setView([28.6139,77.2090], 12);
 
-console.log("✅ Mappls Loaded");
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap'
+}).addTo(map);
 
 }
 
@@ -130,67 +112,49 @@ function acceptOrder(){
 document.getElementById("mapContainer").classList.add("map-full");
 document.getElementById("ordersCard")?.classList.add("fade");
 
-/* SHOW BUTTON */
 setTimeout(()=>{
 document.getElementById("actionBar").style.display="flex";
+map.invalidateSize(); // 🔥 FIX
 },800);
 
 /* CLEAR */
-markers.forEach(m=>m.remove());
+markers.forEach(m=>map.removeLayer(m));
 markers=[];
-if(polyline) polyline.remove();
+if(polyline) map.removeLayer(polyline);
 
 setTimeout(()=>{
 
-const user = { lat: 28.6139, lng: 77.2090 };
+const user = [28.6139,77.2090];
 
-const pickup = {
-    lat: user.lat + (Math.random()*0.02),
-    lng: user.lng + (Math.random()*0.02)
-};
+const pickup = [
+user[0] + (Math.random()*0.02),
+user[1] + (Math.random()*0.02)
+];
 
-const drop = {
-    lat: pickup.lat + (Math.random()*0.02),
-    lng: pickup.lng + (Math.random()*0.02)
-};
+const drop = [
+pickup[0] + (Math.random()*0.02),
+pickup[1] + (Math.random()*0.02)
+];
 
 /* TEXT */
 document.getElementById("pickupText").innerText = "Pickup: Connaught Place";
 document.getElementById("dropText").innerText = "Drop: India Gate";
 
 /* MARKERS */
-const m1 = new mappls.Marker({
-map: map,
-position: user
-});
-
-const m2 = new mappls.Marker({
-map: map,
-position: pickup
-});
-
-const m3 = new mappls.Marker({
-map: map,
-position: drop
-});
+const m1 = L.marker(user).addTo(map);
+const m2 = L.marker(pickup).addTo(map);
+const m3 = L.marker(drop).addTo(map);
 
 markers.push(m1,m2,m3);
 
 /* LINE */
-polyline = new mappls.Polyline({
-map: map,
-path: [user, pickup, drop],
-strokeColor: "#0a58ff",
-strokeWeight: 5
-});
+polyline = L.polyline([user,pickup,drop], {
+color:"#0a58ff",
+weight:5
+}).addTo(map);
 
-/* CENTER */
-map.setCenter({
-lat:(user.lat+drop.lat)/2,
-lng:(user.lng+drop.lng)/2
-});
-
-map.setZoom(14);
+/* FIT */
+map.fitBounds(polyline.getBounds());
 
 },500);
 
@@ -222,7 +186,6 @@ alert("Pickup Done ✅");
 document.getElementById("pickupBtn").style.display="none";
 document.getElementById("dropBtn").style.display="inline-block";
 }
-
 else if(currentStep==="drop"){
 alert("Drop Done ✅");
 document.getElementById("dropBtn").style.display="none";
@@ -295,10 +258,8 @@ localStorage.setItem("isVerified","true");
 const reader=new FileReader();
 
 reader.onload=function(e){
-
 localStorage.setItem("profilePhoto",e.target.result);
 location.reload();
-
 };
 
 reader.readAsDataURL(file);
