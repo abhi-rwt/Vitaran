@@ -137,11 +137,11 @@ function getLogo(name){
         Zomato:"zomato.png",
         Blinkit:"blinkit.png",
         Instamart:"instamart.png",
-        Zepto:"zepto.png",
+        Zepto:"zepto.jpeg",
         Amazon:"amazon.png",
         Flipkart:"flipkart.png",
         Meesho:"meesho.png",
-        Myntra:"myntra.png"
+        Myntra:"myntra.jpeg"
     };
     return `/logos/${map[name] || "default.png"}`;
 }
