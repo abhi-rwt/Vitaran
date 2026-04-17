@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (ULTRA FINAL)
+ * Vitaran - FINAL PRO DASHBOARD (ULTRA FINAL FIXED)
  ************************************************/
 
 let currentPlan = null;
@@ -38,6 +38,20 @@ activeToast = null;
 }
 
 
+/* ================= KM FIX ================= */
+
+function getSmartKM(plan){
+
+plan = plan.toLowerCase();
+
+if(plan.includes("food")) return (Math.random()*2 + 1).toFixed(1);
+if(plan.includes("grocery")) return (Math.random()*2 + 1.5).toFixed(1);
+if(plan.includes("e-commerce")) return (Math.random()*7 + 3).toFixed(1);
+
+return (Math.random()*4 + 2).toFixed(1);
+}
+
+
 /* ================= INIT ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -64,19 +78,15 @@ window.location.href="login.html";
 return;
 }
 
-/* PLAN */
 currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
-/* BADGE */
 document.querySelector(".badge").innerText = currentPlan + " Active";
 
-/* PROFILE PHOTO */
 const savedPhoto = localStorage.getItem("profilePhoto");
 if(savedPhoto){
 document.getElementById("userPhoto").src = savedPhoto;
 }
 
-/* VERIFY */
 if(localStorage.getItem("isVerified") !== "true"){
 document.body.classList.add("modal-open");
 document.getElementById("verifyModal").style.display="flex";
@@ -84,7 +94,6 @@ document.getElementById("verifyModal").style.display="flex";
 document.querySelector(".profile-card")?.remove();
 }
 
-/* INIT */
 initMap();
 initDashboard();
 initActionFlow();
@@ -111,6 +120,19 @@ attribution:'© OpenStreetMap'
 }
 
 
+/* ================= ADDRESS ================= */
+
+async function getAddress(lat, lng){
+try{
+const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+const data = await res.json();
+return data.display_name?.split(",").slice(0,3).join(",") || "Location";
+}catch{
+return "Location";
+}
+}
+
+
 /* ================= PLATFORM CONFIG ================= */
 
 const PLATFORM_CONFIG = {
@@ -121,7 +143,7 @@ Grocery: ["Blinkit","Instamart","Zepto"],
 };
 
 
-/* ================= LOGO FIX ================= */
+/* ================= LOGO ================= */
 
 function getLogo(name){
 
@@ -165,7 +187,7 @@ const platforms = getPlatformsFromPlan(currentPlan);
 
 for(let i=0;i<6;i++){
 
-const km = (Math.random()*6+1).toFixed(1);
+const km = getSmartKM(currentPlan);
 const name = platforms[Math.floor(Math.random()*platforms.length)];
 
 const tr=document.createElement("tr");
@@ -204,65 +226,41 @@ document.getElementById("actionBar").style.display="flex";
 map.invalidateSize();
 },600);
 
-/* CLEAR */
 markers.forEach(m=>map.removeLayer(m));
 markers=[];
 if(routeLine) map.removeLayer(routeLine);
 
-/* LOCATION */
 navigator.geolocation.getCurrentPosition(async pos=>{
 
 const user = [pos.coords.latitude, pos.coords.longitude];
 
 const angle = Math.random()*Math.PI*2;
+const dist = orderKM/111;
 
 const pickup = [
-user[0] + Math.cos(angle)*(orderKM/222),
-user[1] + Math.sin(angle)*(orderKM/222)
+user[0] + Math.cos(angle)*(dist/2),
+user[1] + Math.sin(angle)*(dist/2)
 ];
 
 const drop = [
-pickup[0] + Math.cos(angle)*(orderKM/111),
-pickup[1] + Math.sin(angle)*(orderKM/111)
+pickup[0] + Math.cos(angle)*(dist),
+pickup[1] + Math.sin(angle)*(dist)
 ];
 
-/* MARKERS */
+/* ADDRESS */
+const pickupName = await getAddress(pickup[0], pickup[1]);
+const dropName = await getAddress(drop[0], drop[1]);
+
 markers.push(L.marker(user).addTo(map).bindPopup("You"));
-markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup"));
-markers.push(L.marker(drop).addTo(map).bindPopup("Drop"));
+markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup: "+pickupName));
+markers.push(L.marker(drop).addTo(map).bindPopup("Drop: "+dropName));
 
-/* ROUTE */
-try{
-
-const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
-
-const res = await fetch(url);
-const data = await res.json();
-
-if(data.routes?.length){
-
-const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
-
-routeLine = L.polyline(coords,{
+routeLine = L.polyline([user,pickup,drop],{
 color:"#0a58ff",
 weight:5
 }).addTo(map);
 
 map.fitBounds(routeLine.getBounds());
-
-}else{
-throw "route fail";
-}
-
-}catch{
-
-routeLine = L.polyline([user,pickup,drop],{
-color:"red"
-}).addTo(map);
-
-map.fitBounds(routeLine.getBounds());
-
-}
 
 },()=>{
 showToast("Please allow location","error");
@@ -293,23 +291,35 @@ setTimeout(()=>location.reload(),1200);
 }
 
 
-/* ================= CAMERA ================= */
+/* ================= CAMERA (ALL DEVICE FIX) ================= */
 
 function openCamera(){
 
-const input = document.createElement("input");
-input.type="file";
-input.accept="image/*";
-input.capture="environment";
+/* TRY REAL CAMERA */
+navigator.mediaDevices?.getUserMedia({ video:true })
+.then(stream=>{
 
-input.click();
+const video = document.createElement("video");
+video.srcObject = stream;
+video.play();
 
-input.onchange=()=>{
+const modal = document.createElement("div");
+modal.className = "modal";
 
-if(!input.files.length){
-showToast("Photo not captured","error");
-return;
-}
+modal.innerHTML = `
+<div class="modal-box">
+<h3>Capture Photo</h3>
+<button class="btn primary">Capture</button>
+</div>
+`;
+
+modal.querySelector(".modal-box").prepend(video);
+document.body.appendChild(modal);
+
+modal.querySelector("button").onclick = ()=>{
+
+stream.getTracks().forEach(track=>track.stop());
+modal.remove();
 
 if(currentStep==="pickup"){
 showToast("Pickup Completed ✅");
@@ -323,6 +333,35 @@ document.getElementById("payBtn").style.display="inline-block";
 
 };
 
+})
+.catch(()=>{
+
+/* FALLBACK */
+const input = document.createElement("input");
+input.type="file";
+input.accept="image/*";
+
+input.click();
+
+input.onchange=()=>{
+if(!input.files.length){
+showToast("No photo","error");
+return;
+}
+
+if(currentStep==="pickup"){
+showToast("Pickup Completed ✅");
+document.getElementById("pickupBtn").style.display="none";
+document.getElementById("dropBtn").style.display="inline-block";
+}else{
+showToast("Delivery Completed ✅");
+document.getElementById("dropBtn").style.display="none";
+document.getElementById("payBtn").style.display="inline-block";
+}
+};
+
+});
+
 }
 
 
@@ -334,7 +373,6 @@ const photoInput = document.getElementById("profilePhoto");
 const preview = document.getElementById("preview");
 const idInput = document.getElementById("idNumber");
 
-/* PHOTO */
 photoInput?.addEventListener("change",()=>{
 const file = photoInput.files[0];
 
@@ -346,18 +384,11 @@ photoInput.value="";
 return;
 }
 
-if(!file.type.startsWith("image/")){
-showToast("Only image allowed","error");
-photoInput.value="";
-return;
-}
-
 preview.src = URL.createObjectURL(file);
 preview.style.display="block";
 }
 });
 
-/* ID LIMIT */
 idInput?.addEventListener("input",(e)=>{
 e.target.value = e.target.value.replace(/\D/g,"");
 if(e.target.value.length > 12){
