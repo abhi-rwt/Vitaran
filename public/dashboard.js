@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (LEAFLET FIXED)
+ * Vitaran - FINAL PRO DASHBOARD (ULTIMATE FIX)
  ************************************************/
 
 let currentPlan = null;
@@ -8,18 +8,36 @@ let markers = [];
 let routeLine;
 let currentStep = "pickup";
 
+/* ================= TOAST ================= */
+
+function showToast(msg, type="success"){
+const toast = document.createElement("div");
+toast.className = `toast ${type}`;
+toast.innerText = msg;
+
+document.body.appendChild(toast);
+
+setTimeout(()=>toast.classList.add("show"),100);
+
+setTimeout(()=>{
+toast.classList.remove("show");
+setTimeout(()=>toast.remove(),300);
+},2500);
+}
+
+
 /* ================= INIT ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
 const token = localStorage.getItem("token");
 
-if (!token) {
-    window.location.href = "login.html";
-    return;
+if (!token){
+window.location.href="login.html";
+return;
 }
 
-try {
+try{
 
 const res = await fetch("/api/auth/me",{
 method:"POST",
@@ -30,30 +48,29 @@ body: JSON.stringify({ token })
 const data = await res.json();
 
 if (!data.success){
-    window.location.href="login.html";
-    return;
+window.location.href="login.html";
+return;
 }
 
-/* PLAN FIX (IMPORTANT) */
+/* PLAN */
 currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One 1 Month";
 
-/* VERIFY */
-if(localStorage.getItem("isVerified") !== "true"){
-    setTimeout(()=>{
-        document.getElementById("verifyModal").style.display="flex";
-    },300);
-}else{
-    document.querySelector(".profile-card")?.remove();
-}
+/* BADGE */
+document.querySelector(".badge").innerText = currentPlan+" Active";
 
-/* PHOTO */
+/* PROFILE PHOTO */
 const savedPhoto = localStorage.getItem("profilePhoto");
 if(savedPhoto){
-    document.getElementById("userPhoto").src = savedPhoto;
+document.getElementById("userPhoto").src = savedPhoto;
 }
 
-/* BADGE */
-document.querySelector(".badge").innerText = currentPlan + " Active";
+/* VERIFY ONLY FIRST TIME */
+if(localStorage.getItem("isVerified") !== "true"){
+document.body.classList.add("modal-open");
+document.getElementById("verifyModal").style.display="flex";
+}else{
+document.querySelector(".profile-card")?.remove();
+}
 
 /* INIT */
 initMap();
@@ -62,7 +79,7 @@ initActionFlow();
 initVerificationUI();
 
 }catch(err){
-console.log("Error:",err);
+console.log(err);
 }
 
 });
@@ -74,94 +91,33 @@ function initMap(){
 
 map = L.map('map').setView([28.6139,77.2090], 12);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'© OpenStreetMap'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
 }).addTo(map);
 
 }
 
 
-/* ================= PLATFORM CONFIG (FULL) ================= */
+/* ================= PLATFORM CONFIG ================= */
 
 const PLATFORM_CONFIG = {
-
-"Food 1 Month": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" }
-],
-"Food 3 Months": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" }
-],
-"Food 12 Months": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" }
-],
-
-"Grocery 1 Month": [
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" }
-],
-"Grocery 3 Months": [
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" }
-],
-"Grocery 12 Months": [
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" }
-],
-
-"E-Commerce 1 Month": [
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" },
-{ name:"Meesho", logo:"/logos/meesho.png" },
-{ name:"Myntra", logo:"/logos/myntra.png" }
-],
-"E-Commerce 3 Months": [
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" },
-{ name:"Meesho", logo:"/logos/meesho.png" },
-{ name:"Myntra", logo:"/logos/myntra.png" }
-],
-"E-Commerce 12 Months": [
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" },
-{ name:"Meesho", logo:"/logos/meesho.png" },
-{ name:"Myntra", logo:"/logos/myntra.png" }
-],
-
-"All-in-One 1 Month": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" },
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" },
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" }
-],
-"All-in-One 3 Months": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" },
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" },
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" }
-],
-"All-in-One 12 Months": [
-{ name:"Swiggy", logo:"/logos/swiggy.png" },
-{ name:"Zomato", logo:"/logos/zomato.png" },
-{ name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" },
-{ name:"Zepto", logo:"/logos/zepto.png" },
-{ name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" }
-]
-
+"Food": ["Swiggy","Zomato"],
+"Grocery": ["Blinkit","Instamart","Zepto"],
+"E-Commerce": ["Amazon","Flipkart","Meesho","Myntra"],
+"All-in-One": ["Swiggy","Zomato","Blinkit","Instamart","Zepto","Amazon","Flipkart"]
 };
+
+
+/* ================= PLAN PARSER ================= */
+
+function getPlatformsFromPlan(plan){
+
+if(plan.includes("Food")) return PLATFORM_CONFIG["Food"];
+if(plan.includes("Grocery")) return PLATFORM_CONFIG["Grocery"];
+if(plan.includes("E-Commerce")) return PLATFORM_CONFIG["E-Commerce"];
+
+return PLATFORM_CONFIG["All-in-One"];
+}
 
 
 /* ================= DASHBOARD ================= */
@@ -171,20 +127,19 @@ function initDashboard(){
 const tbody=document.querySelector(".table tbody");
 tbody.innerHTML="";
 
-/* PLAN BASED FILTER */
-let platforms = PLATFORM_CONFIG[currentPlan] || PLATFORM_CONFIG["All-in-One 1 Month"];
+const platforms = getPlatformsFromPlan(currentPlan);
 
 for(let i=0;i<6;i++){
 
 const km = (Math.random()*6+1).toFixed(1);
-const platform = platforms[Math.floor(Math.random()*platforms.length)];
+const name = platforms[Math.floor(Math.random()*platforms.length)];
 
 const tr=document.createElement("tr");
 
 tr.innerHTML=`
 <td>
-<img src="${platform.logo}" style="width:20px;margin-right:6px;">
-${platform.name}
+<img src="/logos/${name.toLowerCase()}.png" style="width:20px;margin-right:6px;">
+${name}
 </td>
 <td>#VT${Math.floor(Math.random()*9000)}</td>
 <td><span class="tag">COD</span></td>
@@ -225,17 +180,17 @@ navigator.geolocation.getCurrentPosition(async pos=>{
 
 const user = [pos.coords.latitude, pos.coords.longitude];
 
-/* FIXED DISTANCE LOGIC */
+/* DISTANCE FIX */
 const angle = Math.random()*Math.PI*2;
 
 const pickup = [
-user[0] + (Math.cos(angle) * orderKM/222),
-user[1] + (Math.sin(angle) * orderKM/222)
+user[0] + Math.cos(angle)*(orderKM/222),
+user[1] + Math.sin(angle)*(orderKM/222)
 ];
 
 const drop = [
-pickup[0] + (Math.cos(angle) * orderKM/111),
-pickup[1] + (Math.sin(angle) * orderKM/111)
+pickup[0] + Math.cos(angle)*(orderKM/111),
+pickup[1] + Math.sin(angle)*(orderKM/111)
 ];
 
 /* MARKERS */
@@ -243,19 +198,42 @@ markers.push(L.marker(user).addTo(map).bindPopup("You"));
 markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup"));
 markers.push(L.marker(drop).addTo(map).bindPopup("Drop"));
 
-/* ROUTE (REAL ROAD) */
+/* ROUTE API */
+try{
+
 const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
 
 const res = await fetch(url);
 const data = await res.json();
 
+if(data.routes?.length){
+
 const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
-routeLine = L.polyline(coords,{color:"#0a58ff",weight:5}).addTo(map);
+routeLine = L.polyline(coords,{
+color:"#0a58ff",
+weight:5
+}).addTo(map);
+
 map.fitBounds(routeLine.getBounds());
 
+}else{
+throw "No route";
+}
+
+}catch{
+
+/* FALLBACK */
+routeLine = L.polyline([user,pickup,drop],{
+color:"red"
+}).addTo(map);
+
+map.fitBounds(routeLine.getBounds());
+
+}
+
 },()=>{
-alert("Location allow kar ❌");
+showToast("Location allow kar ❌","error");
 });
 
 }
@@ -276,8 +254,8 @@ openCamera();
 };
 
 document.getElementById("payBtn").onclick = ()=>{
-alert("Payment Received 💰");
-location.reload();
+showToast("Payment Received 💰");
+setTimeout(()=>location.reload(),1000);
 };
 
 }
@@ -288,20 +266,19 @@ location.reload();
 function openCamera(){
 
 const input = document.createElement("input");
-input.type = "file";
-input.accept = "image/*";
-input.capture = "environment";
+input.type="file";
+input.accept="image/*";
+input.capture="environment";
 
 input.click();
 
-input.onchange = ()=>{
+input.onchange=()=>{
 if(currentStep==="pickup"){
-alert("Pickup Done ✅");
+showToast("Pickup Done ✅");
 document.getElementById("pickupBtn").style.display="none";
 document.getElementById("dropBtn").style.display="inline-block";
-}
-else{
-alert("Drop Done ✅");
+}else{
+showToast("Drop Done ✅");
 document.getElementById("dropBtn").style.display="none";
 document.getElementById("payBtn").style.display="inline-block";
 }
@@ -332,7 +309,7 @@ function verifyUser(){
 const file=document.getElementById("profilePhoto").files[0];
 
 if(!file){
-alert("Photo upload kar ❌");
+showToast("Photo upload kar ❌","error");
 return;
 }
 
@@ -342,7 +319,15 @@ const reader=new FileReader();
 
 reader.onload=function(e){
 localStorage.setItem("profilePhoto",e.target.result);
+
+showToast("Profile Verified ✅");
+
+setTimeout(()=>{
+document.body.classList.remove("modal-open");
+document.getElementById("verifyModal").style.display="none";
 location.reload();
+},1000);
+
 };
 
 reader.readAsDataURL(file);
@@ -350,6 +335,7 @@ reader.readAsDataURL(file);
 }
 
 function openVerify(){
+document.body.classList.add("modal-open");
 document.getElementById("verifyModal").style.display="flex";
 }
 
