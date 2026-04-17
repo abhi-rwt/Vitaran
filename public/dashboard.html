@@ -1,170 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Vitaran</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - Vitaran</title>
 
-    <link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-    <script src="dashboard.js" defer></script>
+<script src="dashboard.js" defer></script>
 </head>
 
 <body>
 
 <header class="header">
-    <div class="header-left">
-        <img src="/logos/logo.png" class="logo">
-        <div class="brand">
-            <h1>Vitaran</h1>
-            <span>Delivery Partner</span>
-        </div>
-    </div>
+<div class="header-left">
+<img src="/logos/logo.png" class="logo">
+<div class="brand">
+<h1>Vitaran</h1>
+<span>Delivery Partner</span>
+</div>
+</div>
 
-    <div class="header-right">
-        <span class="badge">Plan Active</span>
-        <img id="userPhoto" class="user-photo" src="/logos/default.png">
-        <button class="btn ghost" onclick="logout()">Logout</button>
-    </div>
+<div class="header-right">
+<span class="badge">Plan Active</span>
+<img id="userPhoto" class="user-photo" src="/logos/default.png">
+<button class="btn ghost" onclick="logout()">Logout</button>
+</div>
 </header>
 
 <main class="container">
 
-    <section class="card profile-card" id="profileNotice">
-        <div class="profile-text">
-            <h3>Complete Your Profile</h3>
-            <p>Add documents & vehicle details to unlock more orders.</p>
-        </div>
-        <button class="btn primary" onclick="openVerify()">Complete Profile</button>
-    </section>
+<!-- PROFILE NOTICE -->
+<section class="card profile-card" id="profileNotice">
+<div class="profile-text">
+<h3>Complete Your Profile</h3>
+<p>Add documents & vehicle details to unlock more orders.</p>
+</div>
+<button class="btn primary" onclick="openVerify()">Complete Profile</button>
+</section>
 
-    <section class="grid">
+<section class="grid">
 
-        <div class="left-col">
+<div class="left-col">
 
-            <section class="card">
-                <div class="stats">
+<!-- STATS -->
+<section class="card">
+<div class="stats">
 
-                    <div class="stat">
-                        <span>Total Orders</span>
-                        <strong id="stat-total">0</strong>
-                    </div>
+<div class="stat">
+<span>Total Orders</span>
+<strong id="stat-total">0</strong>
+</div>
 
-                    <div class="stat">
-                        <span>Active</span>
-                        <strong id="stat-active">0</strong>
-                    </div>
+<div class="stat">
+<span>Active</span>
+<strong id="stat-active">0</strong>
+</div>
 
-                    <div class="stat">
-                        <span>Completed</span>
-                        <strong id="stat-completed">0</strong>
-                    </div>
+<div class="stat">
+<span>Completed</span>
+<strong id="stat-completed">0</strong>
+</div>
 
-                    <div class="stat highlight">
-                        <span>Earnings</span>
-                        <strong id="stat-earnings">₹0</strong>
-                    </div>
+<div class="stat highlight">
+<span>Earnings</span>
+<strong id="stat-earnings">₹0</strong>
+</div>
 
-                </div>
-            </section>
+</div>
+</section>
 
-            <section class="card" id="ordersCard">
+<!-- ORDERS -->
+<section class="card" id="ordersCard">
 
-                <div class="card-head">
-                    <h3>High Priority Orders</h3>
-                    <small>Sorted by highest profit</small>
-                </div>
+<div class="card-head">
+<h3>High Priority Orders</h3>
+<small>Sorted by highest profit</small>
+</div>
 
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Platform</th>
-                            <th>Order</th>
-                            <th>Payment</th>
-                            <th>Amount</th>
-                            <th>KM</th>
-                            <th>Profit</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+<table class="table">
+<thead>
+<tr>
+<th>Platform</th>
+<th>Order</th>
+<th>Payment</th>
+<th>Amount</th>
+<th>KM</th>
+<th>Profit</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 
-            </section>
+</section>
 
-        </div>
+</div>
 
-        <div class="right-col">
+<!-- MAP -->
+<div class="right-col">
 
-            <div id="mapContainer" class="map-box">
+<div id="mapContainer" class="map-box">
 
-                <div class="ride-info">
-                    <div class="point">
-                        <span class="dot pickup"></span>
-                        <span id="pickupText">Waiting for order...</span>
-                    </div>
-                    <div class="point">
-                        <span class="dot drop"></span>
-                        <span id="dropText">---</span>
-                    </div>
-                </div>
+<div class="ride-info">
+<div class="point">
+<span class="dot pickup"></span>
+<span id="pickupText">Waiting for order...</span>
+</div>
+<div class="point">
+<span class="dot drop"></span>
+<span id="dropText">---</span>
+</div>
+</div>
 
-                <div id="map"></div>
+<div id="map"></div>
 
-                <div id="actionBar" class="action-bar" style="display:none;">
-                    <button id="pickupBtn" class="btn primary">Reached Pickup</button>
-                    <button id="dropBtn" class="btn primary" style="display:none;">Reached Drop</button>
-                    <button id="payBtn" class="btn success" style="display:none;">Payment Received</button>
-                </div>
+<div id="actionBar" class="action-bar" style="display:none;">
+<button id="pickupBtn" class="btn primary">Reached Pickup</button>
+<button id="dropBtn" class="btn primary" style="display:none;">Reached Drop</button>
+<button id="payBtn" class="btn success" style="display:none;">Payment Received</button>
+</div>
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-    </section>
+</section>
 
 </main>
 
+<!-- VERIFY MODAL -->
 <div id="verifyModal" class="modal" style="display:none;">
-    <div class="modal-box">
+<div class="modal-box">
 
-        <h2>Complete Your Profile</h2>
-        <p>Add your details to start receiving orders</p>
+<h2>Complete Your Profile</h2>
+<p>Add your details to start receiving orders</p>
 
-        <label class="input-label">Profile Photo</label>
-        <input type="file" id="profilePhoto" accept="image/*">
-        <img id="preview" style="display:none; width:80px; height:80px; border-radius:50%; margin-top:10px;">
+<label>Profile Photo</label>
+<input type="file" id="profilePhoto" accept="image/*">
 
-        <label class="input-label">ID Proof</label>
-        <select id="idType">
-            <option value="">Select ID Proof</option>
-            <option value="aadhaar">Aadhaar Card</option>
-            <option value="pan">PAN Card</option>
-        </select>
+<img id="preview">
 
-        <label class="input-label">ID Number</label>
-        <input type="text" id="idNumber" placeholder="Enter ID Number">
+<label>ID Proof</label>
+<select id="idType">
+<option value="">Select ID Proof</option>
+<option value="aadhaar">Aadhaar Card</option>
+<option value="pan">PAN Card</option>
+</select>
 
-        <button class="btn primary" onclick="verifyUser()">Complete Verification</button>
+<label>ID Number</label>
+<input type="text" id="idNumber" placeholder="Enter ID Number" maxlength="12">
 
-    </div>
+<button class="btn primary" onclick="verifyUser()">Complete Verification</button>
+
+</div>
 </div>
 
+<!-- CAMERA MODAL -->
 <div id="photoModal" class="modal" style="display:none;">
-    <div class="modal-box">
-        <h3 id="photoTitle">Capture Delivery Photo</h3>
+<div class="modal-box">
 
-        <div id="videoContainer" style="width:100%; height:250px; background:#000; border-radius:12px; overflow:hidden; margin-bottom:15px;">
-            </div>
+<h3 id="photoTitle">Capture Delivery Photo</h3>
 
-        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;">
+<video id="cameraVideo" autoplay playsinline></video>
 
-        <img id="photoPreview" style="display:none; width:100%; border-radius:10px; margin-top:10px;">
+<img id="photoPreview">
 
-        <button class="btn primary" id="captureActionBtn">Capture Now</button>
-    </div>
+<button class="btn primary" id="captureActionBtn">Capture Photo</button>
+
+</div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
