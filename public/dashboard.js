@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (ULTRA FIXED)
+ * Vitaran - FINAL PRO DASHBOARD (ULTRA FINAL)
  ************************************************/
 
 let currentPlan = null;
@@ -64,7 +64,7 @@ window.location.href="login.html";
 return;
 }
 
-/* PLAN FIX */
+/* PLAN */
 currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
 /* BADGE */
@@ -76,7 +76,7 @@ if(savedPhoto){
 document.getElementById("userPhoto").src = savedPhoto;
 }
 
-/* VERIFY ONLY FIRST TIME */
+/* VERIFY */
 if(localStorage.getItem("isVerified") !== "true"){
 document.body.classList.add("modal-open");
 document.getElementById("verifyModal").style.display="flex";
@@ -330,34 +330,66 @@ document.getElementById("payBtn").style.display="inline-block";
 
 function initVerificationUI(){
 
-const photoInput=document.getElementById("profilePhoto");
-const preview=document.getElementById("preview");
+const photoInput = document.getElementById("profilePhoto");
+const preview = document.getElementById("preview");
+const idInput = document.getElementById("idNumber");
 
+/* PHOTO */
 photoInput?.addEventListener("change",()=>{
-const file=photoInput.files[0];
+const file = photoInput.files[0];
+
 if(file){
-preview.src=URL.createObjectURL(file);
+
+if(file.size > 2 * 1024 * 1024){
+showToast("Image must be under 2MB","error");
+photoInput.value="";
+return;
+}
+
+if(!file.type.startsWith("image/")){
+showToast("Only image allowed","error");
+photoInput.value="";
+return;
+}
+
+preview.src = URL.createObjectURL(file);
 preview.style.display="block";
+}
+});
+
+/* ID LIMIT */
+idInput?.addEventListener("input",(e)=>{
+e.target.value = e.target.value.replace(/\D/g,"");
+if(e.target.value.length > 12){
+e.target.value = e.target.value.slice(0,12);
 }
 });
 
 }
 
+
 function verifyUser(){
 
-const file=document.getElementById("profilePhoto").files[0];
+const file = document.getElementById("profilePhoto").files[0];
+const id = document.getElementById("idNumber")?.value || "";
 
 if(!file){
 showToast("Please upload profile photo","error");
 return;
 }
 
+if(id.length !== 12){
+showToast("Enter valid 12-digit ID","error");
+return;
+}
+
 localStorage.setItem("isVerified","true");
 
-const reader=new FileReader();
+const reader = new FileReader();
 
-reader.onload=function(e){
-localStorage.setItem("profilePhoto",e.target.result);
+reader.onload = function(e){
+
+localStorage.setItem("profilePhoto", e.target.result);
 
 showToast("Profile Verified Successfully ✅");
 
@@ -372,6 +404,7 @@ location.reload();
 reader.readAsDataURL(file);
 
 }
+
 
 function openVerify(){
 document.body.classList.add("modal-open");

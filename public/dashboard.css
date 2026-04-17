@@ -302,6 +302,28 @@ background:rgba(255,255,255,0.6);
 }
 
 
+/* 🔥 PROFILE IMAGE FIX (IMPORTANT) */
+
+#preview{
+width:90px;
+height:90px;
+border-radius:50%;
+object-fit:cover;
+display:block;
+margin:10px auto;
+border:3px solid #1e88ff;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+
+/* 🔥 FILE INPUT CONTROL */
+
+#profilePhoto{
+max-width:100%;
+font-size:12px;
+}
+
+
 /* ================= TOAST ================= */
 
 .toast{
