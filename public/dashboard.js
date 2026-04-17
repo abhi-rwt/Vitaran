@@ -1,81 +1,142 @@
 /************************************************
- * Vitaran - Dashboard (LEAFLET FINAL FLOW)
+ * Vitaran - Dashboard (LEAFLET PRO VERSION)
  ************************************************/
 
-let currentPlan = null;
 let map;
 let markers = [];
 let polyline;
 let currentStep = "pickup";
+let userLocation = [28.6139,77.2090];
 
 /* ================= INIT ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-const token = localStorage.getItem("token");
+getLiveLocation();
 
-if (!token) {
-    window.location.href = "login.html";
-    return;
-}
-
-try {
-
-const res = await fetch("/api/auth/me",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body: JSON.stringify({ token })
-});
-
-const data = await res.json();
-
-if (!data.success){
-    window.location.href="login.html";
-    return;
-}
-
-/* VERIFY */
-if(localStorage.getItem("isVerified") !== "true"){
-    setTimeout(()=>{
-        document.getElementById("verifyModal").style.display="flex";
-    },300);
-}else{
-    document.querySelector(".profile-card")?.remove();
-}
-
-/* PHOTO */
-const savedPhoto = localStorage.getItem("profilePhoto");
-if(savedPhoto){
-    const img=document.getElementById("userPhoto");
-    if(img) img.src=savedPhoto;
-}
-
-currentPlan=data.user?.plan || "Active";
-
-document.querySelector(".badge").innerText=currentPlan+" Active";
-
-/* INIT */
 initDashboard();
 initVerificationUI();
 initMap();
 initActionFlow();
 
-}catch(err){
-console.log("Dashboard error:",err);
-}
-
 });
 
 
-/* ================= LEAFLET MAP ================= */
+/* ================= LIVE LOCATION ================= */
+
+function getLiveLocation(){
+
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition((pos)=>{
+
+userLocation = [
+pos.coords.latitude,
+pos.coords.longitude
+];
+
+if(map){
+map.setView(userLocation,13);
+L.marker(userLocation).addTo(map).bindPopup("Your Location");
+}
+
+});
+}
+
+}
+
+
+/* ================= MAP ================= */
 
 function initMap(){
 
-map = L.map('map').setView([28.6139,77.2090], 12);
+map = L.map('map').setView(userLocation, 12);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'© OpenStreetMap'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
 }).addTo(map);
+
+}
+
+
+/* ================= ROUTE (REAL ROAD) ================= */
+
+async function drawRoute(user,pickup,drop){
+
+const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
+
+const res = await fetch(url);
+const data = await res.json();
+
+const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+if(polyline) map.removeLayer(polyline);
+
+polyline = L.polyline(coords,{
+color:"#0a58ff",
+weight:5
+}).addTo(map);
+
+map.fitBounds(polyline.getBounds());
+
+}
+
+
+/* ================= DISTANCE BASED LOCATION ================= */
+
+function generateLocation(base,km){
+
+const earthRadius = 6371;
+
+const dLat = (km / earthRadius) * (180 / Math.PI);
+const dLng = dLat / Math.cos(base[0] * Math.PI/180);
+
+return [
+base[0] + dLat,
+base[1] + dLng
+];
+
+}
+
+
+/* ================= ACCEPT ================= */
+
+function acceptOrder(km){
+
+document.getElementById("mapContainer").classList.add("map-full");
+document.getElementById("ordersCard")?.classList.add("fade");
+
+setTimeout(()=>{
+document.getElementById("actionBar").style.display="flex";
+map.invalidateSize();
+},800);
+
+/* CLEAR */
+markers.forEach(m=>map.removeLayer(m));
+markers=[];
+if(polyline) map.removeLayer(polyline);
+
+setTimeout(()=>{
+
+const user = userLocation;
+
+const pickup = generateLocation(user, km/2);
+const drop = generateLocation(pickup, km/2);
+
+/* TEXT */
+document.getElementById("pickupText").innerText = "Pickup Location";
+document.getElementById("dropText").innerText = "Drop Location";
+
+/* MARKERS */
+const m1 = L.marker(user).addTo(map).bindPopup("You");
+const m2 = L.marker(pickup).addTo(map).bindPopup("Pickup");
+const m3 = L.marker(drop).addTo(map).bindPopup("Drop");
+
+markers.push(m1,m2,m3);
+
+/* ROUTE */
+drawRoute(user,pickup,drop);
+
+},500);
 
 }
 
@@ -95,68 +156,10 @@ openPhotoModal("Drop Photo Required");
 };
 
 document.getElementById("payBtn").onclick = () => {
-
 alert("Payment Received 💰");
 document.getElementById("actionBar").style.display = "none";
 location.reload();
-
 };
-
-}
-
-
-/* ================= ACCEPT ================= */
-
-function acceptOrder(){
-
-document.getElementById("mapContainer").classList.add("map-full");
-document.getElementById("ordersCard")?.classList.add("fade");
-
-setTimeout(()=>{
-document.getElementById("actionBar").style.display="flex";
-map.invalidateSize(); // 🔥 FIX
-},800);
-
-/* CLEAR */
-markers.forEach(m=>map.removeLayer(m));
-markers=[];
-if(polyline) map.removeLayer(polyline);
-
-setTimeout(()=>{
-
-const user = [28.6139,77.2090];
-
-const pickup = [
-user[0] + (Math.random()*0.02),
-user[1] + (Math.random()*0.02)
-];
-
-const drop = [
-pickup[0] + (Math.random()*0.02),
-pickup[1] + (Math.random()*0.02)
-];
-
-/* TEXT */
-document.getElementById("pickupText").innerText = "Pickup: Connaught Place";
-document.getElementById("dropText").innerText = "Drop: India Gate";
-
-/* MARKERS */
-const m1 = L.marker(user).addTo(map);
-const m2 = L.marker(pickup).addTo(map);
-const m3 = L.marker(drop).addTo(map);
-
-markers.push(m1,m2,m3);
-
-/* LINE */
-polyline = L.polyline([user,pickup,drop], {
-color:"#0a58ff",
-weight:5
-}).addTo(map);
-
-/* FIT */
-map.fitBounds(polyline.getBounds());
-
-},500);
 
 }
 
@@ -200,11 +203,11 @@ document.getElementById("payBtn").style.display="inline-block";
 function initDashboard(){
 
 const tbody=document.querySelector(".table tbody");
-if(!tbody) return;
-
 tbody.innerHTML="";
 
 for(let i=0;i<6;i++){
+
+const km = (Math.random()*6+1).toFixed(1);
 
 const tr=document.createElement("tr");
 
@@ -213,12 +216,12 @@ tr.innerHTML=`
 <td>#VT${Math.floor(Math.random()*9000)}</td>
 <td><span class="tag">COD</span></td>
 <td>₹${Math.floor(Math.random()*800)}</td>
-<td>${(Math.random()*5+1).toFixed(1)} KM</td>
+<td>${km} KM</td>
 <td class="green">₹${Math.floor(Math.random()*80)}</td>
 <td><button class="btn accept">Accept</button></td>
 `;
 
-tr.querySelector("button").onclick = acceptOrder;
+tr.querySelector("button").onclick = ()=>acceptOrder(parseFloat(km));
 
 tbody.appendChild(tr);
 
