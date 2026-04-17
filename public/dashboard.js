@@ -10,6 +10,7 @@ let currentStep = "pickup";
 let activeToast = null;
 
 // 🔥 Stats & Lock State (Persisted)
+// Ensure we parse properly or set defaults
 let stats = JSON.parse(localStorage.getItem("vitaranStats") || '{"total":0, "active":0, "completed":0, "earnings":0}');
 let highProfitCount = parseInt(localStorage.getItem("highProfitCount") || "0");
 let isLocked = localStorage.getItem("isLocked") === "true";
@@ -17,7 +18,11 @@ let isLocked = localStorage.getItem("isLocked") === "true";
 /* ================= STATS UI UPDATER ================= */
 
 function updateStatsUI() {
-    // Dashboard ke top cards ko update karne ke liye
+    // 1. Save to Storage first
+    localStorage.setItem("vitaranStats", JSON.stringify(stats));
+    localStorage.setItem("isLocked", isLocked);
+
+    // 2. Dashboard ke top cards ko update karein (Direct DOM manipulation for instant change)
     const cards = document.querySelectorAll(".card h2");
     if (cards.length >= 3) {
         cards[0].innerText = stats.total;     // Total Orders
@@ -30,8 +35,6 @@ function updateStatsUI() {
     if (earningsEl) {
         earningsEl.innerText = `₹${stats.earnings}`;
     }
-
-    localStorage.setItem("vitaranStats", JSON.stringify(stats));
 }
 
 /* ================= TOAST SYSTEM ================= */
@@ -78,7 +81,7 @@ function getSmartKM(plan) {
 /* ================= INITIALIZATION ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
-    updateStatsUI(); // Load saved stats
+    updateStatsUI(); // Load saved stats immediately
     
     const token = localStorage.getItem("token");
     if (!token) {
@@ -114,7 +117,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             const vm = document.getElementById("verifyModal");
             if(vm) vm.style.display = "flex";
         } else {
-            document.querySelector(".profile-card")?.remove();
+            const pc = document.querySelector(".profile-card");
+            if(pc) pc.remove();
         }
 
         initMap();
@@ -190,6 +194,7 @@ function initDashboard() {
         });
     }
 
+    // Profit high to low sort
     orders.sort((a, b) => b.profit - a.profit);
 
     orders.forEach((o, index) => {
@@ -197,12 +202,12 @@ function initDashboard() {
         const isHigh = o.profit >= 50;
         const isLow = o.profit < 20;
 
-        // 🔥 LOCK LOGIC
-        const locked = isLocked && isHigh;
+        // 🔥 LOCK LOGIC FIX: Check against current persistence
+        const locked = (isLocked && isHigh);
 
         if (index < 2) tr.style.borderLeft = "5px solid #ff9f43"; 
         if (isHigh) tr.style.background = "rgba(46, 204, 113, 0.1)"; 
-        if (isLow) tr.style.opacity = "0.5"; 
+        if (isLow) tr.style.opacity = "0.7"; 
 
         tr.innerHTML = `
             <td>
@@ -233,26 +238,28 @@ function initDashboard() {
 /* ================= ORDER FLOW & STATS ================= */
 
 async function acceptOrder(order) {
-    // Update Stats for active order
+    // 🔥 STATS UPDATE: Increment Active & Total immediately
     stats.total += 1;
     stats.active = 1;
     updateStatsUI();
 
-    // Lock Logic trigger
+    // Lock Logic trigger: If taking a high profit, lock others
     if (order.profit >= 50) {
         isLocked = true;
         localStorage.setItem("isLocked", "true");
-        showToast("High Profit Locked! Deliver a Low order next.", "warning");
+        showToast("High Profit Locked! Deliver a low order to unlock.", "warning");
     }
     
-    // Store current order profit to check at delivery
     localStorage.setItem("currentOrderProfit", order.profit);
 
-    document.getElementById("mapContainer").classList.add("map-full");
+    const mc = document.getElementById("mapContainer");
+    if(mc) mc.classList.add("map-full");
     const oc = document.getElementById("ordersCard");
     if(oc) oc.style.display = "none";
     
-    document.getElementById("actionBar").style.display = "flex";
+    const ab = document.getElementById("actionBar");
+    if(ab) ab.style.display = "flex";
+    
     map.invalidateSize();
 
     markers.forEach(m => map.removeLayer(m));
@@ -306,14 +313,14 @@ function initActionFlow() {
     document.getElementById("payBtn").onclick = () => {
         const finishedProfit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
 
-        // 🔥 UNLOCK LOGIC: Agar Low Profit deliver kiya toh unlock karo
+        // 🔥 UNLOCK LOGIC: Unlock only if the delivered order was Low Profit (<20)
         if (finishedProfit < 20) {
             isLocked = false;
             localStorage.setItem("isLocked", "false");
             showToast("High Profits Unlocked! ✅");
         }
 
-        // Finalize Stats
+        // 🔥 FINAL STATS UPDATE
         stats.active = 0;
         stats.completed += 1;
         stats.earnings += finishedProfit;
@@ -372,7 +379,7 @@ function openCamera() {
     };
 }
 
-/* ================= VERIFICATION & UTILS ================= */
+/* ================= VERIFICATION UI ================= */
 
 function initVerificationUI() {
     const photoInput = document.getElementById("profilePhoto");
