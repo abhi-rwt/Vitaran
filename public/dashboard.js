@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (LEAFLET)
+ * Vitaran - FINAL PRO DASHBOARD (LEAFLET FIXED)
  ************************************************/
 
 let currentPlan = null;
@@ -7,7 +7,6 @@ let map;
 let markers = [];
 let routeLine;
 let currentStep = "pickup";
-let currentRoute = null;
 
 /* ================= INIT ================= */
 
@@ -35,8 +34,8 @@ if (!data.success){
     return;
 }
 
-/* PLAN */
-currentPlan = data.user?.plan || "All-in-One 1 Month";
+/* PLAN FIX (IMPORTANT) */
+currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One 1 Month";
 
 /* VERIFY */
 if(localStorage.getItem("isVerified") !== "true"){
@@ -54,7 +53,7 @@ if(savedPhoto){
 }
 
 /* BADGE */
-document.querySelector(".badge").innerText = currentPlan+" Active";
+document.querySelector(".badge").innerText = currentPlan + " Active";
 
 /* INIT */
 initMap();
@@ -82,27 +81,86 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }
 
 
-/* ================= PLATFORM CONFIG ================= */
+/* ================= PLATFORM CONFIG (FULL) ================= */
 
 const PLATFORM_CONFIG = {
+
 "Food 1 Month": [
 { name:"Swiggy", logo:"/logos/swiggy.png" },
 { name:"Zomato", logo:"/logos/zomato.png" }
 ],
+"Food 3 Months": [
+{ name:"Swiggy", logo:"/logos/swiggy.png" },
+{ name:"Zomato", logo:"/logos/zomato.png" }
+],
+"Food 12 Months": [
+{ name:"Swiggy", logo:"/logos/swiggy.png" },
+{ name:"Zomato", logo:"/logos/zomato.png" }
+],
+
 "Grocery 1 Month": [
 { name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Instamart", logo:"/logos/instamart.png" }
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" }
 ],
+"Grocery 3 Months": [
+{ name:"Blinkit", logo:"/logos/blinkit.png" },
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" }
+],
+"Grocery 12 Months": [
+{ name:"Blinkit", logo:"/logos/blinkit.png" },
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" }
+],
+
 "E-Commerce 1 Month": [
 { name:"Amazon", logo:"/logos/amazon.png" },
-{ name:"Flipkart", logo:"/logos/flipkart.png" }
+{ name:"Flipkart", logo:"/logos/flipkart.png" },
+{ name:"Meesho", logo:"/logos/meesho.png" },
+{ name:"Myntra", logo:"/logos/myntra.png" }
 ],
+"E-Commerce 3 Months": [
+{ name:"Amazon", logo:"/logos/amazon.png" },
+{ name:"Flipkart", logo:"/logos/flipkart.png" },
+{ name:"Meesho", logo:"/logos/meesho.png" },
+{ name:"Myntra", logo:"/logos/myntra.png" }
+],
+"E-Commerce 12 Months": [
+{ name:"Amazon", logo:"/logos/amazon.png" },
+{ name:"Flipkart", logo:"/logos/flipkart.png" },
+{ name:"Meesho", logo:"/logos/meesho.png" },
+{ name:"Myntra", logo:"/logos/myntra.png" }
+],
+
 "All-in-One 1 Month": [
 { name:"Swiggy", logo:"/logos/swiggy.png" },
 { name:"Zomato", logo:"/logos/zomato.png" },
 { name:"Blinkit", logo:"/logos/blinkit.png" },
-{ name:"Amazon", logo:"/logos/amazon.png" }
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" },
+{ name:"Amazon", logo:"/logos/amazon.png" },
+{ name:"Flipkart", logo:"/logos/flipkart.png" }
+],
+"All-in-One 3 Months": [
+{ name:"Swiggy", logo:"/logos/swiggy.png" },
+{ name:"Zomato", logo:"/logos/zomato.png" },
+{ name:"Blinkit", logo:"/logos/blinkit.png" },
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" },
+{ name:"Amazon", logo:"/logos/amazon.png" },
+{ name:"Flipkart", logo:"/logos/flipkart.png" }
+],
+"All-in-One 12 Months": [
+{ name:"Swiggy", logo:"/logos/swiggy.png" },
+{ name:"Zomato", logo:"/logos/zomato.png" },
+{ name:"Blinkit", logo:"/logos/blinkit.png" },
+{ name:"Instamart", logo:"/logos/instamart.png" },
+{ name:"Zepto", logo:"/logos/zepto.png" },
+{ name:"Amazon", logo:"/logos/amazon.png" },
+{ name:"Flipkart", logo:"/logos/flipkart.png" }
 ]
+
 };
 
 
@@ -113,6 +171,7 @@ function initDashboard(){
 const tbody=document.querySelector(".table tbody");
 tbody.innerHTML="";
 
+/* PLAN BASED FILTER */
 let platforms = PLATFORM_CONFIG[currentPlan] || PLATFORM_CONFIG["All-in-One 1 Month"];
 
 for(let i=0;i<6;i++){
@@ -166,27 +225,25 @@ navigator.geolocation.getCurrentPosition(async pos=>{
 
 const user = [pos.coords.latitude, pos.coords.longitude];
 
-/* DISTANCE BASED POINTS */
+/* FIXED DISTANCE LOGIC */
+const angle = Math.random()*Math.PI*2;
+
 const pickup = [
-user[0] + (Math.random()*0.01),
-user[1] + (Math.random()*0.01)
+user[0] + (Math.cos(angle) * orderKM/222),
+user[1] + (Math.sin(angle) * orderKM/222)
 ];
 
 const drop = [
-pickup[0] + (orderKM/111),  // km based distance
-pickup[1] + (orderKM/111)
+pickup[0] + (Math.cos(angle) * orderKM/111),
+pickup[1] + (Math.sin(angle) * orderKM/111)
 ];
-
-/* TEXT */
-document.getElementById("pickupText").innerText = "Pickup: Loading...";
-document.getElementById("dropText").innerText = "Drop: Loading...";
 
 /* MARKERS */
 markers.push(L.marker(user).addTo(map).bindPopup("You"));
 markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup"));
 markers.push(L.marker(drop).addTo(map).bindPopup("Drop"));
 
-/* ROUTE API (REAL ROAD) */
+/* ROUTE (REAL ROAD) */
 const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
 
 const res = await fetch(url);
@@ -194,12 +251,11 @@ const data = await res.json();
 
 const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
-/* DRAW ROUTE */
 routeLine = L.polyline(coords,{color:"#0a58ff",weight:5}).addTo(map);
 map.fitBounds(routeLine.getBounds());
 
-},err=>{
-alert("Location allow kar bhai ❌");
+},()=>{
+alert("Location allow kar ❌");
 });
 
 }
@@ -234,7 +290,7 @@ function openCamera(){
 const input = document.createElement("input");
 input.type = "file";
 input.accept = "image/*";
-input.capture = "environment"; // 🔥 CAMERA OPEN
+input.capture = "environment";
 
 input.click();
 
