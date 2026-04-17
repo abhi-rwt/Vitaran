@@ -9,9 +9,30 @@ let routeLine;
 let currentStep = "pickup";
 let activeToast = null;
 
-// Logic State (Persisted)
+// 🔥 Stats & Lock State (Persisted)
+let stats = JSON.parse(localStorage.getItem("vitaranStats") || '{"total":0, "active":0, "completed":0, "earnings":0}');
 let highProfitCount = parseInt(localStorage.getItem("highProfitCount") || "0");
 let isLocked = localStorage.getItem("isLocked") === "true";
+
+/* ================= STATS UI UPDATER ================= */
+
+function updateStatsUI() {
+    // Dashboard ke top cards ko update karne ke liye
+    const cards = document.querySelectorAll(".card h2");
+    if (cards.length >= 3) {
+        cards[0].innerText = stats.total;     // Total Orders
+        cards[1].innerText = stats.active;    // Active
+        cards[2].innerText = stats.completed; // Completed
+    }
+    
+    // Earnings specifically Blue text waale h2 mein hoti hai
+    const earningsEl = document.querySelector(".card h2[style*='color: #0a58ff']") || document.querySelector(".card h2.earnings-text");
+    if (earningsEl) {
+        earningsEl.innerText = `₹${stats.earnings}`;
+    }
+
+    localStorage.setItem("vitaranStats", JSON.stringify(stats));
+}
 
 /* ================= TOAST SYSTEM ================= */
 
@@ -22,7 +43,7 @@ function showToast(msg, type = "success") {
     toast.className = `toast ${type}`;
     toast.style.cssText = `
         position: fixed; top: 20px; right: 20px; padding: 12px 24px; 
-        background: ${type === 'success' ? '#2ecc71' : '#e74c3c'}; 
+        background: ${type === 'success' ? '#2ecc71' : (type === 'warning' ? '#f39c12' : '#e74c3c')}; 
         color: white; border-radius: 8px; z-index: 9999; transition: 0.3s; transform: translateY(-20px); opacity: 0;
     `;
     toast.innerText = msg;
@@ -48,17 +69,17 @@ function showToast(msg, type = "success") {
 
 function getSmartKM(plan) {
     const p = plan.toLowerCase();
-    // Requirements: Food (1-3), Grocery (1.5-3.5), E-Comm (3-8)
     if (p.includes("food")) return (Math.random() * 2 + 1).toFixed(1);
     if (p.includes("grocery")) return (Math.random() * 2 + 1.5).toFixed(1);
     if (p.includes("e-commerce")) return (Math.random() * 5 + 3).toFixed(1);
-
     return (Math.random() * 4 + 2).toFixed(1);
 }
 
 /* ================= INITIALIZATION ================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
+    updateStatsUI(); // Load saved stats
+    
     const token = localStorage.getItem("token");
     if (!token) {
         window.location.href = "login.html";
@@ -107,17 +128,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-/* ================= MAP & ROUTING (FIXED) ================= */
+/* ================= MAP & ROUTING ================= */
 
 function initMap() {
-    // Using OSM HOT layer for a more modern "delivery" feel
     map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 13);
-    
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team'
+        attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 }
 
@@ -125,7 +143,6 @@ async function getAddress(lat, lng) {
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
-        // Return a cleaner short address
         const addr = data.address;
         return addr.road || addr.suburb || addr.city || "Point Location";
     } catch {
@@ -133,7 +150,7 @@ async function getAddress(lat, lng) {
     }
 }
 
-/* ================= DASHBOARD & SORTING (FIXED) ================= */
+/* ================= DASHBOARD & LOCK SYSTEM ================= */
 
 const PLATFORM_CONFIG = {
     Food: ["Swiggy", "Zomato"],
@@ -173,7 +190,6 @@ function initDashboard() {
         });
     }
 
-    // 🔥 SORT BY HIGHEST PROFIT
     orders.sort((a, b) => b.profit - a.profit);
 
     orders.forEach((o, index) => {
@@ -181,13 +197,12 @@ function initDashboard() {
         const isHigh = o.profit >= 50;
         const isLow = o.profit < 20;
 
-        // Visual Styling
-        if (index < 2) tr.style.borderLeft = "5px solid #ff9f43"; // Highlight Top 2
-        if (isHigh) tr.style.background = "rgba(46, 204, 113, 0.1)"; // Premium Green
-        if (isLow) tr.style.opacity = "0.5"; // Faded
-
-        // Lock Logic: High orders locked if isLocked is true
+        // 🔥 LOCK LOGIC
         const locked = isLocked && isHigh;
+
+        if (index < 2) tr.style.borderLeft = "5px solid #ff9f43"; 
+        if (isHigh) tr.style.background = "rgba(46, 204, 113, 0.1)"; 
+        if (isLow) tr.style.opacity = "0.5"; 
 
         tr.innerHTML = `
             <td>
@@ -205,7 +220,7 @@ function initDashboard() {
                 <button class="btn ${locked ? 'secondary' : 'primary'}" 
                     style="padding: 6px 12px; border-radius:6px; cursor:${locked ? 'not-allowed' : 'pointer'};"
                     ${locked ? 'disabled' : ''}>
-                    ${locked ? 'Do Low First' : 'Accept'}
+                    ${locked ? 'Locked' : 'Accept'}
                 </button>
             </td>
         `;
@@ -215,25 +230,24 @@ function initDashboard() {
     });
 }
 
-/* ================= ORDER FLOW & OSRM ROUTE ================= */
+/* ================= ORDER FLOW & STATS ================= */
 
 async function acceptOrder(order) {
-    // 🔥 PROFIT LOCK LOGIC
+    // Update Stats for active order
+    stats.total += 1;
+    stats.active = 1;
+    updateStatsUI();
+
+    // Lock Logic trigger
     if (order.profit >= 50) {
-        highProfitCount = 1; // User took their one allowed high profit
         isLocked = true;
         localStorage.setItem("isLocked", "true");
-        localStorage.setItem("highProfitCount", "1");
-        showToast("High Profit Locked. Take a low order next!", "warning");
-    } else if (order.profit < 20) {
-        isLocked = false;
-        highProfitCount = 0;
-        localStorage.setItem("isLocked", "false");
-        localStorage.setItem("highProfitCount", "0");
-        showToast("High Profit Unlocked! ✅");
+        showToast("High Profit Locked! Deliver a Low order next.", "warning");
     }
+    
+    // Store current order profit to check at delivery
+    localStorage.setItem("currentOrderProfit", order.profit);
 
-    // UI Transitions
     document.getElementById("mapContainer").classList.add("map-full");
     const oc = document.getElementById("ordersCard");
     if(oc) oc.style.display = "none";
@@ -241,46 +255,38 @@ async function acceptOrder(order) {
     document.getElementById("actionBar").style.display = "flex";
     map.invalidateSize();
 
-    // Clean Map
     markers.forEach(m => map.removeLayer(m));
     if (routeLine) map.removeLayer(routeLine);
     markers = [];
 
     navigator.geolocation.getCurrentPosition(async pos => {
         const userLoc = [pos.coords.latitude, pos.coords.longitude];
-        
-        // Simulating realistic offsets for pickup/drop based on KM
         const offset = (order.km / 111) * 0.7;
         const pickupLoc = [userLoc[0] + offset * 0.5, userLoc[1] + offset * 0.3];
         const dropLoc = [pickupLoc[0] + offset, pickupLoc[1] + offset];
 
-        // Fetch Real Addresses
         const pAddr = await getAddress(pickupLoc[0], pickupLoc[1]);
         const dAddr = await getAddress(dropLoc[0], dropLoc[1]);
 
         document.getElementById("pickupText").innerText = pAddr;
         document.getElementById("dropText").innerText = dAddr;
 
-        // Custom Markers
         const userIcon = L.divIcon({className: 'user-marker', html: '📍', iconSize: [20, 20]});
-        markers.push(L.marker(userLoc, {icon: userIcon}).addTo(map).bindPopup("Your Location"));
+        markers.push(L.marker(userLoc, {icon: userIcon}).addTo(map).bindPopup("You"));
         markers.push(L.marker(pickupLoc).addTo(map).bindPopup(`<b>Pickup:</b><br>${pAddr}`));
         markers.push(L.marker(dropLoc).addTo(map).bindPopup(`<b>Drop:</b><br>${dAddr}`));
 
-        // 🔥 OSRM ROAD ROUTING
         try {
             const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${userLoc[1]},${userLoc[0]};${pickupLoc[1]},${pickupLoc[0]};${dropLoc[1]},${dropLoc[0]}?overview=full&geometries=geojson`;
             const routeRes = await fetch(osrmUrl);
             const routeData = await routeRes.json();
-
             if (routeData.routes && routeData.routes.length > 0) {
-                const coordinates = routeData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                routeLine = L.polyline(coordinates, { color: '#0a58ff', weight: 5, opacity: 0.8 }).addTo(map);
+                const coords = routeData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                routeLine = L.polyline(coords, { color: '#0a58ff', weight: 5 }).addTo(map);
                 map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
             }
         } catch (e) {
-            // Fallback to straight line
-            routeLine = L.polyline([userLoc, pickupLoc, dropLoc], { color: '#e74c3c', dashArray: '5, 10' }).addTo(map);
+            routeLine = L.polyline([userLoc, pickupLoc, dropLoc], { color: '#e74c3c' }).addTo(map);
             map.fitBounds(routeLine.getBounds());
         }
     });
@@ -298,12 +304,27 @@ function initActionFlow() {
         openCamera();
     };
     document.getElementById("payBtn").onclick = () => {
+        const finishedProfit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
+
+        // 🔥 UNLOCK LOGIC: Agar Low Profit deliver kiya toh unlock karo
+        if (finishedProfit < 20) {
+            isLocked = false;
+            localStorage.setItem("isLocked", "false");
+            showToast("High Profits Unlocked! ✅");
+        }
+
+        // Finalize Stats
+        stats.active = 0;
+        stats.completed += 1;
+        stats.earnings += finishedProfit;
+        updateStatsUI();
+
         showToast("Earnings added to wallet 💰");
         setTimeout(() => location.reload(), 1500);
     };
 }
 
-/* ================= CAMERA SYSTEM (FIXED) ================= */
+/* ================= CAMERA SYSTEM ================= */
 
 function openCamera() {
     const modal = document.createElement("div");
@@ -313,17 +334,16 @@ function openCamera() {
     `;
 
     modal.innerHTML = `
-        <div style="width:90%; max-width:400px; background:#fff; border-radius:15px; overflow:hidden; position:relative;">
+        <div style="width:90%; max-width:400px; background:#fff; border-radius:15px; overflow:hidden;">
             <video id="camPreview" autoplay playsinline style="width:100%; height:300px; object-fit:cover; background:#000;"></video>
             <div style="padding:20px; text-align:center;">
                 <h3 style="margin-bottom:10px;">Verify ${currentStep === 'pickup' ? 'Pickup' : 'Delivery'}</h3>
-                <button id="captureBtn" class="btn primary" style="width:100%; padding:12px; font-weight:bold;">CAPTURE PHOTO</button>
+                <button id="captureBtn" class="btn primary" style="width:100%; padding:12px;">CAPTURE PHOTO</button>
             </div>
         </div>
     `;
 
     document.body.appendChild(modal);
-
     let streamObj = null;
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -331,13 +351,13 @@ function openCamera() {
             streamObj = stream;
             document.getElementById("camPreview").srcObject = stream;
         })
-        .catch(err => {
-            showToast("Camera access denied", "error");
+        .catch(() => {
+            showToast("Camera error", "error");
             modal.remove();
         });
 
     document.getElementById("captureBtn").onclick = () => {
-        if (streamObj) streamObj.getTracks().forEach(track => track.stop());
+        if (streamObj) streamObj.getTracks().forEach(t => t.stop());
         modal.remove();
 
         if (currentStep === "pickup") {
@@ -352,7 +372,7 @@ function openCamera() {
     };
 }
 
-/* ================= VERIFICATION UI ================= */
+/* ================= VERIFICATION & UTILS ================= */
 
 function initVerificationUI() {
     const photoInput = document.getElementById("profilePhoto");
@@ -362,11 +382,6 @@ function initVerificationUI() {
     photoInput?.addEventListener("change", () => {
         const file = photoInput.files[0];
         if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                showToast("Image too large (Max 2MB)", "error");
-                photoInput.value = "";
-                return;
-            }
             preview.src = URL.createObjectURL(file);
             preview.style.display = "block";
         }
@@ -380,17 +395,15 @@ function initVerificationUI() {
 function verifyUser() {
     const file = document.getElementById("profilePhoto")?.files[0];
     const id = document.getElementById("idNumber")?.value;
-
     if (!file || id?.length !== 12) {
-        showToast("Complete all fields correctly", "error");
+        showToast("Fill all details", "error");
         return;
     }
-
     const reader = new FileReader();
     reader.onload = (e) => {
         localStorage.setItem("profilePhoto", e.target.result);
         localStorage.setItem("isVerified", "true");
-        showToast("Account Verified! Welcome.");
+        showToast("Verified!");
         setTimeout(() => location.reload(), 1000);
     };
     reader.readAsDataURL(file);
