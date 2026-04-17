@@ -136,7 +136,7 @@ function getLogo(name){
         Swiggy:"swiggy.png",
         Zomato:"zomato.png",
         Blinkit:"blinkit.png",
-        Instamart:"instamart.png",
+        Instamart:"Instamart.png",
         Zepto:"zepto.jpeg",
         Amazon:"amazon.png",
         Flipkart:"flipkart.png",
