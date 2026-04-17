@@ -2,8 +2,6 @@
  * Vitaran - FINAL PRO DASHBOARD (ULTRA FIXED PRO)
  ************************************************/
 
-/* ================= GLOBAL VARIABLES ================= */
-// App ka main control
 let currentPlan = null;
 let map;
 let markers = [];
@@ -11,26 +9,11 @@ let routeLine;
 let currentStep = "pickup";
 let activeToast = null;
 
-// 🔥 LOCK SYSTEM (cycle based: High → Low)
+// 🔥 NEW LOCK SYSTEM (CYCLE BASED)
 let lastDelivered = localStorage.getItem("lastDelivered") || "none";
 
-// 🔥 STATS (earnings fix)
-let stats = JSON.parse(localStorage.getItem("stats") || '{"total":0,"completed":0,"earnings":0}');
-
-
-/* ================= STATS FUNCTION ================= */
-// Dashboard ke numbers update karega
-function updateStats(){
-    localStorage.setItem("stats", JSON.stringify(stats));
-
-    document.getElementById("stat-total")?.innerText = stats.total;
-    document.getElementById("stat-completed")?.innerText = stats.completed;
-    document.getElementById("stat-earnings")?.innerText = "₹" + stats.earnings;
-}
-
-
 /* ================= TOAST ================= */
-// Popup message system
+
 function showToast(msg, type="success"){
     if(activeToast) activeToast.remove();
 
@@ -52,9 +35,8 @@ function showToast(msg, type="success"){
     },2500);
 }
 
+/* ================= KM FIX ================= */
 
-/* ================= KM LOGIC ================= */
-// Distance generate karta hai
 function getSmartKM(plan){
     plan = plan.toLowerCase();
 
@@ -65,12 +47,9 @@ function getSmartKM(plan){
     return (Math.random()*4 + 2).toFixed(1);
 }
 
-
 /* ================= INIT ================= */
-// Page load hone pe sab start hota hai
-document.addEventListener("DOMContentLoaded", async () => {
 
-    updateStats(); // 🔥 earnings load fix
+document.addEventListener("DOMContentLoaded", async () => {
 
     const token = localStorage.getItem("token");
     if (!token){
@@ -121,9 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
-
 /* ================= MAP ================= */
-// Map initialize
+
 function initMap(){
     map = L.map('map').setView([28.6139,77.2090], 12);
 
@@ -132,9 +110,8 @@ function initMap(){
     }).addTo(map);
 }
 
-
 /* ================= ADDRESS ================= */
-// LatLng → Address
+
 async function getAddress(lat,lng){
     try{
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -145,9 +122,8 @@ async function getAddress(lat,lng){
     }
 }
 
-
 /* ================= PLATFORM ================= */
-// Platform selection
+
 const PLATFORM_CONFIG = {
     Food:["Swiggy","Zomato"],
     Grocery:["Blinkit","Instamart","Zepto"],
@@ -177,9 +153,8 @@ function getPlatformsFromPlan(plan){
     return PLATFORM_CONFIG["All-in-One"];
 }
 
-
 /* ================= DASHBOARD ================= */
-// Orders UI generate
+
 function initDashboard(){
 
     const tbody = document.querySelector(".table tbody");
@@ -214,14 +189,17 @@ function initDashboard(){
         if(index < 2) tr.classList.add("high-profit-row");
         if(isLow) tr.style.opacity = "0.6";
 
-        // 🔥 LOCK FIX (cycle)
+        // 🔥 NEW LOCK LOGIC
         const locked = (lastDelivered === "high" && isHigh);
 
         tr.innerHTML = `
-        <td><img src="${getLogo(o.platform)}"> ${o.platform}</td>
+        <td>
+            <img src="${getLogo(o.platform)}">
+            ${o.platform}
+        </td>
         <td>#VT${o.id}</td>
-        <td>COD</td>
-        <td>₹${o.amount}</td>
+        <td><span class="tag">COD</span></td>
+            <td>₹${o.amount}</td>
         <td>${o.km} KM</td>
         <td class="${isHigh ? 'green':''}">₹${o.profit}</td>
         <td>
@@ -240,27 +218,22 @@ function initDashboard(){
         tbody.appendChild(tr);
     });
 }
+
 /* ================= ACCEPT ORDER ================= */
-// Order accept hone par map + flow start hota hai
 
 async function acceptOrder(orderKM,profit){
 
-    // 🔥 CURRENT ORDER SAVE (earnings ke liye)
+    // 🔥 SAVE CURRENT ORDER
     localStorage.setItem("currentOrderProfit", profit);
-
-    // 🔥 TOTAL ORDER COUNT UPDATE
-    stats.total++;
-    updateStats();
 
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
     setTimeout(()=>{
         document.getElementById("actionBar").style.display="flex";
-        map.invalidateSize(); // ✅ MAP FULL FIX
+        map.invalidateSize(); // ✅ FIX MAP
     },500);
 
-    // Purane markers remove
     markers.forEach(m=>map.removeLayer(m));
     markers=[];
     if(routeLine) map.removeLayer(routeLine);
@@ -288,9 +261,9 @@ async function acceptOrder(orderKM,profit){
         document.getElementById("pickupText").innerText = pickupName;
         document.getElementById("dropText").innerText = dropName;
 
-        markers.push(L.marker(user).addTo(map).bindPopup("You"));
-        markers.push(L.marker(pickup).addTo(map).bindPopup(pickupName));
-        markers.push(L.marker(drop).addTo(map).bindPopup(dropName));
+        markers.push(L.marker(user).addTo(map));
+        markers.push(L.marker(pickup).addTo(map));
+        markers.push(L.marker(drop).addTo(map));
 
         try{
             const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
@@ -300,27 +273,18 @@ async function acceptOrder(orderKM,profit){
 
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
-            routeLine = L.polyline(coords,{
-                color:"#0a58ff",
-                weight:6
-            }).addTo(map);
+            routeLine = L.polyline(coords,{color:"#0a58ff",weight:6}).addTo(map);
 
         }catch{
-            routeLine = L.polyline([user,pickup,drop],{
-                color:"red"
-            }).addTo(map);
+            routeLine = L.polyline([user,pickup,drop],{color:"red"}).addTo(map);
         }
 
         map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
 
-    },()=>{
-        showToast("Allow location ❌","error");
     });
 }
 
-
-/* ================= ACTION FLOW ================= */
-// Pickup → Drop → Payment
+/* ================= ACTION ================= */
 
 function initActionFlow(){
 
@@ -338,19 +302,14 @@ function initActionFlow(){
 
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
 
-        // 🔥 COMPLETED + EARNINGS FIX
-        stats.completed++;
-        stats.earnings += profit;
-        updateStats();
-
-        // 🔥 LOCK SYSTEM (MAIN FIX)
+        // 🔥 LOCK FLOW FIX
         if(profit >= 50){
-            lastDelivered = "high";   // HIGH diya → next high lock
+            lastDelivered = "high";
+            localStorage.setItem("lastDelivered","high");
         }else if(profit < 20){
-            lastDelivered = "low";    // LOW diya → unlock
+            lastDelivered = "low";
+            localStorage.setItem("lastDelivered","low");
         }
-
-        localStorage.setItem("lastDelivered", lastDelivered);
 
         showToast("Payment received 💰");
 
@@ -358,59 +317,56 @@ function initActionFlow(){
     };
 }
 
-
 /* ================= CAMERA ================= */
-// Camera UI (original wala clean version)
 
 function openCamera(){
 
-    navigator.mediaDevices.getUserMedia({video:true})
-    .then(stream=>{
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.style.display="flex";
 
+    modal.innerHTML = `
+        <div class="modal-box">
+            <div id="camBox" style="width:100%; height:250px; background:#000; border-radius:12px; overflow:hidden;"></div>
+            <h3 style="margin-top:10px;">Capture Photo</h3>
+            <button class="btn primary" style="width:100%; margin-top:10px;">Capture</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(stream=>{
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
 
-        const modal = document.createElement("div");
-        modal.className = "modal";
+        modal.querySelector("#camBox").appendChild(video);
 
-        modal.innerHTML = `
-        <div class="modal-box">
-            <div style="height:250px"></div>
-            <button class="btn primary">Capture</button>
-        </div>
-        `;
-
-        modal.querySelector("div").appendChild(video);
         video.style.width="100%";
         video.style.height="100%";
-
-        document.body.appendChild(modal);
+        video.style.objectFit="cover";
 
         modal.querySelector("button").onclick = ()=>{
             stream.getTracks().forEach(t=>t.stop());
             modal.remove();
 
             if(currentStep==="pickup"){
-                showToast("Pickup done ✅");
                 document.getElementById("pickupBtn").style.display="none";
                 document.getElementById("dropBtn").style.display="inline-block";
             }else{
-                showToast("Drop done ✅");
                 document.getElementById("dropBtn").style.display="none";
                 document.getElementById("payBtn").style.display="inline-block";
             }
         };
-
     })
     .catch(()=>{
-        showToast("Camera not supported","error");
+        showToast("Camera error","error");
+        modal.remove();
     });
 }
 
-
 /* ================= VERIFY ================= */
-// Profile verify system
 
 function initVerificationUI(){
 
@@ -469,9 +425,6 @@ function verifyUser(){
 
     reader.readAsDataURL(file);
 }
-
-
-/* ================= MISC ================= */
 
 function openVerify(){
     document.body.classList.add("modal-open");
