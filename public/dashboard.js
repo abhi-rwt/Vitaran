@@ -10,7 +10,7 @@ let currentStep = "pickup";
 let activeToast = null;
 
 /* =========================================
-   🔥 STATS SYSTEM (NO MORE 0 ISSUE)
+   🔥 STATS SYSTEM (FIXED - NO MORE 0 ISSUE)
 ========================================= */
 
 let stats = JSON.parse(localStorage.getItem("vitaranStats") || '{"total":0,"active":0,"completed":0,"earnings":0}');
@@ -25,7 +25,7 @@ function updateStatsUI(){
 }
 
 /* =========================================
-   🔥 LOCK SYSTEM (FINAL)
+   🔥 LOCK SYSTEM (FINAL FIXED CYCLE)
    HIGH → LOCK → LOW → UNLOCK
 ========================================= */
 
@@ -96,6 +96,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         document.querySelector(".badge").innerText = currentPlan + " Active";
 
+        const savedPhoto = localStorage.getItem("profilePhoto");
+        if(savedPhoto){
+            document.getElementById("userPhoto").src = savedPhoto;
+        }
+
+        if(localStorage.getItem("isVerified") !== "true"){
+            document.body.classList.add("modal-open");
+            document.getElementById("verifyModal").style.display="flex";
+        }else{
+            document.querySelector(".profile-card")?.remove();
+        }
+
         initMap();
         initDashboard();
         initActionFlow();
@@ -165,8 +177,6 @@ function getPlatformsFromPlan(plan){
 function initDashboard(){
 
     const tbody = document.querySelector(".table tbody");
-    if(!tbody) return;
-
     tbody.innerHTML = "";
 
     const platforms = getPlatformsFromPlan(currentPlan);
@@ -198,7 +208,7 @@ function initDashboard(){
         if(index < 2) tr.classList.add("high-profit-row");
         if(isLow) tr.style.opacity = "0.6";
 
-        // 🔥 LOCK CONDITION
+        // 🔥 LOCK LOGIC FINAL
         const locked = (lastDelivered === "high" && isHigh);
 
         tr.innerHTML = `
@@ -216,9 +226,8 @@ function initDashboard(){
         `;
 
         const btn = tr.querySelector("button");
-
         btn.onclick = () => {
-            if (locked){
+            if (locked) {
                 showToast("Low profit order complete karo ❌","error");
                 return;
             }
@@ -227,12 +236,11 @@ function initDashboard(){
 
         tbody.appendChild(tr);
     });
-
-} // ✅ FIXED CLOSING
+}
 
 /* ================= ACCEPT ORDER ================= */
 
-function acceptOrder(orderKM,profit){
+async function acceptOrder(orderKM,profit){
 
     localStorage.setItem("currentOrderProfit", profit);
 
@@ -247,6 +255,50 @@ function acceptOrder(orderKM,profit){
         document.getElementById("actionBar").style.display="flex";
         map.invalidateSize();
     },500);
+
+    markers.forEach(m=>map.removeLayer(m));
+    markers=[];
+    if(routeLine) map.removeLayer(routeLine);
+
+    navigator.geolocation.getCurrentPosition(async pos=>{
+
+        const user = [pos.coords.latitude,pos.coords.longitude];
+
+        const angle = Math.random()*Math.PI*2;
+        const dist = orderKM/111;
+
+        const pickup = [
+            user[0] + Math.cos(angle)*(dist/2),
+            user[1] + Math.sin(angle)*(dist/2)
+        ];
+
+        const drop = [
+            pickup[0] + Math.cos(angle)*(dist),
+            pickup[1] + Math.sin(angle)*(dist)
+        ];
+
+        const pickupName = await getAddress(pickup[0],pickup[1]);
+        const dropName = await getAddress(drop[0],drop[1]);
+
+        document.getElementById("pickupText").innerText = pickupName;
+        document.getElementById("dropText").innerText = dropName;
+
+        markers.push(L.marker(user).addTo(map));
+        markers.push(L.marker(pickup).addTo(map));
+        markers.push(L.marker(drop).addTo(map));
+
+        try{
+            const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+            routeLine = L.polyline(coords,{color:"#0a58ff",weight:6}).addTo(map);
+        }catch{
+            routeLine = L.polyline([user,pickup,drop],{color:"red"}).addTo(map);
+        }
+
+        map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
+    });
 }
 
 /* ================= ACTION ================= */
@@ -267,17 +319,17 @@ function initActionFlow(){
 
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
 
-        // 🔥 STATS UPDATE
+        // 🔥 STATS FIX
         stats.active = 0;
         stats.completed++;
         stats.earnings += profit;
         updateStatsUI();
 
-        // 🔥 LOCK CYCLE FIX
+        // 🔥 LOCK CYCLE FINAL
         if(profit >= 50){
             lastDelivered = "high";
-        }else if(profit < 20){
-            lastDelivered = "none"; // 🔥 UNLOCK
+        }else{
+            lastDelivered = "none";
         }
 
         localStorage.setItem("lastDelivered", lastDelivered);
@@ -335,7 +387,9 @@ function openCamera(){
 /* ================= VERIFY ================= */
 
 function initVerificationUI(){}
+
 function verifyUser(){}
+
 function openVerify(){}
 
 function logout(){
