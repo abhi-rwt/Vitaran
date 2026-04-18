@@ -292,8 +292,13 @@ async function acceptOrder(orderKM,profit){
             const res = await fetch(url);
             const data = await res.json();
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
-            routeLine = L.polyline(coords,{color:"#0a58ff",weight:6}).addTo(map);
-        }catch{
+            routeLine = L.polyline(coords,{
+                color:"#0a58ff",
+                weight:6,
+                opacity:0.9,
+                dashArray:"8,6" // 🔥 smooth style
+                }).addTo(map);
+                }catch{
             routeLine = L.polyline([user,pickup,drop],{color:"red"}).addTo(map);
         }
 
