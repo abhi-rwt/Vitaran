@@ -93,28 +93,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        /* ================= USER VERIFY SYSTEM (FINAL FIX) ================= */
+        /* ================= USER VERIFY SYSTEM ================= */
 
-        // 🔥 MULTI FALLBACK USER ID
         const userId = data.user?.id || data.user?._id || data.user?.email;
 
         if(!userId){
-            console.log("API ERROR:", data);
-            showToast("User data missing ❌","error");
+            console.log("USER DATA:", data);
+            showToast("User error ❌","error");
             return;
         }
 
-        // 🔥 SAVE CURRENT USER
         localStorage.setItem("currentUser", userId);
 
         const verifyKey = "verified_" + userId;
         const isUserVerified = localStorage.getItem(verifyKey);
 
-        if(isUserVerified === "true"){
-            localStorage.setItem("isVerified","true");
-        }else{
-            localStorage.setItem("isVerified","false");
-        }
+        localStorage.setItem("isVerified", isUserVerified === "true" ? "true" : "false");
 
         /* ================= PLAN ================= */
 
@@ -130,24 +124,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         const savedPhoto = localStorage.getItem("profilePhoto");
 
         if(savedPhoto){
-
             const userPhoto = document.getElementById("userPhoto");
-            if(userPhoto){
-                userPhoto.src = savedPhoto;
-            }
+            if(userPhoto) userPhoto.src = savedPhoto;
 
             const preview = document.getElementById("preview");
-            if(preview){
-                preview.src = savedPhoto;
-            }
+            if(preview) preview.src = savedPhoto;
         }
 
-        /* ================= VERIFY MODAL CONTROL ================= */
+        /* ================= VERIFY MODAL ================= */
 
-        const isVerified = localStorage.getItem("isVerified");
         const modal = document.getElementById("verifyModal");
 
-        if(isVerified !== "true"){
+        if(localStorage.getItem("isVerified") !== "true"){
             document.body.classList.add("modal-open");
             if(modal) modal.style.display = "flex";
         }else{
@@ -155,12 +143,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(modal) modal.style.display = "none";
         }
 
-        /* ================= INIT ALL ================= */
+        /* ================= VERIFY UI INIT ================= */
+
+        initVerificationUI();
+
+        /* ================= OTHER INIT ================= */
 
         initMap();
         initDashboard();
         initActionFlow();
-        initVerificationUI();
 
     }catch(err){
         console.log(err);
@@ -169,13 +160,46 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-/* ================= VERIFY USER (FINAL FIX) ================= */
+/* ================= VERIFY UI ================= */
 
-window.verifyUser = function(){
+function initVerificationUI(){
 
     const fileInput = document.getElementById("profilePhoto");
-    const file = fileInput?.files[0];
+    const preview = document.getElementById("preview");
+    const uploadBox = document.getElementById("dpUpload");
+    const btn = document.getElementById("verifyBtn");
 
+    // 🔥 CLICK DP → FILE OPEN
+    if(uploadBox){
+        uploadBox.onclick = () => fileInput.click();
+    }
+
+    // 🔥 IMAGE PREVIEW
+    if(fileInput){
+        fileInput.addEventListener("change", function(){
+            const file = this.files[0];
+            if(file){
+                const reader = new FileReader();
+                reader.onload = function(e){
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // 🔥 VERIFY BUTTON
+    if(btn){
+        btn.onclick = verifyUser;
+    }
+}
+
+
+/* ================= VERIFY USER ================= */
+
+function verifyUser(){
+
+    const file = document.getElementById("profilePhoto")?.files[0];
     const id = document.getElementById("idNumber")?.value;
 
     if(!file){
@@ -191,21 +215,17 @@ window.verifyUser = function(){
     const userId = localStorage.getItem("currentUser");
 
     if(!userId){
-        showToast("User error, login again","error");
+        showToast("Login again ❌","error");
         return;
     }
 
-    // 🔥 SAVE PHOTO (IMPORTANT FIX)
     const reader = new FileReader();
 
     reader.onload = function(e){
 
         const base64 = e.target.result;
 
-        // 🔥 SAVE PHOTO
         localStorage.setItem("profilePhoto", base64);
-
-        // 🔥 SAVE VERIFY STATUS
         localStorage.setItem("verified_" + userId, "true");
         localStorage.setItem("isVerified","true");
 
@@ -217,7 +237,7 @@ window.verifyUser = function(){
     };
 
     reader.readAsDataURL(file);
-};
+}
 
 /* ================= MAP ================= */
 
