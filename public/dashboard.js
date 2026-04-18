@@ -242,7 +242,7 @@ function initDashboard(){
 
 async function acceptOrder(orderKM,profit){
 
-    // 🔥 CURRENT ORDER SAVE (earning fix ke liye)
+    // 🔥 SAVE PROFIT
     localStorage.setItem("currentOrderProfit", profit);
 
     // 🔥 STATS UPDATE
@@ -250,26 +250,25 @@ async function acceptOrder(orderKM,profit){
     stats.active = 1;
     updateStatsUI();
 
-    // 🔥 UI SWITCH (orders → map)
+    // 🔥 UI SWITCH
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
     setTimeout(()=>{
         document.getElementById("actionBar").style.display="flex";
-        map.invalidateSize(); // ✅ map resize fix
+        map.invalidateSize();
     },500);
 
-    // 🔥 OLD MAP CLEAR
+    // 🔥 CLEAR OLD MAP
     markers.forEach(m=>map.removeLayer(m));
     markers=[];
     if(routeLine) map.removeLayer(routeLine);
 
-    // 🔥 LOCATION START
     navigator.geolocation.getCurrentPosition(async pos=>{
 
         const user = [pos.coords.latitude,pos.coords.longitude];
 
-        // 🔥 DISTANCE FIX (real feel)
+        // 🔥 DISTANCE LOGIC
         const angle = Math.random()*Math.PI*2;
         const dist = orderKM/111;
 
@@ -283,15 +282,14 @@ async function acceptOrder(orderKM,profit){
             pickup[1] + Math.sin(angle)*(dist)
         ];
 
-        // 🔥 ADDRESS FETCH
+        // 🔥 ADDRESS
         const pickupName = await getAddress(pickup[0],pickup[1]);
         const dropName = await getAddress(drop[0],drop[1]);
 
-        // 🔥 CLEAN TEXT UI
         document.getElementById("pickupText").innerText = "Pickup: " + pickupName.split(",")[0];
         document.getElementById("dropText").innerText = "Drop: " + dropName.split(",")[0];
 
-        // 🔥 MARKERS (PRO UI)
+        // 🔥 MARKERS
         markers.push(
             L.marker(user,{
                 icon:L.icon({
@@ -307,7 +305,7 @@ async function acceptOrder(orderKM,profit){
                     iconUrl:"https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
                     iconSize:[30,30]
                 })
-            }).addTo(map).bindPopup("Pickup Location")
+            }).addTo(map).bindPopup("Pickup")
         );
 
         markers.push(
@@ -316,10 +314,9 @@ async function acceptOrder(orderKM,profit){
                     iconUrl:"https://maps.google.com/mapfiles/ms/icons/red-dot.png",
                     iconSize:[30,30]
                 })
-            }).addTo(map).bindPopup("Drop Location")
+            }).addTo(map).bindPopup("Drop")
         );
 
-        // 🔥 ROUTE (USER → PICKUP → DROP)
         try{
             const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
 
@@ -330,29 +327,83 @@ async function acceptOrder(orderKM,profit){
 
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
+            // 🔥 ROUTE LINE
             routeLine = L.polyline(coords,{
                 color:"#0a58ff",
                 weight:6,
                 opacity:0.9,
-                dashArray:"5,10" // 🔥 smooth line
+                dashArray:"5,10"
             }).addTo(map);
 
+            // ================= 🔥 ETA =================
+            const distance = data.routes[0].distance / 1000;
+            const time = data.routes[0].duration / 60;
+
+            const etaBox = document.getElementById("etaText");
+            if(etaBox){
+                etaBox.innerText = `ETA: ${time.toFixed(0)} min | ${distance.toFixed(1)} km`;
+            }
+
+            // ================= 🔥 ARROWS =================
+            if(typeof L.polylineDecorator !== "undefined"){
+                L.polylineDecorator(routeLine, {
+                    patterns: [
+                        {
+                            offset: '5%',
+                            repeat: '10%',
+                            symbol: L.Symbol.arrowHead({
+                                pixelSize: 8,
+                                polygon: false,
+                                pathOptions: { color: '#0a58ff' }
+                            })
+                        }
+                    ]
+                }).addTo(map);
+            }
+
+            // ================= 🔥 RIDER =================
+            const riderIcon = L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+                iconSize: [35,35]
+            });
+
+            let rider = L.marker(coords[0], {icon:riderIcon}).addTo(map);
+
+            // ================= 🔥 ANIMATION =================
+            let i = 0;
+            const speed = 180;
+
+            const move = setInterval(()=>{
+                if(i >= coords.length){
+                    clearInterval(move);
+                    showToast("Order Delivered ✅");
+                    return;
+                }
+
+                rider.setLatLng(coords[i]);
+                map.panTo(coords[i], {animate:true});
+                i++;
+            }, speed);
+
+            // 🔥 VIBRATION
+            if(navigator.vibrate){
+                navigator.vibrate([200,100,200]);
+            }
+
         }catch{
-            // 🔥 fallback route
             routeLine = L.polyline([user,pickup,drop],{
                 color:"red",
                 weight:5
             }).addTo(map);
         }
 
-        // 🔥 AUTO ZOOM
+        // 🔥 ZOOM
         map.fitBounds(routeLine.getBounds(),{padding:[50,50]});
 
     },()=>{
         showToast("Allow location ❌","error");
     });
 }
-
 /* ================= ACTION ================= */
 
 function initActionFlow(){
