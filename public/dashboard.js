@@ -242,15 +242,12 @@ function initDashboard(){
 
 async function acceptOrder(orderKM,profit){
 
-    // 🔥 SAVE PROFIT
     localStorage.setItem("currentOrderProfit", profit);
 
-    // 🔥 STATS UPDATE
     stats.total++;
     stats.active = 1;
     updateStatsUI();
 
-    // 🔥 UI SWITCH
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
@@ -259,7 +256,6 @@ async function acceptOrder(orderKM,profit){
         map.invalidateSize();
     },500);
 
-    // 🔥 CLEAR OLD MAP
     markers.forEach(m=>map.removeLayer(m));
     markers=[];
     if(routeLine) map.removeLayer(routeLine);
@@ -268,7 +264,6 @@ async function acceptOrder(orderKM,profit){
 
         const user = [pos.coords.latitude,pos.coords.longitude];
 
-        // 🔥 DISTANCE LOGIC
         const angle = Math.random()*Math.PI*2;
         const dist = orderKM/111;
 
@@ -282,7 +277,6 @@ async function acceptOrder(orderKM,profit){
             pickup[1] + Math.sin(angle)*(dist)
         ];
 
-        // 🔥 ADDRESS
         const pickupName = await getAddress(pickup[0],pickup[1]);
         const dropName = await getAddress(drop[0],drop[1]);
 
@@ -290,32 +284,9 @@ async function acceptOrder(orderKM,profit){
         document.getElementById("dropText").innerText = "Drop: " + dropName.split(",")[0];
 
         // 🔥 MARKERS
-        markers.push(
-            L.marker(user,{
-                icon:L.icon({
-                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-                    iconSize:[30,30]
-                })
-            }).addTo(map).bindPopup("You")
-        );
-
-        markers.push(
-            L.marker(pickup,{
-                icon:L.icon({
-                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
-                    iconSize:[30,30]
-                })
-            }).addTo(map).bindPopup("Pickup")
-        );
-
-        markers.push(
-            L.marker(drop,{
-                icon:L.icon({
-                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    iconSize:[30,30]
-                })
-            }).addTo(map).bindPopup("Drop")
-        );
+        markers.push(L.marker(user).addTo(map).bindPopup("You"));
+        markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup"));
+        markers.push(L.marker(drop).addTo(map).bindPopup("Drop"));
 
         try{
             const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
@@ -327,7 +298,6 @@ async function acceptOrder(orderKM,profit){
 
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
-            // 🔥 ROUTE LINE
             routeLine = L.polyline(coords,{
                 color:"#0a58ff",
                 weight:6,
@@ -335,7 +305,7 @@ async function acceptOrder(orderKM,profit){
                 dashArray:"5,10"
             }).addTo(map);
 
-            // ================= 🔥 ETA =================
+            // 🔥 ETA
             const distance = data.routes[0].distance / 1000;
             const time = data.routes[0].duration / 60;
 
@@ -344,51 +314,26 @@ async function acceptOrder(orderKM,profit){
                 etaBox.innerText = `ETA: ${time.toFixed(0)} min | ${distance.toFixed(1)} km`;
             }
 
-            // ================= 🔥 ARROWS =================
-            if(typeof L.polylineDecorator !== "undefined"){
-                L.polylineDecorator(routeLine, {
-                    patterns: [
-                        {
-                            offset: '5%',
-                            repeat: '10%',
-                            symbol: L.Symbol.arrowHead({
-                                pixelSize: 8,
-                                polygon: false,
-                                pathOptions: { color: '#0a58ff' }
-                            })
-                        }
-                    ]
-                }).addTo(map);
-            }
-
-            // ================= 🔥 RIDER =================
+            // 🔥 BIKE ICON
             const riderIcon = L.icon({
-                iconUrl: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-                iconSize: [35,35]
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+                iconSize: [40,40],
+                iconAnchor: [20,20]
             });
 
             let rider = L.marker(coords[0], {icon:riderIcon}).addTo(map);
 
-            // ================= 🔥 ANIMATION =================
-            let i = 0;
-            const speed = 180;
+            // 🔥 ROUTE SPLIT (IMPORTANT FIX)
+            const mid = Math.floor(coords.length/2);
+            const pickupCoords = coords.slice(0, mid);
+            const dropCoords = coords.slice(mid);
 
-            const move = setInterval(()=>{
-                if(i >= coords.length){
-                    clearInterval(move);
-                    showToast("Order Delivered ✅");
-                    return;
-                }
-
-                rider.setLatLng(coords[i]);
-                map.panTo(coords[i], {animate:true});
-                i++;
-            }, speed);
-
-            // 🔥 VIBRATION
-            if(navigator.vibrate){
-                navigator.vibrate([200,100,200]);
-            }
+            // 🔥 STORE GLOBAL (buttons ke liye)
+            window.deliveryData = {
+                rider,
+                pickupCoords,
+                dropCoords
+            };
 
         }catch{
             routeLine = L.polyline([user,pickup,drop],{
@@ -397,7 +342,6 @@ async function acceptOrder(orderKM,profit){
             }).addTo(map);
         }
 
-        // 🔥 ZOOM
         map.fitBounds(routeLine.getBounds(),{padding:[50,50]});
 
     },()=>{
@@ -408,16 +352,59 @@ async function acceptOrder(orderKM,profit){
 
 function initActionFlow(){
 
+    // ================= PICKUP =================
     document.getElementById("pickupBtn").onclick = ()=>{
+
         currentStep="pickup";
-        openCamera();
+        openCamera(); // 📸 camera पहले जैसा रहेगा
+
+        // 🔥 RIDER MOVE TO PICKUP
+        const data = window.deliveryData;
+        if(!data) return;
+
+        const {rider, pickupCoords} = data;
+
+        let i = 0;
+        const move = setInterval(()=>{
+            if(i >= pickupCoords.length){
+                clearInterval(move);
+                showToast("Reached Pickup ✅");
+                return;
+            }
+            rider.setLatLng(pickupCoords[i]);
+            map.panTo(pickupCoords[i]);
+            i++;
+        },200);
     };
 
+
+    // ================= DROP =================
     document.getElementById("dropBtn").onclick = ()=>{
+
         currentStep="drop";
-        openCamera();
+        openCamera(); // 📸 camera भी रहेगा
+
+        // 🔥 RIDER MOVE TO DROP
+        const data = window.deliveryData;
+        if(!data) return;
+
+        const {rider, dropCoords} = data;
+
+        let i = 0;
+        const move = setInterval(()=>{
+            if(i >= dropCoords.length){
+                clearInterval(move);
+                showToast("Order Delivered ✅");
+                return;
+            }
+            rider.setLatLng(dropCoords[i]);
+            map.panTo(dropCoords[i]);
+            i++;
+        },200);
     };
 
+
+    // ================= PAYMENT =================
     document.getElementById("payBtn").onclick = ()=>{
 
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
@@ -428,7 +415,7 @@ function initActionFlow(){
         stats.earnings += profit;
         updateStatsUI();
 
-        // 🔥 LOCK CYCLE FINAL
+        // 🔥 LOCK SYSTEM
         if(profit >= 50){
             lastDelivered = "high";
         }else{
