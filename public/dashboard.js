@@ -208,7 +208,7 @@ function initDashboard(){
         if(index < 2) tr.classList.add("high-profit-row");
         if(isLow) tr.style.opacity = "0.6";
 
-        // 🔥 LOCK LOGIC
+        // 🔥 LOCK LOGIC (FINAL)
         const locked = (lastDelivered === "high" && isHigh);
 
         tr.innerHTML = `
@@ -219,20 +219,23 @@ function initDashboard(){
         <td>${o.km} KM</td>
         <td class="${isHigh ? 'green':''}">₹${o.profit}</td>
         <td>
-            <button class="btn accept ${locked?'disabled':''}" ${locked?'disabled':''}>
-                ${locked?'Locked':'Accept'}
-            </button>
+        <button class="btn accept ${locked ? 'disabled' : ''}" ${locked ? 'disabled' : ''}>
+        ${locked ? 'Locked' : 'Accept'}
+        </button>
         </td>
         `;
 
-        tr.querySelector("button").onclick = ()=>{
-            if(!locked){
-                acceptOrder(parseFloat(o.km), o.profit);
-            }
-        };
+// 🔥 CLICK FIX
+tr.querySelector("button").onclick = () => {
+    if (locked) {
+        showToast("Low profit order complete karo pehle ❌","error");
+        return;
+    }
 
-        tbody.appendChild(tr);
-    });
+    acceptOrder(parseFloat(o.km), o.profit);
+};
+
+tbody.appendChild(tr);
 }
 
 /* ================= ACCEPT ORDER ================= */
