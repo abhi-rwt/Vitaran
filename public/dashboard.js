@@ -92,26 +92,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        // 🔥🔥 USER BASED VERIFICATION FIX (MAIN FIX)
-        const userId = data.user.id;
+        // 🔥 USER BASED VERIFICATION (FINAL FIX)
+        const userId = data.user?.id;
 
-        if(localStorage.getItem("currentUser") !== userId){
-            localStorage.setItem("currentUser", userId);
-            localStorage.setItem("isVerified","false");
+        if(userId){
+            const savedUser = localStorage.getItem("currentUser");
+
+            if(savedUser !== userId){
+                // 🔥 NEW USER LOGIN → RESET VERIFY
+                localStorage.setItem("currentUser", userId);
+                localStorage.setItem("isVerified","false");
+                localStorage.removeItem("profilePhoto"); // optional clean
+            }
         }
 
-        // 🔥 NORMAL FLOW (UNCHANGED)
+        // 🔥 PLAN
         currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
         document.querySelector(".badge").innerText = currentPlan + " Active";
 
+        // 🔥 PROFILE PHOTO LOAD
         const savedPhoto = localStorage.getItem("profilePhoto");
         if(savedPhoto){
             document.getElementById("userPhoto").src = savedPhoto;
         }
 
-        // 🔥 VERIFY MODAL CONTROL
-        if(localStorage.getItem("isVerified") !== "true"){
+        // 🔥 VERIFY MODAL CONTROL (FINAL)
+        const isVerified = localStorage.getItem("isVerified");
+
+        if(isVerified !== "true"){
             document.body.classList.add("modal-open");
             document.getElementById("verifyModal").style.display="flex";
         }else{
