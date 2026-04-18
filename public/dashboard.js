@@ -74,11 +74,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const token = localStorage.getItem("token");
     if (!token){
-        window.location.href="login.html";
+        window.location.href = "login.html";
         return;
     }
 
     try{
+
         const res = await fetch("/api/auth/me",{
             method:"POST",
             headers:{ "Content-Type":"application/json" },
@@ -88,44 +89,69 @@ document.addEventListener("DOMContentLoaded", async () => {
         const data = await res.json();
 
         if (!data.success){
-            window.location.href="login.html";
+            window.location.href = "login.html";
             return;
         }
 
-        // 🔥 USER BASED VERIFICATION (FINAL FIX)
+        /* ================= USER BASED VERIFY ================= */
+
         const userId = data.user?.id;
 
         if(userId){
             const savedUser = localStorage.getItem("currentUser");
 
             if(savedUser !== userId){
-                // 🔥 NEW USER LOGIN → RESET VERIFY
+                // 🔥 NEW USER LOGIN → RESET EVERYTHING
                 localStorage.setItem("currentUser", userId);
                 localStorage.setItem("isVerified","false");
-                localStorage.removeItem("profilePhoto"); // optional clean
+                localStorage.removeItem("profilePhoto");
             }
         }
 
-        // 🔥 PLAN
+        /* ================= PLAN ================= */
+
         currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
-        document.querySelector(".badge").innerText = currentPlan + " Active";
-
-        // 🔥 PROFILE PHOTO LOAD
-        const savedPhoto = localStorage.getItem("profilePhoto");
-        if(savedPhoto){
-            document.getElementById("userPhoto").src = savedPhoto;
+        const badge = document.querySelector(".badge");
+        if(badge){
+            badge.innerText = currentPlan + " Active";
         }
 
-        // 🔥 VERIFY MODAL CONTROL (FINAL)
+        /* ================= PROFILE PHOTO ================= */
+
+        const savedPhoto = localStorage.getItem("profilePhoto");
+
+        if(savedPhoto){
+
+            // 🔥 dashboard top DP
+            const userPhoto = document.getElementById("userPhoto");
+            if(userPhoto){
+                userPhoto.src = savedPhoto;
+            }
+
+            // 🔥 verify modal DP preview
+            const preview = document.getElementById("preview");
+            if(preview){
+                preview.src = savedPhoto;
+            }
+        }
+
+        /* ================= VERIFY MODAL ================= */
+
         const isVerified = localStorage.getItem("isVerified");
 
         if(isVerified !== "true"){
             document.body.classList.add("modal-open");
-            document.getElementById("verifyModal").style.display="flex";
+
+            const modal = document.getElementById("verifyModal");
+            if(modal){
+                modal.style.display = "flex";
+            }
         }else{
             document.querySelector(".profile-card")?.remove();
         }
+
+        /* ================= INIT ALL ================= */
 
         initMap();
         initDashboard();
