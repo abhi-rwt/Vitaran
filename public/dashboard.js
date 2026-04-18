@@ -93,19 +93,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        /* ================= USER BASED VERIFY ================= */
+        /* ================= USER VERIFY SYSTEM ================= */
 
         const userId = data.user?.id;
 
-        if(userId){
-            const savedUser = localStorage.getItem("currentUser");
+        if(!userId){
+            showToast("User error","error");
+            return;
+        }
 
-            if(savedUser !== userId){
-                // 🔥 NEW USER LOGIN → RESET VERIFY ONLY
-                localStorage.setItem("currentUser", userId);
-                localStorage.setItem("isVerified","false");
-                localStorage.removeItem("profilePhoto");
-            }
+        // 🔥 store current user
+        localStorage.setItem("currentUser", userId);
+
+        const verifyKey = "verified_" + userId;
+        const isUserVerified = localStorage.getItem(verifyKey);
+
+        if(isUserVerified === "true"){
+            localStorage.setItem("isVerified","true");
+        }else{
+            localStorage.setItem("isVerified","false");
         }
 
         /* ================= PLAN ================= */
@@ -123,13 +129,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if(savedPhoto){
 
-            // 🔥 top navbar DP
             const userPhoto = document.getElementById("userPhoto");
             if(userPhoto){
                 userPhoto.src = savedPhoto;
             }
 
-            // 🔥 modal DP preview (circle वाला)
             const preview = document.getElementById("preview");
             if(preview){
                 preview.src = savedPhoto;
@@ -139,7 +143,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         /* ================= VERIFY MODAL CONTROL ================= */
 
         const isVerified = localStorage.getItem("isVerified");
-
         const modal = document.getElementById("verifyModal");
 
         if(isVerified !== "true"){
@@ -148,10 +151,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 modal.style.display = "flex";
             }
         }else{
+            document.body.classList.remove("modal-open");
             if(modal){
                 modal.style.display = "none";
             }
-            document.body.classList.remove("modal-open");
         }
 
         /* ================= INIT ALL ================= */
@@ -159,13 +162,54 @@ document.addEventListener("DOMContentLoaded", async () => {
         initMap();
         initDashboard();
         initActionFlow();
-        initVerificationUI(); // 🔥 important
+        initVerificationUI();
 
     }catch(err){
         console.log(err);
         showToast("Something went wrong","error");
     }
 });
+
+
+/* ================= VERIFY USER ================= */
+
+window.verifyUser = function(){
+
+    const fileInput = document.getElementById("profilePhoto");
+    const file = fileInput ? fileInput.files[0] : null;
+
+    const idInput = document.getElementById("idNumber");
+    const id = idInput ? idInput.value : "";
+
+    if(!file){
+        showToast("Upload photo","error");
+        return;
+    }
+
+    if(id.length < 8){
+        showToast("Enter valid ID","error");
+        return;
+    }
+
+    const userId = localStorage.getItem("currentUser");
+
+    if(!userId){
+        showToast("User error, login again","error");
+        return;
+    }
+
+    // 🔥 SAVE PER USER
+    localStorage.setItem("verified_" + userId, "true");
+
+    // 🔥 instant UI update
+    localStorage.setItem("isVerified","true");
+
+    showToast("Verified ✅");
+
+    setTimeout(()=>{
+        location.reload();
+    },1000);
+};
 
 /* ================= MAP ================= */
 
