@@ -93,16 +93,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        /* ================= USER VERIFY SYSTEM ================= */
+        /* ================= USER VERIFY SYSTEM (FINAL FIX) ================= */
 
-        const userId = data.user?.id;
+        // 🔥 MULTI FALLBACK USER ID
+        const userId = data.user?.id || data.user?._id || data.user?.email;
 
         if(!userId){
-            showToast("User error","error");
+            console.log("API ERROR:", data);
+            showToast("User data missing ❌","error");
             return;
         }
 
-        // 🔥 store current user
+        // 🔥 SAVE CURRENT USER
         localStorage.setItem("currentUser", userId);
 
         const verifyKey = "verified_" + userId;
@@ -147,14 +149,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if(isVerified !== "true"){
             document.body.classList.add("modal-open");
-            if(modal){
-                modal.style.display = "flex";
-            }
+            if(modal) modal.style.display = "flex";
         }else{
             document.body.classList.remove("modal-open");
-            if(modal){
-                modal.style.display = "none";
-            }
+            if(modal) modal.style.display = "none";
         }
 
         /* ================= INIT ALL ================= */
@@ -171,22 +169,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-/* ================= VERIFY USER ================= */
+/* ================= VERIFY USER (FINAL FIX) ================= */
 
 window.verifyUser = function(){
 
     const fileInput = document.getElementById("profilePhoto");
-    const file = fileInput ? fileInput.files[0] : null;
+    const file = fileInput?.files[0];
 
-    const idInput = document.getElementById("idNumber");
-    const id = idInput ? idInput.value : "";
+    const id = document.getElementById("idNumber")?.value;
 
     if(!file){
         showToast("Upload photo","error");
         return;
     }
 
-    if(id.length < 8){
+    if(!id || id.length < 8){
         showToast("Enter valid ID","error");
         return;
     }
@@ -198,17 +195,28 @@ window.verifyUser = function(){
         return;
     }
 
-    // 🔥 SAVE PER USER
-    localStorage.setItem("verified_" + userId, "true");
+    // 🔥 SAVE PHOTO (IMPORTANT FIX)
+    const reader = new FileReader();
 
-    // 🔥 instant UI update
-    localStorage.setItem("isVerified","true");
+    reader.onload = function(e){
 
-    showToast("Verified ✅");
+        const base64 = e.target.result;
 
-    setTimeout(()=>{
-        location.reload();
-    },1000);
+        // 🔥 SAVE PHOTO
+        localStorage.setItem("profilePhoto", base64);
+
+        // 🔥 SAVE VERIFY STATUS
+        localStorage.setItem("verified_" + userId, "true");
+        localStorage.setItem("isVerified","true");
+
+        showToast("Verified ✅");
+
+        setTimeout(()=>{
+            location.reload();
+        },800);
+    };
+
+    reader.readAsDataURL(file);
 };
 
 /* ================= MAP ================= */
