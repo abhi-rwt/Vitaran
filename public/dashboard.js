@@ -92,6 +92,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // 🔥🔥 USER BASED VERIFICATION FIX (MAIN FIX)
+        const userId = data.user.id;
+
+        if(localStorage.getItem("currentUser") !== userId){
+            localStorage.setItem("currentUser", userId);
+            localStorage.setItem("isVerified","false");
+        }
+
+        // 🔥 NORMAL FLOW (UNCHANGED)
         currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
         document.querySelector(".badge").innerText = currentPlan + " Active";
@@ -101,6 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("userPhoto").src = savedPhoto;
         }
 
+        // 🔥 VERIFY MODAL CONTROL
         if(localStorage.getItem("isVerified") !== "true"){
             document.body.classList.add("modal-open");
             document.getElementById("verifyModal").style.display="flex";
