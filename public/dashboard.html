@@ -139,12 +139,13 @@
 
 <label>Profile Photo</label>
 
-<!-- 🔥 NEW CIRCLE DP -->
+<!-- 🔥 CLICKABLE CIRCLE -->
 <div class="dp-upload" onclick="document.getElementById('profilePhoto').click()">
     <img id="preview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
     <div class="dp-overlay">Upload</div>
 </div>
 
+<!-- 🔥 INPUT -->
 <input type="file" id="profilePhoto" accept="image/*" hidden>
 
 <label>ID Proof</label>
@@ -157,7 +158,8 @@
 <label>ID Number</label>
 <input type="text" id="idNumber" placeholder="Enter ID Number" maxlength="12">
 
-<button class="btn primary" onclick="verifyUser()">Complete Verification</button>
+<!-- 🔥 IMPORTANT CHANGE -->
+<button class="btn primary" id="verifyBtn">Complete Verification</button>
 
 </div>
 </div>

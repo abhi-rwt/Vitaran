@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const savedUser = localStorage.getItem("currentUser");
 
             if(savedUser !== userId){
-                // 🔥 NEW USER LOGIN → RESET EVERYTHING
+                // 🔥 NEW USER LOGIN → RESET VERIFY ONLY
                 localStorage.setItem("currentUser", userId);
                 localStorage.setItem("isVerified","false");
                 localStorage.removeItem("profilePhoto");
@@ -117,38 +117,41 @@ document.addEventListener("DOMContentLoaded", async () => {
             badge.innerText = currentPlan + " Active";
         }
 
-        /* ================= PROFILE PHOTO ================= */
+        /* ================= PROFILE PHOTO LOAD ================= */
 
         const savedPhoto = localStorage.getItem("profilePhoto");
 
         if(savedPhoto){
 
-            // 🔥 dashboard top DP
+            // 🔥 top navbar DP
             const userPhoto = document.getElementById("userPhoto");
             if(userPhoto){
                 userPhoto.src = savedPhoto;
             }
 
-            // 🔥 verify modal DP preview
+            // 🔥 modal DP preview (circle वाला)
             const preview = document.getElementById("preview");
             if(preview){
                 preview.src = savedPhoto;
             }
         }
 
-        /* ================= VERIFY MODAL ================= */
+        /* ================= VERIFY MODAL CONTROL ================= */
 
         const isVerified = localStorage.getItem("isVerified");
 
+        const modal = document.getElementById("verifyModal");
+
         if(isVerified !== "true"){
             document.body.classList.add("modal-open");
-
-            const modal = document.getElementById("verifyModal");
             if(modal){
                 modal.style.display = "flex";
             }
         }else{
-            document.querySelector(".profile-card")?.remove();
+            if(modal){
+                modal.style.display = "none";
+            }
+            document.body.classList.remove("modal-open");
         }
 
         /* ================= INIT ALL ================= */
@@ -156,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         initMap();
         initDashboard();
         initActionFlow();
-        initVerificationUI();
+        initVerificationUI(); // 🔥 important
 
     }catch(err){
         console.log(err);
