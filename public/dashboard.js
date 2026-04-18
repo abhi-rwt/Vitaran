@@ -74,12 +74,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const token = localStorage.getItem("token");
     if (!token){
-        window.location.href = "login.html";
+        window.location.href="login.html";
         return;
     }
 
     try{
-
         const res = await fetch("/api/auth/me",{
             method:"POST",
             headers:{ "Content-Type":"application/json" },
@@ -89,155 +88,46 @@ document.addEventListener("DOMContentLoaded", async () => {
         const data = await res.json();
 
         if (!data.success){
-            window.location.href = "login.html";
+            window.location.href="login.html";
             return;
         }
 
-        /* ================= USER VERIFY SYSTEM ================= */
+        // 🔥🔥 USER BASED VERIFICATION FIX (MAIN FIX)
+        const userId = data.user.id;
 
-        const userId = data.user?.id || data.user?._id || data.user?.email;
-
-        if(!userId){
-            console.log("USER DATA:", data);
-            showToast("User error ❌","error");
-            return;
+        if(localStorage.getItem("currentUser") !== userId){
+            localStorage.setItem("currentUser", userId);
+            localStorage.setItem("isVerified","false");
         }
 
-        localStorage.setItem("currentUser", userId);
-
-        const verifyKey = "verified_" + userId;
-        const isUserVerified = localStorage.getItem(verifyKey);
-
-        localStorage.setItem("isVerified", isUserVerified === "true" ? "true" : "false");
-
-        /* ================= PLAN ================= */
-
+        // 🔥 NORMAL FLOW (UNCHANGED)
         currentPlan = data.user?.plan || localStorage.getItem("plan") || "All-in-One";
 
-        const badge = document.querySelector(".badge");
-        if(badge){
-            badge.innerText = currentPlan + " Active";
-        }
-
-        /* ================= PROFILE PHOTO LOAD ================= */
+        document.querySelector(".badge").innerText = currentPlan + " Active";
 
         const savedPhoto = localStorage.getItem("profilePhoto");
-
         if(savedPhoto){
-            const userPhoto = document.getElementById("userPhoto");
-            if(userPhoto) userPhoto.src = savedPhoto;
-
-            const preview = document.getElementById("preview");
-            if(preview) preview.src = savedPhoto;
+            document.getElementById("userPhoto").src = savedPhoto;
         }
 
-        /* ================= VERIFY MODAL ================= */
-
-        const modal = document.getElementById("verifyModal");
-
+        // 🔥 VERIFY MODAL CONTROL
         if(localStorage.getItem("isVerified") !== "true"){
             document.body.classList.add("modal-open");
-            if(modal) modal.style.display = "flex";
+            document.getElementById("verifyModal").style.display="flex";
         }else{
-            document.body.classList.remove("modal-open");
-            if(modal) modal.style.display = "none";
+            document.querySelector(".profile-card")?.remove();
         }
-
-        /* ================= VERIFY UI INIT ================= */
-
-        initVerificationUI();
-
-        /* ================= OTHER INIT ================= */
 
         initMap();
         initDashboard();
         initActionFlow();
+        initVerificationUI();
 
     }catch(err){
         console.log(err);
         showToast("Something went wrong","error");
     }
 });
-
-
-/* ================= VERIFY UI ================= */
-
-function initVerificationUI(){
-
-    const fileInput = document.getElementById("profilePhoto");
-    const preview = document.getElementById("preview");
-    const uploadBox = document.getElementById("dpUpload");
-    const btn = document.getElementById("verifyBtn");
-
-    // 🔥 CLICK DP → FILE OPEN
-    if(uploadBox){
-        uploadBox.onclick = () => fileInput.click();
-    }
-
-    // 🔥 IMAGE PREVIEW
-    if(fileInput){
-        fileInput.addEventListener("change", function(){
-            const file = this.files[0];
-            if(file){
-                const reader = new FileReader();
-                reader.onload = function(e){
-                    preview.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    // 🔥 VERIFY BUTTON
-    if(btn){
-        btn.onclick = verifyUser;
-    }
-}
-
-
-/* ================= VERIFY USER ================= */
-
-function verifyUser(){
-
-    const file = document.getElementById("profilePhoto")?.files[0];
-    const id = document.getElementById("idNumber")?.value;
-
-    if(!file){
-        showToast("Upload photo","error");
-        return;
-    }
-
-    if(!id || id.length < 8){
-        showToast("Enter valid ID","error");
-        return;
-    }
-
-    const userId = localStorage.getItem("currentUser");
-
-    if(!userId){
-        showToast("Login again ❌","error");
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function(e){
-
-        const base64 = e.target.result;
-
-        localStorage.setItem("profilePhoto", base64);
-        localStorage.setItem("verified_" + userId, "true");
-        localStorage.setItem("isVerified","true");
-
-        showToast("Verified ✅");
-
-        setTimeout(()=>{
-            location.reload();
-        },800);
-    };
-
-    reader.readAsDataURL(file);
-}
 
 /* ================= MAP ================= */
 
