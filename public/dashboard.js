@@ -242,12 +242,15 @@ function initDashboard(){
 
 async function acceptOrder(orderKM,profit){
 
+    // 🔥 SAVE PROFIT
     localStorage.setItem("currentOrderProfit", profit);
 
+    // 🔥 STATS UPDATE
     stats.total++;
     stats.active = 1;
     updateStatsUI();
 
+    // 🔥 UI SWITCH
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
@@ -256,6 +259,7 @@ async function acceptOrder(orderKM,profit){
         map.invalidateSize();
     },500);
 
+    // 🔥 CLEAR OLD MAP
     markers.forEach(m=>map.removeLayer(m));
     markers=[];
     if(routeLine) map.removeLayer(routeLine);
@@ -277,13 +281,14 @@ async function acceptOrder(orderKM,profit){
             pickup[1] + Math.sin(angle)*(dist)
         ];
 
+        // 🔥 ADDRESS
         const pickupName = await getAddress(pickup[0],pickup[1]);
         const dropName = await getAddress(drop[0],drop[1]);
 
         document.getElementById("pickupText").innerText = "Pickup: " + pickupName.split(",")[0];
         document.getElementById("dropText").innerText = "Drop: " + dropName.split(",")[0];
 
-        // 🔥 MARKERS
+        // 🔥 MARKERS (clean UI)
         markers.push(L.marker(user).addTo(map).bindPopup("You"));
         markers.push(L.marker(pickup).addTo(map).bindPopup("Pickup"));
         markers.push(L.marker(drop).addTo(map).bindPopup("Drop"));
@@ -298,6 +303,7 @@ async function acceptOrder(orderKM,profit){
 
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
 
+            // 🔥 ROUTE LINE
             routeLine = L.polyline(coords,{
                 color:"#0a58ff",
                 weight:6,
@@ -314,21 +320,22 @@ async function acceptOrder(orderKM,profit){
                 etaBox.innerText = `ETA: ${time.toFixed(0)} min | ${distance.toFixed(1)} km`;
             }
 
-            // 🔥 BIKE ICON
+            // 🔥 BIKE ICON (FIXED)
             const riderIcon = L.icon({
                 iconUrl: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
                 iconSize: [40,40],
                 iconAnchor: [20,20]
             });
 
-            let rider = L.marker(coords[0], {icon:riderIcon}).addTo(map);
+            // 🔥 RIDER START POSITION = USER
+            let rider = L.marker(user, {icon:riderIcon}).addTo(map);
 
-            // 🔥 ROUTE SPLIT (IMPORTANT FIX)
+            // 🔥 ROUTE SPLIT (pickup + drop)
             const mid = Math.floor(coords.length/2);
             const pickupCoords = coords.slice(0, mid);
             const dropCoords = coords.slice(mid);
 
-            // 🔥 STORE GLOBAL (buttons ke liye)
+            // 🔥 GLOBAL STORE (buttons ke liye use hoga)
             window.deliveryData = {
                 rider,
                 pickupCoords,
@@ -348,6 +355,7 @@ async function acceptOrder(orderKM,profit){
         showToast("Allow location ❌","error");
     });
 }
+
 /* ================= ACTION ================= */
 
 function initActionFlow(){
