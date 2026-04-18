@@ -138,9 +138,14 @@
 <p>Add your details to start receiving orders</p>
 
 <label>Profile Photo</label>
-<input type="file" id="profilePhoto" accept="image/*">
 
-<img id="preview">
+<!-- 🔥 NEW CIRCLE DP -->
+<div class="dp-upload" onclick="document.getElementById('profilePhoto').click()">
+    <img id="preview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+    <div class="dp-overlay">Upload</div>
+</div>
+
+<input type="file" id="profilePhoto" accept="image/*" hidden>
 
 <label>ID Proof</label>
 <select id="idType">
