@@ -242,28 +242,34 @@ function initDashboard(){
 
 async function acceptOrder(orderKM,profit){
 
+    // 🔥 CURRENT ORDER SAVE (earning fix ke liye)
     localStorage.setItem("currentOrderProfit", profit);
 
+    // 🔥 STATS UPDATE
     stats.total++;
     stats.active = 1;
     updateStatsUI();
 
+    // 🔥 UI SWITCH (orders → map)
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
     setTimeout(()=>{
         document.getElementById("actionBar").style.display="flex";
-        map.invalidateSize();
+        map.invalidateSize(); // ✅ map resize fix
     },500);
 
+    // 🔥 OLD MAP CLEAR
     markers.forEach(m=>map.removeLayer(m));
     markers=[];
     if(routeLine) map.removeLayer(routeLine);
 
+    // 🔥 LOCATION START
     navigator.geolocation.getCurrentPosition(async pos=>{
 
         const user = [pos.coords.latitude,pos.coords.longitude];
 
+        // 🔥 DISTANCE FIX (real feel)
         const angle = Math.random()*Math.PI*2;
         const dist = orderKM/111;
 
@@ -277,32 +283,73 @@ async function acceptOrder(orderKM,profit){
             pickup[1] + Math.sin(angle)*(dist)
         ];
 
+        // 🔥 ADDRESS FETCH
         const pickupName = await getAddress(pickup[0],pickup[1]);
         const dropName = await getAddress(drop[0],drop[1]);
 
-        document.getElementById("pickupText").innerText = pickupName;
-        document.getElementById("dropText").innerText = dropName;
+        // 🔥 CLEAN TEXT UI
+        document.getElementById("pickupText").innerText = "Pickup: " + pickupName.split(",")[0];
+        document.getElementById("dropText").innerText = "Drop: " + dropName.split(",")[0];
 
-        markers.push(L.marker(user).addTo(map));
-        markers.push(L.marker(pickup).addTo(map));
-        markers.push(L.marker(drop).addTo(map));
+        // 🔥 MARKERS (PRO UI)
+        markers.push(
+            L.marker(user,{
+                icon:L.icon({
+                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+                    iconSize:[30,30]
+                })
+            }).addTo(map).bindPopup("You")
+        );
 
+        markers.push(
+            L.marker(pickup,{
+                icon:L.icon({
+                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+                    iconSize:[30,30]
+                })
+            }).addTo(map).bindPopup("Pickup Location")
+        );
+
+        markers.push(
+            L.marker(drop,{
+                icon:L.icon({
+                    iconUrl:"https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                    iconSize:[30,30]
+                })
+            }).addTo(map).bindPopup("Drop Location")
+        );
+
+        // 🔥 ROUTE (USER → PICKUP → DROP)
         try{
             const url = `https://router.project-osrm.org/route/v1/driving/${user[1]},${user[0]};${pickup[1]},${pickup[0]};${drop[1]},${drop[0]}?overview=full&geometries=geojson`;
+
             const res = await fetch(url);
             const data = await res.json();
+
+            if(!data.routes || !data.routes.length) throw "fail";
+
             const coords = data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+
             routeLine = L.polyline(coords,{
                 color:"#0a58ff",
                 weight:6,
                 opacity:0.9,
-                dashArray:"8,6" // 🔥 smooth style
-                }).addTo(map);
-                }catch{
-            routeLine = L.polyline([user,pickup,drop],{color:"red"}).addTo(map);
+                dashArray:"5,10" // 🔥 smooth line
+            }).addTo(map);
+
+        }catch{
+            // 🔥 fallback route
+            routeLine = L.polyline([user,pickup,drop],{
+                color:"red",
+                weight:5
+            }).addTo(map);
         }
 
-        map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
+        // 🔥 AUTO ZOOM
+        map.fitBounds(routeLine.getBounds(),{padding:[50,50]});
+
+    },()=>{
+        showToast("Allow location ❌","error");
     });
 }
 
