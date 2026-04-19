@@ -10,13 +10,58 @@ let currentStep = "pickup";
 let activeToast = null;
 
 /* =========================================
-   STATS SYSTEM
+   🔥 3-DASH MENU + DARK MODE SYSTEM
 ========================================= */
 
-let stats = JSON.parse(localStorage.getItem("vitaranStats") || '{"total":0,"active":0,"completed":0,"earnings":0}');
+function toggleMenu() {
+  document.getElementById('dropdown').classList.toggle('show');
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('darkMode', isDark);
+  
+  // Button ka text change kar
+  const btn = document.getElementById('darkModeBtn');
+  if(btn) btn.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+// Menu bahar click pe band ho
+window.onclick = function(e) {
+  if (!e.target.matches('.user-photo')) {
+    const dropdown = document.getElementById('dropdown');
+    if(dropdown) dropdown.classList.remove('show');
+  }
+}
+
+/* =========================================
+   STATS SYSTEM - 🔥 API SE LOAD HOGA
+========================================= */
+
+let stats = { total: 0, active: 0, completed: 0, earnings: 0 };
+
+// 🔥 BACKEND SE STATS LOAD KAR
+async function loadUserStats() {
+  const token = localStorage.getItem("token");
+  if(!token) return;
+  
+  try {
+    const res = await fetch('/api/user/stats', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    
+    if(data.success) {
+      stats = data.stats;
+      updateStatsUI();
+    }
+  } catch (err) {
+    console.log('Stats load error:', err);
+  }
+}
 
 function updateStatsUI(){
-    localStorage.setItem("vitaranStats", JSON.stringify(stats));
     document.getElementById("stat-total").innerText = stats.total;
     document.getElementById("stat-active").innerText = stats.active;
     document.getElementById("stat-completed").innerText = stats.completed;
@@ -25,6 +70,13 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT - SINGLE DOMContentLoaded
 document.addEventListener("DOMContentLoaded", async () => {
+    // Dark mode check
+    if(localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+      const btn = document.getElementById('darkModeBtn');
+      if(btn) btn.innerText = '☀️ Light Mode';
+    }
+    
     updateStatsUI();
     initMap();
     initActionFlow();
@@ -52,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(planBadge) planBadge.innerText = user.plan + " Active";
         currentPlan = user.plan;
 
-        if (user.isFirstLogin &&!user.isVerified) {
+        if (user.isFirstLogin && !user.isVerified) {
             document.getElementById("ordersCard").style.display = "none";
             document.getElementById("profileNotice").style.display = "flex";
             document.getElementById("verifyModal").style.display = "flex";
@@ -64,9 +116,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.body.classList.remove("modal-open");
 
             const userPhoto = document.getElementById("userPhoto");
-            const savedPhoto = localStorage.getItem(`userPhoto_${userId}`);
-            if(userPhoto && savedPhoto) userPhoto.src = savedPhoto;
+            if(userPhoto && user.photo) userPhoto.src = user.photo;
 
+            await loadUserStats(); // 🔥 STATS LOAD KAR
             initDashboard();
         }
     } catch (err) {
@@ -340,7 +392,7 @@ function initActionFlow(){
         },100);
     };
 
-    document.getElementById("payBtn").onclick = ()=>{
+    document.getElementById("payBtn").onclick = async ()=>{
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
         stats.active = 0;
         stats.completed++;
@@ -407,8 +459,6 @@ function initVerificationUI(){
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     previewImg.src = ev.target.result;
-                    const userId = localStorage.getItem("userId");
-                    localStorage.setItem(`userPhoto_${userId}`, ev.target.result);
                 };
                 reader.readAsDataURL(file);
             }
@@ -420,19 +470,41 @@ function initVerificationUI(){
     }
 }
 
-async function verifyUser(){
-    const idType = document.getElementById("idType").value;
-    const idNum = document.getElementById("idNumber").value;
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-
-    if(!idType || idNum.length < 5){
-        showToast("Enter valid ID Details ❌", "error");
-        return;
+// 🔥 VALIDATION FUNCTION
+function validateId() {
+  const idType = document.getElementById("idType").value;
+  const idNum = document.getElementById("idNumber").value.toUpperCase();
+  
+  if(idType === 'aadhaar') {
+    if(!/^\d{12}$/.test(idNum)) {
+      showToast('Aadhar must be 12 digits only', 'error');
+      return false;
     }
+  } 
+  else if(idType === 'pan') {
+    if(!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(idNum)) {
+      showToast('PAN format: ABCDE1234F', 'error');
+      return false;
+    }
+  } else {
+    showToast('Please select ID type', 'error');
+    return false;
+  }
+  
+  return true;
+}
 
-    const photo = localStorage.getItem(`userPhoto_${userId}`);
-    if(!photo){
+async function verifyUser(){
+    // 🔥 VALIDATION CHECK SABSE PEHLE
+    if(!validateId()) return;
+    
+    const idType = document.getElementById("idType").value;
+    const idNum = document.getElementById("idNumber").value.toUpperCase();
+    const token = localStorage.getItem("token");
+    const previewImg = document.getElementById("preview");
+    const photo = previewImg.src;
+
+    if(!photo || photo.includes('149071.png')){
         showToast("Upload Profile Photo 📸", "error");
         return;
     }
@@ -447,22 +519,26 @@ async function verifyUser(){
             body: JSON.stringify({ idType, idNum, photo })
         });
 
-        if (!res.ok) throw new Error('Verify failed');
+        const data = await res.json();
+        
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Verify failed');
+        }
 
         showToast("Verification Successful! ✅");
-        localStorage.setItem(`isVerified_${userId}`, 'true');
 
         setTimeout(() => {
             document.getElementById("verifyModal").style.display = "none";
             location.reload();
         }, 1000);
     } catch (err) {
-        showToast("Verification failed ❌", "error");
+        showToast(err.message || "Verification failed ❌", "error");
     }
 }
 
 function openVerify(){
     document.getElementById("verifyModal").style.display = "flex";
+    document.body.classList.add("modal-open");
 }
 
 function logout(){

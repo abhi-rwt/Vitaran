@@ -25,8 +25,15 @@
 
     <div class="header-right">
         <span class="badge">Checking Plan...</span>
-        <img id="userPhoto" class="user-photo" src="/logos/default.png">
-        <button class="btn ghost" onclick="logout()">Logout</button>
+        
+        <!-- 🔥 3-DASH MENU SYSTEM -->
+        <div class="menu-container">
+            <img id="userPhoto" class="user-photo" src="/logos/default.png" onclick="toggleMenu()">
+            <div id="dropdown" class="dropdown-menu">
+                <button onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark Mode</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        <!-- 🔥 MENU END -->
     </div>
 </header>
 

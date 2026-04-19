@@ -14,7 +14,6 @@ overflow-x:hidden;
 transition:.3s;
 }
 
-
 /* ================= BLUR WHEN MODAL ================= */
 
 body.modal-open{
@@ -26,7 +25,6 @@ body.modal-open header{
 filter:blur(8px); /* 🔥 reduced blur (10 → 8 better look) */
 pointer-events:none;
 }
-
 
 /* ================= HEADER ================= */
 
@@ -65,8 +63,10 @@ align-items:center;
 gap:14px;
 }
 
-
-/* USER PHOTO */
+/* 🔥 3-DASH MENU SYSTEM */
+.menu-container {
+  position: relative;
+}
 
 .user-photo{
 width:40px;
@@ -74,8 +74,59 @@ height:40px;
 border-radius:50%;
 object-fit:cover;
 border:2px solid #1e88ff;
+cursor: pointer; /* 🔥 Clickable banaya */
+transition: .2s;
 }
 
+.user-photo:hover{
+transform: scale(1.05);
+}
+
+.dropdown-menu { 
+  display: none; 
+  position: absolute; 
+  right: 0; 
+  top: 50px; 
+  background: white; 
+  border: 1px solid #ddd; 
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.dropdown-menu.show { 
+  display: block; 
+  animation: dropdownSlide .2s ease;
+}
+
+@keyframes dropdownSlide {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-menu button { 
+  display: block; 
+  width: 100%; 
+  padding: 12px 16px; 
+  border: none; 
+  background: none; 
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: .2s;
+}
+
+.dropdown-menu button:hover { 
+  background: #f5f9ff; 
+}
+
+.dropdown-menu button:last-child {
+  border-top: 1px solid #eee;
+  color: #ff3d00;
+}
+/* 🔥 MENU END */
 
 /* ================= BADGE ================= */
 
@@ -87,7 +138,6 @@ border-radius:20px;
 font-size:13px;
 font-weight:600;
 }
-
 
 /* ================= BUTTON ================= */
 
@@ -138,7 +188,6 @@ opacity:0.6;
 box-shadow:none !important;
 }
 
-
 /* ================= MAIN ================= */
 
 .container{
@@ -153,7 +202,6 @@ grid-template-columns:2fr 1fr;
 gap:25px;
 }
 
-
 /* ================= CARD ================= */
 
 .card{
@@ -164,7 +212,6 @@ box-shadow:0 8px 18px rgba(0,0,0,.04);
 margin-bottom:22px;
 }
 
-
 /* ================= PROFILE ================= */
 
 .profile-card{
@@ -172,7 +219,6 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 }
-
 
 /* ================= STATS ================= */
 
@@ -198,7 +244,6 @@ margin-top:6px;
 background:#e8f1ff;
 color:#0a58ff;
 }
-
 
 /* ================= TABLE ================= */
 
@@ -232,7 +277,6 @@ color:#00a65a;
 font-weight:bold;
 }
 
-
 /* ================= MAP ================= */
 
 .map-box{
@@ -249,7 +293,6 @@ position:relative;
 width:100%;
 height:100%;
 }
-
 
 /* ================= RIDE INFO ================= */
 
@@ -285,7 +328,6 @@ border-radius:50%;
 .dot.pickup{background:#00c853;}
 .dot.drop{background:#ff3d00;}
 
-
 /* ================= ACTION BAR ================= */
 
 .action-bar{
@@ -305,7 +347,6 @@ padding:14px;
 font-weight:700;
 box-shadow:0 6px 15px rgba(0,0,0,0.2);
 }
-
 
 /* ================= MODAL ================= */
 
@@ -345,7 +386,6 @@ border-radius:10px;
 border:1px solid rgba(0,0,0,0.1);
 }
 
-
 /* ================= CAMERA FIX ================= */
 
 #cameraVideo{
@@ -355,7 +395,6 @@ background:#000;
 border-radius:12px;
 object-fit:cover;
 }
-
 
 /* ================= IMAGE PREVIEW FIX ================= */
 
@@ -368,7 +407,6 @@ margin-top:10px;
 display:none;
 }
 
-
 /* ================= PROFILE PREVIEW ================= */
 
 #preview{
@@ -377,7 +415,6 @@ height:100%;
 object-fit:cover;
 display:block; /* Changed from none to block for visibility */
 }
-
 
 /* ================= TOAST ================= */
 
@@ -405,7 +442,6 @@ transform:translate(-50%,-50%) scale(1);
 background:#ff3d00;
 }
 
-
 /* ================= MAP FULL ================= */
 
 .map-full{
@@ -421,7 +457,6 @@ z-index:9999;
 height:100vh !important;
 }
 
-
 /* ================= ANIMATION ================= */
 
 @keyframes modalPop{
@@ -434,7 +469,6 @@ opacity:1;
 transform:scale(1);
 }
 }
-
 
 /* ================= MOBILE ================= */
 
@@ -498,3 +532,84 @@ top:10px;
     filter: grayscale(1);
     pointer-events: none;
 }
+
+/* 🔥 ================= DARK MODE ================= */
+body.dark {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+body.dark .header {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+body.dark .brand h1 { color: #f1f5f9; }
+body.dark .brand span { color: #94a3b8; }
+
+body.dark .badge {
+  background: #1e293b;
+  color: #60a5fa;
+}
+
+body.dark .card {
+  background: #1e293b;
+  box-shadow: 0 8px 18px rgba(0,0,0,.2);
+}
+
+body.dark .stat {
+  background: #0f172a;
+}
+
+body.dark .stat.highlight {
+  background: #1e3a8a;
+  color: #60a5fa;
+}
+
+body.dark .map-box {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+body.dark .modal-box {
+  background: rgba(30, 41, 59, 0.9);
+  color: #e2e8f0;
+}
+
+body.dark .modal-box input,
+body.dark .modal-box select {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+}
+
+body.dark .dropdown-menu {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark .dropdown-menu button {
+  color: #e2e8f0;
+}
+
+body.dark .dropdown-menu button:hover {
+  background: #0f172a;
+}
+
+body.dark .dropdown-menu button:last-child {
+  border-top: 1px solid #334155;
+  color: #f87171;
+}
+
+body.dark .table td {
+  border-bottom: 1px solid #334155;
+}
+
+body.dark tr.high-profit-row {
+  background: #14532d;
+}
+
+body.dark tr.high-profit-row:hover {
+  background: #166534;
+}
+/* 🔥 DARK MODE END */
