@@ -30,15 +30,32 @@ document.addEventListener("DOMContentLoaded", () => {
     initMap();
     initActionFlow();
     initVerificationUI(); // 🔥 Verification system start karega
+
+    // 🔥 1. Sabse pehle Plan load karo taaki orders sahi aayein
+    currentPlan = localStorage.getItem("plan") || "All-in-One";
     
-    // Check if user is verified
+    // UI par plan ka naam dikhane ke liye (Header badge)
+    const planBadge = document.querySelector(".badge");
+    if(planBadge) planBadge.innerText = currentPlan + " Active";
+
+    // 🔥 2. Check if user is verified (Strict Logic)
     if(localStorage.getItem("isVerified") === "true") {
+        // Purana Verified User: Dashboard kholo
         document.getElementById("profileNotice").style.display = "none";
-        document.getElementById("userPhoto").src = localStorage.getItem("userPhoto") || "/logos/default.png";
-        initDashboard();
+        document.getElementById("verifyModal").style.display = "none";
+        document.getElementById("ordersCard").style.display = "block"; // Table dikhao
+        
+        // Photo set karo
+        const userPhoto = document.getElementById("userPhoto");
+        if(userPhoto) userPhoto.src = localStorage.getItem("userPhoto") || "/logos/default.png";
+        
+        initDashboard(); // Orders generate karega plan ke hisaab se
     } else {
-        document.getElementById("ordersCard").style.opacity = "0.5";
-        document.getElementById("ordersCard").style.pointerEvents = "none";
+        // ❌ Naya Unverified User: Pura block karo
+        document.getElementById("ordersCard").style.display = "none"; // Table gayab
+        document.getElementById("profileNotice").style.display = "flex";
+        document.getElementById("verifyModal").style.display = "flex"; // Seedha modal dikhao
+        document.body.classList.add("modal-open"); // Background blur
     }
 });
 
