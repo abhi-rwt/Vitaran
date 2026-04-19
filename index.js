@@ -6,6 +6,11 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const Razorpay = require("razorpay");
 
+// 🔥 1. Yaha se User model import karo
+const User = require("./models/User");
+// 🔥 2. userRoutes import karo
+const userRoutes = require("./routes/user");
+
 const app = express();
 
 /* ===================== MIDDLEWARE ===================== */
@@ -25,23 +30,6 @@ mongoose.connect(process.env.MONGO_URI)
   console.log("🔴 MongoDB Error:", err.message);
   process.exit(1);
 });
-
-/* ===================== USER MODEL ===================== */
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    lowercase: true,
-    trim: true
-  },
-  phone: { type: String, required: true },
-  password: { type: String, required: true },
-  plan: { type: String, default: null }
-}, { timestamps: true });
-
-const User = mongoose.model("User", UserSchema);
 
 /* ===================== EMAIL VALIDATION ===================== */
 function validEmail(email) {
@@ -116,7 +104,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-/* ===================== GET CURRENT USER (FOR DASHBOARD CHECK) ===================== */
+/* ===================== GET CURRENT USER ===================== */
 app.post("/api/auth/me", async (req, res) => {
   try {
     const { token } = req.body;
@@ -216,17 +204,8 @@ app.post("/api/payment/create-order", async (req, res) => {
   }
 });
 
-/* =========================== RESET USERS (TEMP) =========================== 
-app.get("/reset-users", async (req,res)=>{
-    try{
-        await User.deleteMany({});
-        res.send("All users deleted ✅");
-    }catch(err){
-        console.log("Reset Error:", err);
-        res.send("Error ❌");
-    }
-});
-============================================================================= */
+// 🔥 3. NAYE USER ROUTES REGISTER KARO - YE LINE SABSE IMPORTANT HAI
+app.use('/api/user', userRoutes);
 
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
