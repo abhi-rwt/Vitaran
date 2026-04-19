@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (ULTRA FIXED PRO)
+ * Vitaran - FINAL PRO DASHBOARD (FIXED PRODUCTION)
  ************************************************/
 
 let currentPlan = null;
@@ -10,80 +10,73 @@ let currentStep = "pickup";
 let activeToast = null;
 
 /* =========================================
-   🔥 STATS SYSTEM (FIXED - NO MORE 0 ISSUE)
+   STATS SYSTEM
 ========================================= */
 
 let stats = JSON.parse(localStorage.getItem("vitaranStats") || '{"total":0,"active":0,"completed":0,"earnings":0}');
 
 function updateStatsUI(){
     localStorage.setItem("vitaranStats", JSON.stringify(stats));
-
     document.getElementById("stat-total").innerText = stats.total;
     document.getElementById("stat-active").innerText = stats.active;
     document.getElementById("stat-completed").innerText = stats.completed;
     document.getElementById("stat-earnings").innerText = `₹${stats.earnings}`;
 }
 
-
-// 🔥 MAIN INIT (FIXED)
-document.addEventListener("DOMContentLoaded", () => {
-
+// 🔥 MAIN INIT - SINGLE DOMContentLoaded
+document.addEventListener("DOMContentLoaded", async () => {
     updateStatsUI();
     initMap();
     initActionFlow();
     initVerificationUI();
 
-    // 🔥 PLAN LOAD
-    currentPlan = localStorage.getItem("plan") || "All-in-One";
-
-    const planBadge = document.querySelector(".badge");
-    if(planBadge) planBadge.innerText = currentPlan + " Active";
-
-
-    // 🔥 🔥 MAIN FIX START (PER USER VERIFY SYSTEM)
-
     const token = localStorage.getItem("token");
-
     if(!token){
         window.location.href = "login.html";
         return;
     }
 
-    const isVerified = localStorage.getItem("verified_" + token);
+    try {
+        const res = await fetch('/api/user/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-    // 🔥 VERIFIED USER
-    if(isVerified === "true"){
+        if (!res.ok) throw new Error('Auth failed');
 
-        document.getElementById("profileNotice").style.display = "none";
-        document.getElementById("verifyModal").style.display = "none";
-        document.getElementById("ordersCard").style.display = "block";
+        const user = await res.json(); // { _id, email, isVerified, isFirstLogin, plan }
 
-        document.body.classList.remove("modal-open");
+        const userId = user._id;
+        localStorage.setItem('userId', userId);
 
-        // 🔥 USER PHOTO (PER USER)
-        const userPhoto = document.getElementById("userPhoto");
-        const savedPhoto = localStorage.getItem("userPhoto_" + token);
+        const planBadge = document.querySelector(".badge");
+        if(planBadge) planBadge.innerText = user.plan + " Active";
+        currentPlan = user.plan;
 
-        if(userPhoto && savedPhoto){
-            userPhoto.src = savedPhoto;
+        if (user.isFirstLogin &&!user.isVerified) {
+            document.getElementById("ordersCard").style.display = "none";
+            document.getElementById("profileNotice").style.display = "flex";
+            document.getElementById("verifyModal").style.display = "flex";
+            document.body.classList.add("modal-open");
+        } else {
+            document.getElementById("profileNotice").style.display = "none";
+            document.getElementById("verifyModal").style.display = "none";
+            document.getElementById("ordersCard").style.display = "block";
+            document.body.classList.remove("modal-open");
+
+            const userPhoto = document.getElementById("userPhoto");
+            const savedPhoto = localStorage.getItem(`userPhoto_${userId}`);
+            if(userPhoto && savedPhoto) userPhoto.src = savedPhoto;
+
+            initDashboard();
         }
-
-        initDashboard();
-    }
-
-    // 🔥 UNVERIFIED USER (FIRST LOGIN)
-    else{
-
-        document.getElementById("ordersCard").style.display = "none";
-        document.getElementById("profileNotice").style.display = "flex";
-        document.getElementById("verifyModal").style.display = "flex";
-
-        document.body.classList.add("modal-open");
+    } catch (err) {
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
     }
 });
 
 /* =========================================
-   🔥 LOCK SYSTEM (FINAL FIXED CYCLE)
+   LOCK SYSTEM
    HIGH → LOCK → LOW → UNLOCK
 ========================================= */
 
@@ -115,7 +108,7 @@ function showToast(msg, type="success"){
 /* ================= KM ================= */
 
 function getSmartKM(plan){
-    plan = plan ? plan.toLowerCase() : "all";
+    plan = plan? plan.toLowerCase() : "all";
 
     if(plan.includes("food")) return (Math.random()*2 + 1).toFixed(1);
     if(plan.includes("grocery")) return (Math.random()*2 + 1.5).toFixed(1);
@@ -157,9 +150,7 @@ const PLATFORM_CONFIG = {
     "All-in-One": ["Swiggy","Zomato","Blinkit","Instamart","Zepto","Amazon","Flipkart"]
 };
 
-
 function getLogo(name){
-
     const map = {
         Swiggy: "swiggy.png",
         Zomato: "zomato.png",
@@ -171,72 +162,41 @@ function getLogo(name){
         Meesho: "meesho.png",
         Myntra: "myntra.jpeg"
     };
-
     return `/logos/${map[name] || "default.png"}`;
 }
 
-
-// 🔥 FINAL PLAN → PLATFORM LOGIC (ULTRA FIX)
 function getPlatformsFromPlan(plan){
-
     if(!plan) return PLATFORM_CONFIG["All-in-One"];
-
     plan = plan.toString().toLowerCase().trim();
 
-    console.log("📦 Plan detect ho raha hai:", plan);
-
-    // 🔥 FOOD
     if(plan.includes("food")){
         return PLATFORM_CONFIG.Food;
     }
-
-    // 🔥 GROCERY / QUICK
     if(plan.includes("grocery") || plan.includes("quick")){
         return PLATFORM_CONFIG.Grocery;
     }
-
-    // 🔥 E-COMMERCE
     if(plan.includes("e-commerce") || plan.includes("ecommerce") || plan.includes("commerce")){
         return PLATFORM_CONFIG["E-Commerce"];
     }
-
-    // 🔥 DEFAULT
     return PLATFORM_CONFIG["All-in-One"];
 }
 
 /* ================= DASHBOARD ================= */
 
 function initDashboard(){
-
     const tbody = document.querySelector(".table tbody");
     if(!tbody) return;
-
     tbody.innerHTML = "";
-
-    // 🔥 PLAN FIX (MAIN)
-    let savedPlan = localStorage.getItem("plan");
-
-    if(!savedPlan || savedPlan === "null" || savedPlan === "undefined"){
-        savedPlan = "All-in-One";
-    }
-
-    currentPlan = savedPlan.trim();
 
     console.log("🔥 Current Plan:", currentPlan);
 
-    // 🔥 PLATFORM FIX
     const platforms = getPlatformsFromPlan(currentPlan);
 
     let orders = [];
-
     for(let i=0;i<8;i++){
-
         const km = getSmartKM(currentPlan);
-
         const name = platforms[Math.floor(Math.random()*platforms.length)];
-
         const profit = Math.floor(Math.random()*90 + 10);
-
         orders.push({
             platform: name,
             id: Math.floor(Math.random()*9000),
@@ -246,13 +206,10 @@ function initDashboard(){
         });
     }
 
-    // 🔥 HIGH PROFIT FIRST
     orders.sort((a,b)=>b.profit - a.profit);
 
     orders.forEach((o,index)=>{
-
         const tr = document.createElement("tr");
-
         const isHigh = o.profit >= 50;
         const isLow = o.profit < 20;
 
@@ -263,7 +220,7 @@ function initDashboard(){
 
         tr.innerHTML = `
         <td>
-            <img src="${getLogo(o.platform)}" 
+            <img src="${getLogo(o.platform)}"
                  style="width:20px; vertical-align:middle; margin-right:5px;">
             ${o.platform}
         </td>
@@ -271,27 +228,23 @@ function initDashboard(){
         <td>COD</td>
         <td>₹${o.amount}</td>
         <td>${o.km} KM</td>
-        <td class="${isHigh ? "green" : ""}">₹${o.profit}</td>
+        <td class="${isHigh? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn accept ${locked ? "disabled" : ""}" 
-                    ${locked ? "disabled" : ""}>
-                ${locked ? "Locked" : "Accept"}
+            <button class="btn accept ${locked? "disabled" : ""}"
+                    ${locked? "disabled" : ""}>
+                ${locked? "Locked" : "Accept"}
             </button>
         </td>
         `;
 
         const btn = tr.querySelector("button");
-
         btn.onclick = () => {
-
             if(locked){
                 showToast("Low profit order complete karo ❌","error");
                 return;
             }
-
             acceptOrder(parseFloat(o.km), o.profit);
         };
-
         tbody.appendChild(tr);
     });
 }
@@ -393,7 +346,7 @@ function initActionFlow(){
         stats.completed++;
         stats.earnings += profit;
         updateStatsUI();
-        lastDelivered = (profit >= 50) ? "high" : "none";
+        lastDelivered = (profit >= 50)? "high" : "none";
         localStorage.setItem("lastDelivered", lastDelivered);
         showToast("Payment received 💰");
         setTimeout(()=>location.reload(),1000);
@@ -416,7 +369,7 @@ function openCamera(){
     document.body.appendChild(modal);
 
     navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
-    .then(stream=>{
+   .then(stream=>{
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
@@ -437,7 +390,7 @@ function openCamera(){
     });
 }
 
-/* ================= VERIFY SYSTEM (FIXED) ================= */
+/* ================= VERIFY SYSTEM ================= */
 
 function initVerificationUI(){
     const dpUpload = document.getElementById("dpUpload");
@@ -450,18 +403,13 @@ function initVerificationUI(){
 
         photoInput.onchange = (e) => {
             const file = e.target.files[0];
-
             if(file){
                 const reader = new FileReader();
-
                 reader.onload = (ev) => {
                     previewImg.src = ev.target.result;
-
-                    // 🔥 FIX: user specific photo save
-                    const token = localStorage.getItem("token");
-                    localStorage.setItem("userPhoto_" + token, ev.target.result);
+                    const userId = localStorage.getItem("userId");
+                    localStorage.setItem(`userPhoto_${userId}`, ev.target.result);
                 };
-
                 reader.readAsDataURL(file);
             }
         };
@@ -472,46 +420,53 @@ function initVerificationUI(){
     }
 }
 
-
-function verifyUser(){
-
+async function verifyUser(){
     const idType = document.getElementById("idType").value;
     const idNum = document.getElementById("idNumber").value;
-
     const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
 
     if(!idType || idNum.length < 5){
         showToast("Enter valid ID Details ❌", "error");
         return;
     }
 
-    // 🔥 FIX: user specific photo check
-    const photo = localStorage.getItem("userPhoto_" + token);
-
+    const photo = localStorage.getItem(`userPhoto_${userId}`);
     if(!photo){
         showToast("Upload Profile Photo 📸", "error");
         return;
     }
 
-    showToast("Verification Successful! ✅");
+    try {
+        const res = await fetch('/api/user/verify-profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ idType, idNum, photo })
+        });
 
-    // 🔥 MAIN FIX: per user verification save
-    localStorage.setItem("verified_" + token, "true");
+        if (!res.ok) throw new Error('Verify failed');
 
-    setTimeout(() => {
-        document.getElementById("verifyModal").style.display = "none";
-        location.reload();
-    }, 1000);
+        showToast("Verification Successful! ✅");
+        localStorage.setItem(`isVerified_${userId}`, 'true');
+
+        setTimeout(() => {
+            document.getElementById("verifyModal").style.display = "none";
+            location.reload();
+        }, 1000);
+    } catch (err) {
+        showToast("Verification failed ❌", "error");
+    }
 }
-
 
 function openVerify(){
     document.getElementById("verifyModal").style.display = "flex";
 }
 
-
 function logout(){
-    // 🔥 IMPORTANT: sirf token remove karo, pura localStorage mat uda
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
     window.location.href="login.html";
 }

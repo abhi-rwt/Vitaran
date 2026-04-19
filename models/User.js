@@ -23,7 +23,24 @@ const userSchema = new mongoose.Schema({
   plan: {
     type: String,
     default: null
-  }
+  },
+
+  // 🔥 NAYI FIELDS ADD KAR - ye 5 line paste kar de
+  isVerified: { 
+    type: Boolean, 
+    default: false 
+  },
+  
+  isFirstLogin: { 
+    type: Boolean, 
+    default: true 
+  },
+  
+  idType: String,
+  
+  idNumber: String,
+  
+  photo: String
 
 }, { timestamps: true });
 
