@@ -435,7 +435,7 @@ function openCamera(){
     document.body.appendChild(modal);
 
     navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
-  .then(stream=>{
+ .then(stream=>{
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
@@ -456,7 +456,7 @@ function openCamera(){
     });
 }
 
-/* ================= VERIFY SYSTEM ================= */
+/* ================= VERIFY SYSTEM - 🔥 INPUT RESTRICT FIX ================= */
 
 function initVerificationUI(){
     const dpUpload = document.getElementById("dpUpload");
@@ -482,19 +482,60 @@ function initVerificationUI(){
     if(verifyBtn){
         verifyBtn.onclick = verifyUser;
     }
+
+    // 🔥 ID TYPE CHANGE PE INPUT RESTRICT KARO
+    const idTypeSelect = document.getElementById("idType");
+    const idNumberInput = document.getElementById("idNumber");
+
+    if(idTypeSelect && idNumberInput){
+        idTypeSelect.onchange = () => {
+            const type = idTypeSelect.value;
+
+            if(type === 'Aadhar' || type === 'Aadhaar Card' || type === 'aadhaar'){
+                idNumberInput.type = 'text';
+                idNumberInput.inputMode = 'numeric';
+                idNumberInput.maxLength = 12;
+                idNumberInput.placeholder = 'Enter 12 digit Aadhar';
+                idNumberInput.value = '';
+            }
+            else if(type === 'PAN' || type === 'PAN Card' || type === 'pan'){
+                idNumberInput.type = 'text';
+                idNumberInput.inputMode = 'text';
+                idNumberInput.maxLength = 10;
+                idNumberInput.placeholder = 'Enter PAN: ABCDE1234F';
+                idNumberInput.value = '';
+            }
+        };
+
+        // 🔥 TYPING PE BHI RESTRICT KARO
+        idNumberInput.oninput = (e) => {
+            const type = idTypeSelect.value;
+
+            if(type === 'Aadhar' || type === 'Aadhaar Card' || type === 'aadhaar'){
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            }
+            else if(type === 'PAN' || type === 'PAN Card' || type === 'pan'){
+                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            }
+        };
+    }
 }
 
 function validateId() {
-  const idType = document.getElementById("idType").value;
+  let idType = document.getElementById("idType").value;
   const idNum = document.getElementById("idNumber").value.toUpperCase();
 
-  if(idType === 'aadhaar') {
+  // 🔥 NORMALIZE ID TYPE
+  if(idType === 'Aadhaar Card' || idType === 'aadhaar') idType = 'Aadhar';
+  if(idType === 'PAN Card' || idType === 'pan') idType = 'PAN';
+
+  if(idType === 'Aadhar') {
     if(!/^\d{12}$/.test(idNum)) {
       showToast('Aadhar must be 12 digits only', 'error');
       return false;
     }
   }
-  else if(idType === 'pan') {
+  else if(idType === 'PAN') {
     if(!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(idNum)) {
       showToast('PAN format: ABCDE1234F', 'error');
       return false;
@@ -510,11 +551,15 @@ function validateId() {
 async function verifyUser(){
     if(!validateId()) return;
 
-    const idType = document.getElementById("idType").value;
+    let idType = document.getElementById("idType").value;
     const idNum = document.getElementById("idNumber").value.toUpperCase();
     const token = localStorage.getItem("token");
     const previewImg = document.getElementById("preview");
     const photo = previewImg.src;
+
+    // 🔥 DROPDOWN VALUE NORMALIZE
+    if(idType === 'Aadhaar Card' || idType === 'aadhaar') idType = 'Aadhar';
+    if(idType === 'PAN Card' || idType === 'pan') idType = 'PAN';
 
     if(!photo || photo.includes('149071.png')){
         showToast("Upload Profile Photo 📸", "error");
