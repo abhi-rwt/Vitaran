@@ -21,9 +21,9 @@ function toggleDarkMode() {
   document.body.classList.toggle('dark');
   const isDark = document.body.classList.contains('dark');
   localStorage.setItem('darkMode', isDark);
-  
+
   const btn = document.getElementById('darkModeBtn');
-  if(btn) btn.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  if(btn) btn.innerText = isDark? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
 window.onclick = function(e) {
@@ -42,13 +42,13 @@ let stats = { totalOrders: 0, active: 0, completed: 0, earnings: 0 };
 async function loadUserStats() {
   const token = localStorage.getItem("token");
   if(!token) return;
-  
+
   try {
     const res = await fetch('/api/user/stats', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
-    
+
     if(data.success) {
       stats = data.stats;
       updateStatsUI();
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const btn = document.getElementById('darkModeBtn');
       if(btn) btn.innerText = '☀️ Light Mode';
     }
-    
+
     updateStatsUI();
     initMap();
     initActionFlow();
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(planBadge) planBadge.innerText = user.plan + " Active";
         currentPlan = user.plan;
 
-        if (user.isFirstLogin && !user.isVerified) {
+        if (user.isFirstLogin &&!user.isVerified) {
             document.getElementById("ordersCard").style.display = "none";
             document.getElementById("profileNotice").style.display = "flex";
             document.getElementById("verifyModal").style.display = "flex";
@@ -297,11 +297,23 @@ function initDashboard(){
     });
 }
 
-/* ================= ACCEPT ORDER ================= */
+/* ================= ACCEPT ORDER - 🔥 DB UPDATE ADDED ================= */
 
 async function acceptOrder(orderKM,profit){
     localStorage.setItem("currentOrderProfit", profit);
-    
+
+    // 🔥 BACKEND MEIN STATS UPDATE - TOTAL +1, ACTIVE = 1
+    try {
+      const token = localStorage.getItem("token");
+      await fetch('/api/user/update-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ action: 'accept' })
+      });
+    } catch(err) {
+      console.log('Stats update error:', err);
+    }
+
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
@@ -356,7 +368,7 @@ async function acceptOrder(orderKM,profit){
     },()=>showToast("Allow location ❌","error"));
 }
 
-/* ================= ACTION ================= */
+/* ================= ACTION - 🔥 PAY BUTTON DB UPDATE ================= */
 
 function initActionFlow(){
     document.getElementById("pickupBtn").onclick = ()=>{
@@ -387,6 +399,19 @@ function initActionFlow(){
 
     document.getElementById("payBtn").onclick = async ()=>{
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
+
+        // 🔥 BACKEND MEIN STATS UPDATE - COMPLETED +1, EARNINGS +PROFIT, ACTIVE = 0
+        try {
+          const token = localStorage.getItem("token");
+          await fetch('/api/user/update-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ action: 'complete', profit: profit })
+          });
+        } catch(err) {
+          console.log('Stats update error:', err);
+        }
+
         lastDelivered = (profit >= 50)? "high" : "none";
         localStorage.setItem("lastDelivered", lastDelivered);
         showToast("Payment received 💰");
@@ -410,7 +435,7 @@ function openCamera(){
     document.body.appendChild(modal);
 
     navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
-   .then(stream=>{
+  .then(stream=>{
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
@@ -462,13 +487,13 @@ function initVerificationUI(){
 function validateId() {
   const idType = document.getElementById("idType").value;
   const idNum = document.getElementById("idNumber").value.toUpperCase();
-  
+
   if(idType === 'aadhaar') {
     if(!/^\d{12}$/.test(idNum)) {
       showToast('Aadhar must be 12 digits only', 'error');
       return false;
     }
-  } 
+  }
   else if(idType === 'pan') {
     if(!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(idNum)) {
       showToast('PAN format: ABCDE1234F', 'error');
@@ -478,13 +503,13 @@ function validateId() {
     showToast('Please select ID type', 'error');
     return false;
   }
-  
+
   return true;
 }
 
 async function verifyUser(){
     if(!validateId()) return;
-    
+
     const idType = document.getElementById("idType").value;
     const idNum = document.getElementById("idNumber").value.toUpperCase();
     const token = localStorage.getItem("token");
@@ -507,8 +532,8 @@ async function verifyUser(){
         });
 
         const data = await res.json();
-        
-        if (!res.ok || !data.success) {
+
+        if (!res.ok ||!data.success) {
           throw new Error(data.error || 'Verify failed');
         }
 

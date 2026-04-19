@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-
   name: {
     type: String,
     required: true
@@ -10,7 +9,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true   // 🔥 important (duplicate users fix)
+    unique: true
   },
 
   phone: String,
@@ -25,7 +24,6 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
-  // 🔥 NAYI FIELDS ADD KAR - ye 5 line paste kar de
   isVerified: { 
     type: Boolean, 
     default: false 
@@ -40,7 +38,28 @@ const userSchema = new mongoose.Schema({
   
   idNumber: String,
   
-  photo: String
+  photo: String,
+
+  // 🔥 STATS FIELDS - PERMANENT STORAGE
+  totalOrders: { 
+    type: Number, 
+    default: 0 
+  },
+  
+  activeOrders: { 
+    type: Number, 
+    default: 0 
+  },
+  
+  completedOrders: { 
+    type: Number, 
+    default: 0 
+  },
+  
+  totalEarnings: { 
+    type: Number, 
+    default: 0 
+  }
 
 }, { timestamps: true });
 
