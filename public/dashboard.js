@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (FIXED PRODUCTION)
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION)
  ************************************************/
 
 let currentPlan = null;
@@ -22,12 +22,10 @@ function toggleDarkMode() {
   const isDark = document.body.classList.contains('dark');
   localStorage.setItem('darkMode', isDark);
   
-  // Button ka text change kar
   const btn = document.getElementById('darkModeBtn');
   if(btn) btn.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-// Menu bahar click pe band ho
 window.onclick = function(e) {
   if (!e.target.matches('.user-photo')) {
     const dropdown = document.getElementById('dropdown');
@@ -36,12 +34,11 @@ window.onclick = function(e) {
 }
 
 /* =========================================
-   STATS SYSTEM - 🔥 API SE LOAD HOGA
+   STATS SYSTEM - 🔥 BACKEND SE LOAD
 ========================================= */
 
-let stats = { total: 0, active: 0, completed: 0, earnings: 0 };
+let stats = { totalOrders: 0, active: 0, completed: 0, earnings: 0 };
 
-// 🔥 BACKEND SE STATS LOAD KAR
 async function loadUserStats() {
   const token = localStorage.getItem("token");
   if(!token) return;
@@ -62,15 +59,14 @@ async function loadUserStats() {
 }
 
 function updateStatsUI(){
-    document.getElementById("stat-total").innerText = stats.total;
-    document.getElementById("stat-active").innerText = stats.active;
-    document.getElementById("stat-completed").innerText = stats.completed;
-    document.getElementById("stat-earnings").innerText = `₹${stats.earnings}`;
+    document.getElementById("stat-total").innerText = stats.totalOrders || 0;
+    document.getElementById("stat-active").innerText = stats.active || 0;
+    document.getElementById("stat-completed").innerText = stats.completed || 0;
+    document.getElementById("stat-earnings").innerText = `₹${stats.earnings || 0}`;
 }
 
 // 🔥 MAIN INIT - SINGLE DOMContentLoaded
 document.addEventListener("DOMContentLoaded", async () => {
-    // Dark mode check
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
       const btn = document.getElementById('darkModeBtn');
@@ -95,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!res.ok) throw new Error('Auth failed');
 
-        const user = await res.json(); // { _id, email, isVerified, isFirstLogin, plan }
+        const user = await res.json();
 
         const userId = user._id;
         localStorage.setItem('userId', userId);
@@ -118,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const userPhoto = document.getElementById("userPhoto");
             if(userPhoto && user.photo) userPhoto.src = user.photo;
 
-            await loadUserStats(); // 🔥 STATS LOAD KAR
+            await loadUserStats();
             initDashboard();
         }
     } catch (err) {
@@ -305,10 +301,7 @@ function initDashboard(){
 
 async function acceptOrder(orderKM,profit){
     localStorage.setItem("currentOrderProfit", profit);
-    stats.total++;
-    stats.active = 1;
-    updateStatsUI();
-
+    
     document.getElementById("mapContainer").classList.add("map-full");
     document.getElementById("ordersCard")?.classList.add("fade");
 
@@ -394,10 +387,6 @@ function initActionFlow(){
 
     document.getElementById("payBtn").onclick = async ()=>{
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
-        stats.active = 0;
-        stats.completed++;
-        stats.earnings += profit;
-        updateStatsUI();
         lastDelivered = (profit >= 50)? "high" : "none";
         localStorage.setItem("lastDelivered", lastDelivered);
         showToast("Payment received 💰");
@@ -470,7 +459,6 @@ function initVerificationUI(){
     }
 }
 
-// 🔥 VALIDATION FUNCTION
 function validateId() {
   const idType = document.getElementById("idType").value;
   const idNum = document.getElementById("idNumber").value.toUpperCase();
@@ -495,7 +483,6 @@ function validateId() {
 }
 
 async function verifyUser(){
-    // 🔥 VALIDATION CHECK SABSE PEHLE
     if(!validateId()) return;
     
     const idType = document.getElementById("idType").value;

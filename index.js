@@ -207,6 +207,17 @@ app.post("/api/payment/create-order", async (req, res) => {
 // 🔥 3. NAYE USER ROUTES REGISTER KARO - YE LINE SABSE IMPORTANT HAI
 app.use('/api/user', userRoutes);
 
+/* =========================== RESET USERS (TEMP) ===========================*/ 
+app.get("/reset-users", async (req,res)=>{
+    try{
+        await User.deleteMany({});
+        res.send("All users deleted ✅");
+    }catch(err){
+        console.log("Reset Error:", err);
+        res.send("Error ❌");
+    }
+});
+
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
 
