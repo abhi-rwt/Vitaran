@@ -216,17 +216,6 @@ app.post("/api/payment/create-order", async (req, res) => {
   }
 });
 
-/* ===================== RESET USERS (TEMP) ===================== */
-app.get("/reset-users", async (req,res)=>{
-  try{
-    await User.deleteMany({});
-    res.send("All users deleted ✅");
-  }catch(err){
-    console.log("Reset Error:", err);
-    res.send("Error ❌");
-  }
-});
-
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
 
