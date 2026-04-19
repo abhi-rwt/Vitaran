@@ -150,10 +150,12 @@ function getLogo(name){
 }
 
 function getPlatformsFromPlan(plan){
-    plan = plan || "All-in-One";
-    if(plan.includes("Food")) return PLATFORM_CONFIG.Food;
-    if(plan.includes("Grocery")) return PLATFORM_CONFIG.Grocery;
-    if(plan.includes("E-Commerce")) return PLATFORM_CONFIG["E-Commerce"];
+    // 🔥 FIX 1: Plan ko lowercase kar do taaki spelling match ho jaye
+    plan = (plan || "All-in-One").toLowerCase();
+    
+    if(plan.includes("food")) return PLATFORM_CONFIG.Food;
+    if(plan.includes("grocery") || plan.includes("quick")) return PLATFORM_CONFIG.Grocery;
+    if(plan.includes("e-commerce") || plan.includes("commerce")) return PLATFORM_CONFIG["E-Commerce"];
     return PLATFORM_CONFIG["All-in-One"];
 }
 
@@ -163,6 +165,9 @@ function initDashboard(){
     const tbody = document.querySelector(".table tbody");
     if(!tbody) return;
     tbody.innerHTML = "";
+
+    // 🔥 FIX 2: Sabse pehle localStorage se fresh plan uthao
+    currentPlan = localStorage.getItem("plan") || "All-in-One";
 
     const platforms = getPlatformsFromPlan(currentPlan);
     let orders = [];
