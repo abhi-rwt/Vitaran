@@ -24,38 +24,61 @@ function updateStatsUI(){
     document.getElementById("stat-earnings").innerText = `₹${stats.earnings}`;
 }
 
-// Initial call to set stats on load
+
+// 🔥 MAIN INIT (FIXED)
 document.addEventListener("DOMContentLoaded", () => {
+
     updateStatsUI();
     initMap();
     initActionFlow();
-    initVerificationUI(); // 🔥 Verification system start karega
+    initVerificationUI();
 
-    // 🔥 1. Sabse pehle Plan load karo taaki orders sahi aayein
+    // 🔥 PLAN LOAD
     currentPlan = localStorage.getItem("plan") || "All-in-One";
-    
-    // UI par plan ka naam dikhane ke liye (Header badge)
+
     const planBadge = document.querySelector(".badge");
     if(planBadge) planBadge.innerText = currentPlan + " Active";
 
-    // 🔥 2. Check if user is verified (Strict Logic)
-    if(localStorage.getItem("isVerified") === "true") {
-        // Purana Verified User: Dashboard kholo
+
+    // 🔥 🔥 MAIN FIX START (PER USER VERIFY SYSTEM)
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+        window.location.href = "login.html";
+        return;
+    }
+
+    const isVerified = localStorage.getItem("verified_" + token);
+
+    // 🔥 VERIFIED USER
+    if(isVerified === "true"){
+
         document.getElementById("profileNotice").style.display = "none";
         document.getElementById("verifyModal").style.display = "none";
-        document.getElementById("ordersCard").style.display = "block"; // Table dikhao
-        
-        // Photo set karo
+        document.getElementById("ordersCard").style.display = "block";
+
+        document.body.classList.remove("modal-open");
+
+        // 🔥 USER PHOTO (PER USER)
         const userPhoto = document.getElementById("userPhoto");
-        if(userPhoto) userPhoto.src = localStorage.getItem("userPhoto") || "/logos/default.png";
-        
-        initDashboard(); // Orders generate karega plan ke hisaab se
-    } else {
-        // ❌ Naya Unverified User: Pura block karo
-        document.getElementById("ordersCard").style.display = "none"; // Table gayab
+        const savedPhoto = localStorage.getItem("userPhoto_" + token);
+
+        if(userPhoto && savedPhoto){
+            userPhoto.src = savedPhoto;
+        }
+
+        initDashboard();
+    }
+
+    // 🔥 UNVERIFIED USER (FIRST LOGIN)
+    else{
+
+        document.getElementById("ordersCard").style.display = "none";
         document.getElementById("profileNotice").style.display = "flex";
-        document.getElementById("verifyModal").style.display = "flex"; // Seedha modal dikhao
-        document.body.classList.add("modal-open"); // Background blur
+        document.getElementById("verifyModal").style.display = "flex";
+
+        document.body.classList.add("modal-open");
     }
 });
 
@@ -128,68 +151,108 @@ async function getAddress(lat,lng){
 /* ================= PLATFORM ================= */
 
 const PLATFORM_CONFIG = {
-    Food:["Swiggy","Zomato"],
-    Grocery:["Blinkit","Instamart","Zepto"],
-    "E-Commerce":["Amazon","Flipkart","Meesho","Myntra"],
-    "All-in-One":["Swiggy","Zomato","Blinkit","Instamart","Zepto","Amazon","Flipkart"]
+    Food: ["Swiggy","Zomato"],
+    Grocery: ["Blinkit","Instamart","Zepto"],
+    "E-Commerce": ["Amazon","Flipkart","Meesho","Myntra"],
+    "All-in-One": ["Swiggy","Zomato","Blinkit","Instamart","Zepto","Amazon","Flipkart"]
 };
 
+
 function getLogo(name){
+
     const map = {
-        Swiggy:"swiggy.png",
-        Zomato:"zomato.png",
-        Blinkit:"blinkit.png",
-        Instamart:"Instamart.png",
-        Zepto:"zepto.jpeg",
-        Amazon:"amazon.png",
-        Flipkart:"flipkart.png",
-        Meesho:"meesho.png",
-        Myntra:"myntra.jpeg"
+        Swiggy: "swiggy.png",
+        Zomato: "zomato.png",
+        Blinkit: "blinkit.png",
+        Instamart: "Instamart.png",
+        Zepto: "zepto.jpeg",
+        Amazon: "amazon.png",
+        Flipkart: "flipkart.png",
+        Meesho: "meesho.png",
+        Myntra: "myntra.jpeg"
     };
+
     return `/logos/${map[name] || "default.png"}`;
 }
 
+
+// 🔥 FINAL PLAN → PLATFORM LOGIC (ULTRA FIX)
 function getPlatformsFromPlan(plan){
-    // 🔥 FIX 1: Plan ko lowercase kar do taaki spelling match ho jaye
-    plan = (plan || "All-in-One").toLowerCase();
-    
-    if(plan.includes("food")) return PLATFORM_CONFIG.Food;
-    if(plan.includes("grocery") || plan.includes("quick")) return PLATFORM_CONFIG.Grocery;
-    if(plan.includes("e-commerce") || plan.includes("commerce")) return PLATFORM_CONFIG["E-Commerce"];
+
+    if(!plan) return PLATFORM_CONFIG["All-in-One"];
+
+    plan = plan.toString().toLowerCase().trim();
+
+    console.log("📦 Plan detect ho raha hai:", plan);
+
+    // 🔥 FOOD
+    if(plan.includes("food")){
+        return PLATFORM_CONFIG.Food;
+    }
+
+    // 🔥 GROCERY / QUICK
+    if(plan.includes("grocery") || plan.includes("quick")){
+        return PLATFORM_CONFIG.Grocery;
+    }
+
+    // 🔥 E-COMMERCE
+    if(plan.includes("e-commerce") || plan.includes("ecommerce") || plan.includes("commerce")){
+        return PLATFORM_CONFIG["E-Commerce"];
+    }
+
+    // 🔥 DEFAULT
     return PLATFORM_CONFIG["All-in-One"];
 }
 
 /* ================= DASHBOARD ================= */
 
 function initDashboard(){
+
     const tbody = document.querySelector(".table tbody");
     if(!tbody) return;
+
     tbody.innerHTML = "";
 
-    // 🔥 FIX 2: Sabse pehle localStorage se fresh plan uthao
-    currentPlan = localStorage.getItem("plan") || "All-in-One";
+    // 🔥 PLAN FIX (MAIN)
+    let savedPlan = localStorage.getItem("plan");
 
+    if(!savedPlan || savedPlan === "null" || savedPlan === "undefined"){
+        savedPlan = "All-in-One";
+    }
+
+    currentPlan = savedPlan.trim();
+
+    console.log("🔥 Current Plan:", currentPlan);
+
+    // 🔥 PLATFORM FIX
     const platforms = getPlatformsFromPlan(currentPlan);
+
     let orders = [];
 
     for(let i=0;i<8;i++){
+
         const km = getSmartKM(currentPlan);
+
         const name = platforms[Math.floor(Math.random()*platforms.length)];
+
         const profit = Math.floor(Math.random()*90 + 10);
 
         orders.push({
-            platform:name,
-            id:Math.floor(Math.random()*9000),
-            amount:Math.floor(Math.random()*800 + 100),
-            km,
-            profit
+            platform: name,
+            id: Math.floor(Math.random()*9000),
+            amount: Math.floor(Math.random()*800 + 100),
+            km: km,
+            profit: profit
         });
     }
 
+    // 🔥 HIGH PROFIT FIRST
     orders.sort((a,b)=>b.profit - a.profit);
 
     orders.forEach((o,index)=>{
+
         const tr = document.createElement("tr");
+
         const isHigh = o.profit >= 50;
         const isLow = o.profit < 20;
 
@@ -199,25 +262,33 @@ function initDashboard(){
         const locked = (lastDelivered === "high" && isHigh);
 
         tr.innerHTML = `
-        <td><img src="${getLogo(o.platform)}" style="width:20px; vertical-align:middle; margin-right:5px;"> ${o.platform}</td>
+        <td>
+            <img src="${getLogo(o.platform)}" 
+                 style="width:20px; vertical-align:middle; margin-right:5px;">
+            ${o.platform}
+        </td>
         <td>#VT${o.id}</td>
         <td>COD</td>
         <td>₹${o.amount}</td>
         <td>${o.km} KM</td>
         <td class="${isHigh ? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn accept ${locked ? "disabled" : ""}" ${locked ? "disabled" : ""}>
+            <button class="btn accept ${locked ? "disabled" : ""}" 
+                    ${locked ? "disabled" : ""}>
                 ${locked ? "Locked" : "Accept"}
             </button>
         </td>
         `;
 
         const btn = tr.querySelector("button");
+
         btn.onclick = () => {
-            if (locked) {
+
+            if(locked){
                 showToast("Low profit order complete karo ❌","error");
                 return;
             }
+
             acceptOrder(parseFloat(o.km), o.profit);
         };
 
@@ -376,14 +447,21 @@ function initVerificationUI(){
 
     if(dpUpload && photoInput){
         dpUpload.onclick = () => photoInput.click();
+
         photoInput.onchange = (e) => {
             const file = e.target.files[0];
+
             if(file){
                 const reader = new FileReader();
+
                 reader.onload = (ev) => {
                     previewImg.src = ev.target.result;
-                    localStorage.setItem("userPhoto", ev.target.result);
+
+                    // 🔥 FIX: user specific photo save
+                    const token = localStorage.getItem("token");
+                    localStorage.setItem("userPhoto_" + token, ev.target.result);
                 };
+
                 reader.readAsDataURL(file);
             }
         };
@@ -394,35 +472,46 @@ function initVerificationUI(){
     }
 }
 
+
 function verifyUser(){
+
     const idType = document.getElementById("idType").value;
     const idNum = document.getElementById("idNumber").value;
-    const preview = document.getElementById("preview").src;
+
+    const token = localStorage.getItem("token");
 
     if(!idType || idNum.length < 5){
         showToast("Enter valid ID Details ❌", "error");
         return;
     }
-    
-    if(preview.includes("flaticon.com")){
+
+    // 🔥 FIX: user specific photo check
+    const photo = localStorage.getItem("userPhoto_" + token);
+
+    if(!photo){
         showToast("Upload Profile Photo 📸", "error");
         return;
     }
 
     showToast("Verification Successful! ✅");
-    localStorage.setItem("isVerified", "true");
-    
+
+    // 🔥 MAIN FIX: per user verification save
+    localStorage.setItem("verified_" + token, "true");
+
     setTimeout(() => {
         document.getElementById("verifyModal").style.display = "none";
         location.reload();
-    }, 1500);
+    }, 1000);
 }
+
 
 function openVerify(){
     document.getElementById("verifyModal").style.display = "flex";
 }
 
+
 function logout(){
-    localStorage.clear();
+    // 🔥 IMPORTANT: sirf token remove karo, pura localStorage mat uda
+    localStorage.removeItem("token");
     window.location.href="login.html";
 }
