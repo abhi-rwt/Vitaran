@@ -81,7 +81,7 @@ async function loadUserStats() {
 }
 
 function updateStatsUI(){
-    const currentStats = statsByCategory[currentStatsFilter] || stats;
+    const currentStats = statsByCategory[currentStatsFilter] || stats || {};
     document.getElementById("stat-total").innerText = currentStats.totalOrders || 0;
     document.getElementById("stat-active").innerText = currentStats.active || 0;
     document.getElementById("stat-completed").innerText = currentStats.completed || 0;
@@ -89,12 +89,12 @@ function updateStatsUI(){
     
     const titles = {
         all: "Dashboard Stats",
-        ecommerce: "E-Commerce Stats",
+        ecommerce: "E-Commerce Stats", 
         food: "Food Delivery Stats",
         grocery: "Grocery Delivery Stats"
     };
     const titleEl = document.getElementById("statsTitle");
-    if(titleEl) titleEl.innerText = titles[currentStatsFilter];
+    if(titleEl) titleEl.innerText = titles[currentStatsFilter] || "Dashboard Stats";
 }
 
 // 🔥 MAIN INIT
