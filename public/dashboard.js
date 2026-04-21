@@ -189,13 +189,17 @@ async function getAddress(lat,lng){
     }
 }
 
-/* ================= PLATFORM ================= */
+/* ================= PLATFORM CONFIG - 🔥 SUBSCRIPTION PAGE KE HISAB SE ================= */
 
 const PLATFORM_CONFIG = {
-    Food: ["Swiggy","Zomato"],
-    Grocery: ["Blinkit","Instamart","Zepto"],
-    "E-Commerce": ["Amazon","Flipkart","Meesho","Myntra"],
-    "All-in-One": ["Swiggy","Zomato","Blinkit","Instamart","Zepto","Amazon","Flipkart"]
+    // E-Commerce: Amazon, Flipkart, Meesho, Myntra
+    ecommerce: ["Amazon","Flipkart","Meesho","Myntra"],
+    // Quick Commerce - Food: Swiggy, Zomato
+    food: ["Swiggy","Zomato"],
+    // Quick Commerce - Grocery: Zepto, Instamart, Blinkit
+    grocery: ["Zepto","Instamart","Blinkit"],
+    // All-in-One: Sab kuch
+    all: ["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"]
 };
 
 function getLogo(name){
@@ -213,23 +217,31 @@ function getLogo(name){
     return `/logos/${map[name] || "default.png"}`;
 }
 
-function getPlatformsFromPlan(plan){
-    if(!plan) return PLATFORM_CONFIG["All-in-One"];
+// 🔥 YE FUNCTION PLAN CHECK KAREGA - SUBSCRIPTION PAGE KE HISAB SE
+function getAllowedPlatforms(plan){
+    if(!plan) return [];
     plan = plan.toString().toLowerCase().trim();
 
-    if(plan.includes("food")){
-        return PLATFORM_CONFIG.Food;
+    if(plan.includes("all-in-one") || plan.includes("all in one")) {
+        return PLATFORM_CONFIG.all;
     }
-    if(plan.includes("grocery") || plan.includes("quick")){
-        return PLATFORM_CONFIG.Grocery;
+    if(plan.includes("e-commerce") || plan.includes("ecommerce")) {
+        return PLATFORM_CONFIG.ecommerce;
     }
-    if(plan.includes("e-commerce") || plan.includes("ecommerce") || plan.includes("commerce")){
-        return PLATFORM_CONFIG["E-Commerce"];
+    if(plan.includes("food") && plan.includes("grocery")) {
+        return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery]; // Both
     }
-    return PLATFORM_CONFIG["All-in-One"];
+    if(plan.includes("food")) {
+        return PLATFORM_CONFIG.food;
+    }
+    if(plan.includes("grocery")) {
+        return PLATFORM_CONFIG.grocery;
+    }
+
+    return []; // Koi plan nahi to sab locked
 }
 
-/* ================= DASHBOARD ================= */
+/* ================= DASHBOARD - 🔥 PLAN WISE LOCKING ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -238,19 +250,27 @@ function initDashboard(){
 
     console.log("🔥 Current Plan:", currentPlan);
 
-    const platforms = getPlatformsFromPlan(currentPlan);
+    const allowedPlatforms = getAllowedPlatforms(currentPlan);
+    const allPlatforms = PLATFORM_CONFIG.all;
 
     let orders = [];
-    for(let i=0;i<8;i++){
-        const km = getSmartKM(currentPlan);
-        const name = platforms[Math.floor(Math.random()*platforms.length)];
+    // Sabhi platforms ke order generate karo taaki user ko dikhe kya locked hai
+    for(let i=0; i<12; i++){
+        const name = allPlatforms[Math.floor(Math.random()*allPlatforms.length)];
         const profit = Math.floor(Math.random()*90 + 10);
+        let km = 2.5;
+
+        if(PLATFORM_CONFIG.food.includes(name)) km = (Math.random()*2 + 1).toFixed(1);
+        else if(PLATFORM_CONFIG.grocery.includes(name)) km = (Math.random()*2 + 1.5).toFixed(1);
+        else if(PLATFORM_CONFIG.ecommerce.includes(name)) km = (Math.random()*5 + 3).toFixed(1);
+
         orders.push({
             platform: name,
             id: Math.floor(Math.random()*9000),
             amount: Math.floor(Math.random()*800 + 100),
             km: km,
-            profit: profit
+            profit: profit,
+            isAllowed: allowedPlatforms.includes(name) // 🔥 Plan mein hai ya nahi
         });
     }
 
@@ -259,12 +279,14 @@ function initDashboard(){
     orders.forEach((o,index)=>{
         const tr = document.createElement("tr");
         const isHigh = o.profit >= 50;
-        const isLow = o.profit < 20;
 
-        if(index < 2) tr.classList.add("high-profit-row");
-        if(isLow) tr.style.opacity = "0.6";
+        if(index < 2 && o.isAllowed) tr.classList.add("high-profit-row");
+        if(!o.isAllowed) tr.style.opacity = "0.5"; // Locked wale fade
 
-        const locked = (lastDelivered === "high" && isHigh);
+        // 🔥 LOCK LOGIC: Plan mein nahi hai OR high-profit lock rule
+        const planLocked =!o.isAllowed;
+        const profitLocked = (lastDelivered === "high" && isHigh);
+        const isLocked = planLocked || profitLocked;
 
         tr.innerHTML = `
         <td>
@@ -276,18 +298,22 @@ function initDashboard(){
         <td>COD</td>
         <td>₹${o.amount}</td>
         <td>${o.km} KM</td>
-        <td class="${isHigh? "green" : ""}">₹${o.profit}</td>
+        <td class="${isHigh && o.isAllowed? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn accept ${locked? "disabled" : ""}"
-                    ${locked? "disabled" : ""}>
-                ${locked? "Locked" : "Accept"}
+            <button class="btn accept ${isLocked? "disabled" : ""}"
+                    ${isLocked? "disabled" : ""}>
+                ${isLocked? "Locked" : "Accept"}
             </button>
         </td>
         `;
 
         const btn = tr.querySelector("button");
         btn.onclick = () => {
-            if(locked){
+            if(planLocked){
+                showToast(`${o.platform} ke liye ${currentPlan} upgrade karo 🔒`,"error");
+                return;
+            }
+            if(profitLocked){
                 showToast("Low profit order complete karo ❌","error");
                 return;
             }
@@ -435,7 +461,7 @@ function openCamera(){
     document.body.appendChild(modal);
 
     navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
- .then(stream=>{
+.then(stream=>{
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
