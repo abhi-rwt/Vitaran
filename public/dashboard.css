@@ -614,30 +614,46 @@ body.dark tr.high-profit-row:hover {
 }
 /* 🔥 DARK MODE END */
 
-/* ================= PLAN FILTER BUTTONS - 🔥 NEW ================= */
-.plan-filters {
+/* ================= PLAN FILTER BUTTONS - 🔥 CENTER + ALAG CARD ================= */
+#filterCard {
     margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #e5e7eb;
+}
+
+#filterCard .card-head {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+#filterCard .card-head h3 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#filterCard .card-head small {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.plan-filters {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 .filter-row {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 10px;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
-.filter-row:last-child {
-    margin-bottom: 0;
-}
-
 .filter-btn {
-    padding: 8px 16px;
+    padding: 10px 22px;
     border: 1.5px solid #d1d5db;
     background: #fff;
-    border-radius: 20px;
-    font-size: 13px;
+    border-radius: 24px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -647,21 +663,22 @@ body.dark tr.high-profit-row:hover {
 .filter-btn:hover {
     border-color: #0a58ff;
     color: #0a58ff;
+    transform: translateY(-1px);
 }
 
 .filter-btn.active {
     background: #0a58ff;
     border-color: #0a58ff;
     color: #fff;
+    box-shadow: 0 4px 14px rgba(10, 88, 255, 0.35);
 }
 
-.filter-btn.locked-filter {
-    opacity: 0.5;
-    cursor: not-allowed;
+body.dark #filterCard {
+    background: #1e293b;
 }
 
-body.dark .plan-filters {
-    border-bottom-color: #2d333b;
+body.dark #filterCard .card-head small {
+    color: #94a3b8;
 }
 
 body.dark .filter-btn {
