@@ -212,22 +212,32 @@ function getLogo(name){
     return `/logos/${map[name] || "default.png"}`;
 }
 
-// 🔥 PLAN SE ALLOWED PLATFORMS
+// 🔥 FIXED: PLAN STRING MATCHING -.includes() USE KIYA
 function getAllowedPlatforms(plan){
     if(!plan) return [];
-    plan = plan.toString().trim();
+    plan = plan.toString().toLowerCase().trim();
 
-    if(plan === "All-in-One" || plan === "All in One") return PLATFORM_CONFIG.all;
-    if(plan === "E-Commerce" || plan === "Ecommerce") return PLATFORM_CONFIG.ecommerce;
-    if(plan === "Quick Commerce - Both" || plan === "Quick Commerce Both" || plan === "Both") {
+    // All-in-One check karo pehle
+    if(plan.includes("all-in-one") || plan.includes("all in one")) return PLATFORM_CONFIG.all;
+    
+    // E-Commerce
+    if(plan.includes("e-commerce") || plan.includes("ecommerce")) return PLATFORM_CONFIG.ecommerce;
+    
+    // Quick Commerce - Both
+    if(plan.includes("both")) {
         return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
     }
-    if(plan === "Quick Commerce - Food" || plan === "Quick Commerce Food" || plan === "Food") {
+    
+    // Quick Commerce - Food
+    if(plan.includes("food")) {
         return PLATFORM_CONFIG.food;
     }
-    if(plan === "Quick Commerce - Grocery" || plan === "Quick Commerce Grocery" || plan === "Grocery") {
+    
+    // Quick Commerce - Grocery 
+    if(plan.includes("grocery")) {
         return PLATFORM_CONFIG.grocery;
     }
+    
     return [];
 }
 
@@ -248,37 +258,41 @@ function initFilterButtons(){
     const subBtns = document.querySelectorAll('.sub-plans.filter-btn');
     const subPlanRow = document.getElementById('subPlanFilters');
 
-    // 🔥 DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
-    if(currentPlan === "All-in-One" || currentPlan === "All in One"){
+    // 🔥 FIXED: DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
+    const planLower = currentPlan? currentPlan.toLowerCase() : "";
+    
+    if(planLower.includes("all-in-one") || planLower.includes("all in one")){
         currentFilter = "All-in-One";
-    } else if(currentPlan === "E-Commerce" || currentPlan === "Ecommerce"){
+    } else if(planLower.includes("e-commerce") || planLower.includes("ecommerce")){
         currentFilter = "E-Commerce";
-    } else if(currentPlan === "Quick Commerce - Food" || currentPlan === "Quick Commerce Food" || currentPlan === "Food"){
+    } else if(planLower.includes("food")){
         currentFilter = "Food";
-    } else if(currentPlan === "Quick Commerce - Grocery" || currentPlan === "Quick Commerce Grocery" || currentPlan === "Grocery"){
+    } else if(planLower.includes("grocery")){
         currentFilter = "Grocery";
-    } else if(currentPlan === "Quick Commerce - Both" || currentPlan === "Quick Commerce Both" || currentPlan === "Both"){
+    } else if(planLower.includes("both")){
         currentFilter = "Both";
     } else {
-        currentFilter = "All-in-One";
+        currentFilter = "E-Commerce"; // Default
     }
+
+    console.log("🔥 Plan:", currentPlan, "| Auto Filter:", currentFilter);
 
     // Main plan buttons click
     mainBtns.forEach(btn => {
         btn.onclick = () => {
             const plan = btn.dataset.plan;
-            currentFilter = plan;
-
+            
             // Quick Commerce pe sub-plans dikhao
             if(plan === "Quick Commerce"){
                 subPlanRow.style.display = "flex";
-                // Default sub-plan select karo
-                if(currentPlan.includes("Food")) currentFilter = "Food";
-                else if(currentPlan.includes("Grocery")) currentFilter = "Grocery";
-                else if(currentPlan.includes("Both")) currentFilter = "Both";
+                // Default sub-plan select karo plan ke hisab se
+                if(planLower.includes("food")) currentFilter = "Food";
+                else if(planLower.includes("grocery")) currentFilter = "Grocery";
+                else if(planLower.includes("both")) currentFilter = "Both";
                 else currentFilter = "Food"; // Default
             } else {
                 subPlanRow.style.display = "none";
+                currentFilter = plan;
             }
 
             updateFilterUI();
@@ -295,8 +309,8 @@ function initFilterButtons(){
         };
     });
 
-    // Initial UI set
-    if(currentPlan && currentPlan.includes("Quick Commerce")){
+    // Initial UI set - Quick Commerce hai to sub-plan dikhao
+    if(planLower.includes("quick commerce") || planLower.includes("food") || planLower.includes("grocery") || planLower.includes("both")){
         subPlanRow.style.display = "flex";
     }
     updateFilterUI();
@@ -332,6 +346,8 @@ function initDashboard(){
 
     const allowedPlatforms = getAllowedPlatforms(currentPlan);
     const filterPlatforms = getPlatformsFromFilter(currentFilter);
+
+    console.log("Allowed:", allowedPlatforms, "| Showing:", filterPlatforms);
 
     let orders = [];
     // Filter wale platforms ke order generate karo
