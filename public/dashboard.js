@@ -3,6 +3,7 @@
  ************************************************/
 
 let currentPlan = null;
+let currentFilter = null; // 🔥 Current selected filter
 let map;
 let markers = [];
 let routeLine;
@@ -115,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(userPhoto && user.photo) userPhoto.src = user.photo;
 
             await loadUserStats();
+            initFilterButtons(); // 🔥 FILTER INIT
             initDashboard();
         }
     } catch (err) {
@@ -155,13 +157,10 @@ function showToast(msg, type="success"){
 
 /* ================= KM ================= */
 
-function getSmartKM(plan){
-    plan = plan? plan.toLowerCase() : "all";
-
-    if(plan.includes("food")) return (Math.random()*2 + 1).toFixed(1);
-    if(plan.includes("grocery")) return (Math.random()*2 + 1.5).toFixed(1);
-    if(plan.includes("e-commerce")) return (Math.random()*5 + 3).toFixed(1);
-
+function getSmartKM(platform){
+    if(["Swiggy","Zomato"].includes(platform)) return (Math.random()*2 + 1).toFixed(1);
+    if(["Zepto","Instamart","Blinkit"].includes(platform)) return (Math.random()*2 + 1.5).toFixed(1);
+    if(["Amazon","Flipkart","Meesho","Myntra"].includes(platform)) return (Math.random()*5 + 3).toFixed(1);
     return (Math.random()*4 + 2).toFixed(1);
 }
 
@@ -189,16 +188,12 @@ async function getAddress(lat,lng){
     }
 }
 
-/* ================= PLATFORM CONFIG - 🔥 SUBSCRIPTION PAGE KE HISAB SE ================= */
+/* ================= PLATFORM CONFIG ================= */
 
 const PLATFORM_CONFIG = {
-    // E-Commerce: Amazon, Flipkart, Meesho, Myntra
     ecommerce: ["Amazon","Flipkart","Meesho","Myntra"],
-    // Quick Commerce - Food: Swiggy, Zomato
     food: ["Swiggy","Zomato"],
-    // Quick Commerce - Grocery: Zepto, Instamart, Blinkit
     grocery: ["Zepto","Instamart","Blinkit"],
-    // All-in-One: Sab kuch
     all: ["Amazon","Flipkart","Meesho","Myntra","Swiggy","Zomato","Zepto","Instamart","Blinkit"]
 };
 
@@ -217,52 +212,133 @@ function getLogo(name){
     return `/logos/${map[name] || "default.png"}`;
 }
 
-// 🔥 YE FUNCTION PLAN CHECK KAREGA - SUBSCRIPTION PAGE KE HISAB SE
+// 🔥 PLAN SE ALLOWED PLATFORMS
 function getAllowedPlatforms(plan){
     if(!plan) return [];
-    plan = plan.toString().toLowerCase().trim();
+    plan = plan.toString().trim();
 
-    if(plan.includes("all-in-one") || plan.includes("all in one")) {
-        return PLATFORM_CONFIG.all;
+    if(plan === "All-in-One" || plan === "All in One") return PLATFORM_CONFIG.all;
+    if(plan === "E-Commerce" || plan === "Ecommerce") return PLATFORM_CONFIG.ecommerce;
+    if(plan === "Quick Commerce - Both" || plan === "Quick Commerce Both" || plan === "Both") {
+        return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
     }
-    if(plan.includes("e-commerce") || plan.includes("ecommerce")) {
-        return PLATFORM_CONFIG.ecommerce;
-    }
-    if(plan.includes("food") && plan.includes("grocery")) {
-        return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery]; // Both
-    }
-    if(plan.includes("food")) {
+    if(plan === "Quick Commerce - Food" || plan === "Quick Commerce Food" || plan === "Food") {
         return PLATFORM_CONFIG.food;
     }
-    if(plan.includes("grocery")) {
+    if(plan === "Quick Commerce - Grocery" || plan === "Quick Commerce Grocery" || plan === "Grocery") {
         return PLATFORM_CONFIG.grocery;
     }
-
-    return []; // Koi plan nahi to sab locked
+    return [];
 }
 
-/* ================= DASHBOARD - 🔥 PLAN WISE LOCKING ================= */
+// 🔥 FILTER SE PLATFORMS
+function getPlatformsFromFilter(filter){
+    if(filter === "All-in-One") return PLATFORM_CONFIG.all;
+    if(filter === "E-Commerce") return PLATFORM_CONFIG.ecommerce;
+    if(filter === "Food") return PLATFORM_CONFIG.food;
+    if(filter === "Grocery") return PLATFORM_CONFIG.grocery;
+    if(filter === "Both") return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
+    return PLATFORM_CONFIG.all;
+}
+
+/* ================= FILTER BUTTONS INIT ================= */
+
+function initFilterButtons(){
+    const mainBtns = document.querySelectorAll('.main-plans.filter-btn');
+    const subBtns = document.querySelectorAll('.sub-plans.filter-btn');
+    const subPlanRow = document.getElementById('subPlanFilters');
+
+    // 🔥 DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
+    if(currentPlan === "All-in-One" || currentPlan === "All in One"){
+        currentFilter = "All-in-One";
+    } else if(currentPlan === "E-Commerce" || currentPlan === "Ecommerce"){
+        currentFilter = "E-Commerce";
+    } else if(currentPlan === "Quick Commerce - Food" || currentPlan === "Quick Commerce Food" || currentPlan === "Food"){
+        currentFilter = "Food";
+    } else if(currentPlan === "Quick Commerce - Grocery" || currentPlan === "Quick Commerce Grocery" || currentPlan === "Grocery"){
+        currentFilter = "Grocery";
+    } else if(currentPlan === "Quick Commerce - Both" || currentPlan === "Quick Commerce Both" || currentPlan === "Both"){
+        currentFilter = "Both";
+    } else {
+        currentFilter = "All-in-One";
+    }
+
+    // Main plan buttons click
+    mainBtns.forEach(btn => {
+        btn.onclick = () => {
+            const plan = btn.dataset.plan;
+            currentFilter = plan;
+
+            // Quick Commerce pe sub-plans dikhao
+            if(plan === "Quick Commerce"){
+                subPlanRow.style.display = "flex";
+                // Default sub-plan select karo
+                if(currentPlan.includes("Food")) currentFilter = "Food";
+                else if(currentPlan.includes("Grocery")) currentFilter = "Grocery";
+                else if(currentPlan.includes("Both")) currentFilter = "Both";
+                else currentFilter = "Food"; // Default
+            } else {
+                subPlanRow.style.display = "none";
+            }
+
+            updateFilterUI();
+            initDashboard();
+        };
+    });
+
+    // Sub plan buttons click
+    subBtns.forEach(btn => {
+        btn.onclick = () => {
+            currentFilter = btn.dataset.subplan;
+            updateFilterUI();
+            initDashboard();
+        };
+    });
+
+    // Initial UI set
+    if(currentPlan && currentPlan.includes("Quick Commerce")){
+        subPlanRow.style.display = "flex";
+    }
+    updateFilterUI();
+}
+
+function updateFilterUI(){
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+
+        // Main plan active
+        if(btn.dataset.plan === currentFilter){
+            btn.classList.add('active');
+        }
+        if(btn.dataset.plan === "Quick Commerce" && ["Food","Grocery","Both"].includes(currentFilter)){
+            btn.classList.add('active');
+        }
+
+        // Sub plan active
+        if(btn.dataset.subplan === currentFilter){
+            btn.classList.add('active');
+        }
+    });
+}
+
+/* ================= DASHBOARD - 🔥 FILTER + LOCK ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
     if(!tbody) return;
     tbody.innerHTML = "";
 
-    console.log("🔥 Current Plan:", currentPlan);
+    console.log("🔥 Current Plan:", currentPlan, "| Filter:", currentFilter);
 
     const allowedPlatforms = getAllowedPlatforms(currentPlan);
-    const allPlatforms = PLATFORM_CONFIG.all;
+    const filterPlatforms = getPlatformsFromFilter(currentFilter);
 
     let orders = [];
-    // Sabhi platforms ke order generate karo taaki user ko dikhe kya locked hai
-    for(let i=0; i<12; i++){
-        const name = allPlatforms[Math.floor(Math.random()*allPlatforms.length)];
+    // Filter wale platforms ke order generate karo
+    for(let i=0; i<15; i++){
+        const name = filterPlatforms[Math.floor(Math.random()*filterPlatforms.length)];
         const profit = Math.floor(Math.random()*90 + 10);
-        let km = 2.5;
-
-        if(PLATFORM_CONFIG.food.includes(name)) km = (Math.random()*2 + 1).toFixed(1);
-        else if(PLATFORM_CONFIG.grocery.includes(name)) km = (Math.random()*2 + 1.5).toFixed(1);
-        else if(PLATFORM_CONFIG.ecommerce.includes(name)) km = (Math.random()*5 + 3).toFixed(1);
+        const km = getSmartKM(name);
 
         orders.push({
             platform: name,
@@ -281,9 +357,8 @@ function initDashboard(){
         const isHigh = o.profit >= 50;
 
         if(index < 2 && o.isAllowed) tr.classList.add("high-profit-row");
-        if(!o.isAllowed) tr.style.opacity = "0.5"; // Locked wale fade
+        if(!o.isAllowed) tr.style.opacity = "0.4";
 
-        // 🔥 LOCK LOGIC: Plan mein nahi hai OR high-profit lock rule
         const planLocked =!o.isAllowed;
         const profitLocked = (lastDelivered === "high" && isHigh);
         const isLocked = planLocked || profitLocked;
@@ -310,7 +385,7 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                showToast(`${o.platform} ke liye ${currentPlan} upgrade karo 🔒`,"error");
+                showToast(`Upgrade plan for ${o.platform} 🔒`,"error");
                 return;
             }
             if(profitLocked){
@@ -323,12 +398,11 @@ function initDashboard(){
     });
 }
 
-/* ================= ACCEPT ORDER - 🔥 DB UPDATE ADDED ================= */
+/* ================= ACCEPT ORDER ================= */
 
 async function acceptOrder(orderKM,profit){
     localStorage.setItem("currentOrderProfit", profit);
 
-    // 🔥 BACKEND MEIN STATS UPDATE - TOTAL +1, ACTIVE = 1
     try {
       const token = localStorage.getItem("token");
       await fetch('/api/user/update-stats', {
@@ -394,7 +468,7 @@ async function acceptOrder(orderKM,profit){
     },()=>showToast("Allow location ❌","error"));
 }
 
-/* ================= ACTION - 🔥 PAY BUTTON DB UPDATE ================= */
+/* ================= ACTION ================= */
 
 function initActionFlow(){
     document.getElementById("pickupBtn").onclick = ()=>{
@@ -426,7 +500,6 @@ function initActionFlow(){
     document.getElementById("payBtn").onclick = async ()=>{
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
 
-        // 🔥 BACKEND MEIN STATS UPDATE - COMPLETED +1, EARNINGS +PROFIT, ACTIVE = 0
         try {
           const token = localStorage.getItem("token");
           await fetch('/api/user/update-stats', {
@@ -482,7 +555,7 @@ function openCamera(){
     });
 }
 
-/* ================= VERIFY SYSTEM - 🔥 INPUT RESTRICT FIX ================= */
+/* ================= VERIFY SYSTEM ================= */
 
 function initVerificationUI(){
     const dpUpload = document.getElementById("dpUpload");
@@ -509,7 +582,6 @@ function initVerificationUI(){
         verifyBtn.onclick = verifyUser;
     }
 
-    // 🔥 ID TYPE CHANGE PE INPUT RESTRICT KARO
     const idTypeSelect = document.getElementById("idType");
     const idNumberInput = document.getElementById("idNumber");
 
@@ -533,7 +605,6 @@ function initVerificationUI(){
             }
         };
 
-        // 🔥 TYPING PE BHI RESTRICT KARO
         idNumberInput.oninput = (e) => {
             const type = idTypeSelect.value;
 
@@ -551,7 +622,6 @@ function validateId() {
   let idType = document.getElementById("idType").value;
   const idNum = document.getElementById("idNumber").value.toUpperCase();
 
-  // 🔥 NORMALIZE ID TYPE
   if(idType === 'Aadhaar Card' || idType === 'aadhaar') idType = 'Aadhar';
   if(idType === 'PAN Card' || idType === 'pan') idType = 'PAN';
 
@@ -583,7 +653,6 @@ async function verifyUser(){
     const previewImg = document.getElementById("preview");
     const photo = previewImg.src;
 
-    // 🔥 DROPDOWN VALUE NORMALIZE
     if(idType === 'Aadhaar Card' || idType === 'aadhaar') idType = 'Aadhar';
     if(idType === 'PAN Card' || idType === 'pan') idType = 'PAN';
 

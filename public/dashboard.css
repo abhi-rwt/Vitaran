@@ -613,3 +613,71 @@ body.dark tr.high-profit-row:hover {
   background: #166534;
 }
 /* 🔥 DARK MODE END */
+
+/* ================= PLAN FILTER BUTTONS - 🔥 NEW ================= */
+.plan-filters {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-row:last-child {
+    margin-bottom: 0;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #374151;
+}
+
+.filter-btn:hover {
+    border-color: #0a58ff;
+    color: #0a58ff;
+}
+
+.filter-btn.active {
+    background: #0a58ff;
+    border-color: #0a58ff;
+    color: #fff;
+}
+
+.filter-btn.locked-filter {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+body.dark .plan-filters {
+    border-bottom-color: #2d333b;
+}
+
+body.dark .filter-btn {
+    background: #22272e;
+    border-color: #373e47;
+    color: #c9d1d9;
+}
+
+body.dark .filter-btn:hover {
+    border-color: #0a58ff;
+    color: #0a58ff;
+}
+
+body.dark .filter-btn.active {
+    background: #0a58ff;
+    border-color: #0a58ff;
+    color: #fff;
+}
+/* ================= FILTER END ================= */

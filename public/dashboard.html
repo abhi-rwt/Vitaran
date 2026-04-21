@@ -72,9 +72,24 @@
 
             <section class="card" id="ordersCard">
                 <div class="card-head">
-                    <h3>High Priority Orders</h3>
-                    <small>Sorted by highest profit</small>
+                    <h3>Orders</h3>
+                    <small>Select category to view orders</small>
                 </div>
+
+                <!-- 🔥 CATEGORY FILTER BUTTONS -->
+                <div class="plan-filters">
+                    <div class="filter-row main-plans">
+                        <button class="filter-btn" data-plan="E-Commerce">E-Commerce</button>
+                        <button class="filter-btn" data-plan="Quick Commerce">Quick Commerce</button>
+                        <button class="filter-btn" data-plan="All-in-One">All-in-One</button>
+                    </div>
+                    <div class="filter-row sub-plans" id="subPlanFilters" style="display:none;">
+                        <button class="filter-btn" data-subplan="Food">Food</button>
+                        <button class="filter-btn" data-subplan="Grocery">Grocery</button>
+                        <button class="filter-btn" data-subplan="Both">Both</button>
+                    </div>
+                <!-- 🔥 FILTER END -->
+
                 <table class="table">
                     <thead>
                         <tr>
