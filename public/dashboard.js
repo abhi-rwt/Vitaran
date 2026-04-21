@@ -4,6 +4,7 @@
 
 let currentPlan = null;
 let currentFilter = null; // 🔥 Current selected filter
+let currentStatsFilter = "all"; // 🔥 Stats filter
 let map;
 let markers = [];
 let routeLine;
@@ -35,10 +36,15 @@ window.onclick = function(e) {
 }
 
 /* =========================================
-   STATS SYSTEM - 🔥 BACKEND SE LOAD
+   STATS SYSTEM - 🔥 FILTER WALA
 ========================================= */
 
-let stats = { totalOrders: 0, active: 0, completed: 0, earnings: 0 };
+let stats = { 
+  all: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
+  ecommerce: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
+  food: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
+  grocery: { totalOrders: 0, active: 0, completed: 0, earnings: 0 }
+};
 
 async function loadUserStats() {
   const token = localStorage.getItem("token");
@@ -60,10 +66,20 @@ async function loadUserStats() {
 }
 
 function updateStatsUI(){
-    document.getElementById("stat-total").innerText = stats.totalOrders || 0;
-    document.getElementById("stat-active").innerText = stats.active || 0;
-    document.getElementById("stat-completed").innerText = stats.completed || 0;
-    document.getElementById("stat-earnings").innerText = `₹${stats.earnings || 0}`;
+    const currentStats = stats[currentStatsFilter] || stats.all;
+    document.getElementById("stat-total").innerText = currentStats.totalOrders || 0;
+    document.getElementById("stat-active").innerText = currentStats.active || 0;
+    document.getElementById("stat-completed").innerText = currentStats.completed || 0;
+    document.getElementById("stat-earnings").innerText = `₹${currentStats.earnings || 0}`;
+    
+    // Title update
+    const titles = {
+        all: "Dashboard Stats",
+        ecommerce: "E-Commerce Stats",
+        food: "Food Delivery Stats",
+        grocery: "Grocery Delivery Stats"
+    };
+    document.getElementById("statsTitle").innerText = titles[currentStatsFilter];
 }
 
 // 🔥 MAIN INIT - SINGLE DOMContentLoaded
@@ -78,6 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initMap();
     initActionFlow();
     initVerificationUI();
+    initStatsFilter();
 
     const token = localStorage.getItem("token");
     if(!token){
@@ -116,7 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(userPhoto && user.photo) userPhoto.src = user.photo;
 
             await loadUserStats();
-            initFilterButtons(); // 🔥 FILTER INIT
+            initFilterButtons();
             initDashboard();
         }
     } catch (err) {
@@ -126,8 +143,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* =========================================
+   STATS FILTER INIT
+========================================= */
+
+function initStatsFilter(){
+    const statsFilter = document.getElementById('statsFilter');
+    if(statsFilter){
+        statsFilter.onchange = (e) => {
+            currentStatsFilter = e.target.value;
+            updateStatsUI();
+        };
+    }
+}
+
+/* =========================================
    LOCK SYSTEM
-   HIGH → LOCK → LOW → UNLOCK
 ========================================= */
 
 let lastDelivered = localStorage.getItem("lastDelivered") || "none";
@@ -212,31 +242,16 @@ function getLogo(name){
     return `/logos/${map[name] || "default.png"}`;
 }
 
-// 🔥 FIXED: PLAN STRING MATCHING -.includes() USE KIYA
+// 🔥 PLAN SE ALLOWED PLATFORMS
 function getAllowedPlatforms(plan){
     if(!plan) return [];
     plan = plan.toString().toLowerCase().trim();
 
-    // All-in-One check karo pehle
     if(plan.includes("all-in-one") || plan.includes("all in one")) return PLATFORM_CONFIG.all;
-    
-    // E-Commerce
     if(plan.includes("e-commerce") || plan.includes("ecommerce")) return PLATFORM_CONFIG.ecommerce;
-    
-    // Quick Commerce - Both
-    if(plan.includes("both")) {
-        return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
-    }
-    
-    // Quick Commerce - Food
-    if(plan.includes("food")) {
-        return PLATFORM_CONFIG.food;
-    }
-    
-    // Quick Commerce - Grocery 
-    if(plan.includes("grocery")) {
-        return PLATFORM_CONFIG.grocery;
-    }
+    if(plan.includes("both")) return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
+    if(plan.includes("food")) return PLATFORM_CONFIG.food;
+    if(plan.includes("grocery")) return PLATFORM_CONFIG.grocery;
     
     return [];
 }
@@ -251,14 +266,27 @@ function getPlatformsFromFilter(filter){
     return PLATFORM_CONFIG.all;
 }
 
+// 🔥 PLAN TO SUBSCRIPTION PAGE CATEGORY
+function getSubscriptionCategory(plan){
+    if(!plan) return "all-in-one";
+    plan = plan.toLowerCase();
+    
+    if(plan.includes("e-commerce") || plan.includes("ecommerce")) return "e-commerce";
+    if(plan.includes("both")) return "quick-commerce-both";
+    if(plan.includes("food")) return "quick-commerce-food";
+    if(plan.includes("grocery")) return "quick-commerce-grocery";
+    if(plan.includes("all-in-one") || plan.includes("all in one")) return "all-in-one";
+    
+    return "all-in-one";
+}
+
 /* ================= FILTER BUTTONS INIT ================= */
 
 function initFilterButtons(){
-    const mainBtns = document.querySelectorAll('.main-plans .filter-btn');
-    const subBtns = document.querySelectorAll('.sub-plans .filter-btn');
+    const mainBtns = document.querySelectorAll('.main-plans.filter-btn');
+    const subBtns = document.querySelectorAll('.sub-plans.filter-btn');
     const subPlanRow = document.getElementById('subPlanFilters');
 
-    // 🔥 DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
     
     if(planLower.includes("all-in-one") || planLower.includes("all in one")){
@@ -272,24 +300,21 @@ function initFilterButtons(){
     } else if(planLower.includes("both")){
         currentFilter = "Both";
     } else {
-        currentFilter = "E-Commerce"; // Default
+        currentFilter = "E-Commerce";
     }
 
     console.log("🔥 Plan:", currentPlan, "| Auto Filter:", currentFilter);
 
-    // Main plan buttons click
     mainBtns.forEach(btn => {
         btn.onclick = () => {
             const plan = btn.dataset.plan;
             
-            // Quick Commerce pe sub-plans dikhao
             if(plan === "Quick Commerce"){
                 subPlanRow.style.display = "flex";
-                // Default sub-plan select karo plan ke hisab se
                 if(planLower.includes("food")) currentFilter = "Food";
                 else if(planLower.includes("grocery")) currentFilter = "Grocery";
                 else if(planLower.includes("both")) currentFilter = "Both";
-                else currentFilter = "Food"; // Default
+                else currentFilter = "Food";
             } else {
                 subPlanRow.style.display = "none";
                 currentFilter = plan;
@@ -300,7 +325,6 @@ function initFilterButtons(){
         };
     });
 
-    // Sub plan buttons click
     subBtns.forEach(btn => {
         btn.onclick = () => {
             currentFilter = btn.dataset.subplan;
@@ -309,7 +333,6 @@ function initFilterButtons(){
         };
     });
 
-    // Initial UI set - Quick Commerce hai to sub-plan dikhao
     if(planLower.includes("quick commerce") || planLower.includes("food") || planLower.includes("grocery") || planLower.includes("both")){
         subPlanRow.style.display = "flex";
     }
@@ -320,7 +343,6 @@ function updateFilterUI(){
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
 
-        // Main plan active
         if(btn.dataset.plan === currentFilter){
             btn.classList.add('active');
         }
@@ -328,14 +350,13 @@ function updateFilterUI(){
             btn.classList.add('active');
         }
 
-        // Sub plan active
         if(btn.dataset.subplan === currentFilter){
             btn.classList.add('active');
         }
     });
 }
 
-/* ================= DASHBOARD - 🔥 FILTER + LOCK ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -347,10 +368,7 @@ function initDashboard(){
     const allowedPlatforms = getAllowedPlatforms(currentPlan);
     const filterPlatforms = getPlatformsFromFilter(currentFilter);
 
-    console.log("Allowed:", allowedPlatforms, "| Showing:", filterPlatforms);
-
     let orders = [];
-    // Filter wale platforms ke order generate karo
     for(let i=0; i<15; i++){
         const name = filterPlatforms[Math.floor(Math.random()*filterPlatforms.length)];
         const profit = Math.floor(Math.random()*90 + 10);
@@ -362,7 +380,7 @@ function initDashboard(){
             amount: Math.floor(Math.random()*800 + 100),
             km: km,
             profit: profit,
-            isAllowed: allowedPlatforms.includes(name) // 🔥 Plan mein hai ya nahi
+            isAllowed: allowedPlatforms.includes(name)
         });
     }
 
@@ -373,7 +391,7 @@ function initDashboard(){
         const isHigh = o.profit >= 50;
 
         if(index < 2 && o.isAllowed) tr.classList.add("high-profit-row");
-        if(!o.isAllowed) tr.style.opacity = "0.4";
+        if(!o.isAllowed) tr.style.opacity = "0.6";
 
         const planLocked =!o.isAllowed;
         const profitLocked = (lastDelivered === "high" && isHigh);
@@ -381,8 +399,7 @@ function initDashboard(){
 
         tr.innerHTML = `
         <td>
-            <img src="${getLogo(o.platform)}"
-                 style="width:20px; vertical-align:middle; margin-right:5px;">
+            <img src="${getLogo(o.platform)}" alt="${o.platform}">
             ${o.platform}
         </td>
         <td>#VT${o.id}</td>
@@ -391,9 +408,9 @@ function initDashboard(){
         <td>${o.km} KM</td>
         <td class="${isHigh && o.isAllowed? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn accept ${isLocked? "disabled" : ""}"
-                    ${isLocked? "disabled" : ""}>
-                ${isLocked? "Locked" : "Accept"}
+            <button class="btn ${planLocked? 'upgrade' : 'accept'}" 
+                    ${planLocked? '' : (profitLocked? 'disabled' : '')}>
+                ${planLocked? 'Upgrade' : (profitLocked? 'Locked' : 'Accept')}
             </button>
         </td>
         `;
@@ -401,14 +418,19 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                showToast(`Upgrade plan for ${o.platform} 🔒`,"error");
+                // 🔥 REDIRECT TO SUBSCRIPTION PAGE
+                const category = getSubscriptionCategory(o.platform);
+                showToast(`Redirecting to ${category} subscription...`);
+                setTimeout(()=>{
+                    window.location.href = `subscription.html?plan=${category}`;
+                }, 800);
                 return;
             }
             if(profitLocked){
                 showToast("Low profit order complete karo ❌","error");
                 return;
             }
-            acceptOrder(parseFloat(o.km), o.profit);
+            acceptOrder(parseFloat(o.km), o.profit, o.platform);
         };
         tbody.appendChild(tr);
     });
@@ -416,15 +438,16 @@ function initDashboard(){
 
 /* ================= ACCEPT ORDER ================= */
 
-async function acceptOrder(orderKM,profit){
+async function acceptOrder(orderKM,profit,platform){
     localStorage.setItem("currentOrderProfit", profit);
+    localStorage.setItem("currentOrderPlatform", platform);
 
     try {
       const token = localStorage.getItem("token");
       await fetch('/api/user/update-stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ action: 'accept' })
+        body: JSON.stringify({ action: 'accept', platform: platform })
       });
     } catch(err) {
       console.log('Stats update error:', err);
@@ -515,13 +538,14 @@ function initActionFlow(){
 
     document.getElementById("payBtn").onclick = async ()=>{
         const profit = parseInt(localStorage.getItem("currentOrderProfit") || "0");
+        const platform = localStorage.getItem("currentOrderPlatform") || "";
 
         try {
           const token = localStorage.getItem("token");
           await fetch('/api/user/update-stats', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ action: 'complete', profit: profit })
+            body: JSON.stringify({ action: 'complete', profit: profit, platform: platform })
           });
         } catch(err) {
           console.log('Stats update error:', err);
