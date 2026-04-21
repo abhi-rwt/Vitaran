@@ -254,11 +254,11 @@ function getPlatformsFromFilter(filter){
 /* ================= FILTER BUTTONS INIT ================= */
 
 function initFilterButtons(){
-    const mainBtns = document.querySelectorAll('.main-plans.filter-btn');
-    const subBtns = document.querySelectorAll('.sub-plans.filter-btn');
+    const mainBtns = document.querySelectorAll('.main-plans .filter-btn');
+    const subBtns = document.querySelectorAll('.sub-plans .filter-btn');
     const subPlanRow = document.getElementById('subPlanFilters');
 
-    // 🔥 FIXED: DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
+    // 🔥 DEFAULT FILTER SET - USER KE PLAN KE HISAB SE
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
     
     if(planLower.includes("all-in-one") || planLower.includes("all in one")){
