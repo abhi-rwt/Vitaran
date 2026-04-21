@@ -3,8 +3,8 @@
  ************************************************/
 
 let currentPlan = null;
-let currentFilter = null; // 🔥 Current selected filter
-let currentStatsFilter = "all"; // 🔥 Stats filter
+let currentFilter = null;
+let currentStatsFilter = "all";
 let map;
 let markers = [];
 let routeLine;
@@ -36,10 +36,17 @@ window.onclick = function(e) {
 }
 
 /* =========================================
-   STATS SYSTEM - 🔥 FILTER WALA
+   STATS SYSTEM - 🔥 FIXED BACKEND COMPATIBLE
 ========================================= */
 
 let stats = { 
+  totalOrders: 0, 
+  active: 0, 
+  completed: 0, 
+  earnings: 0 
+};
+
+let statsByCategory = {
   all: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
   ecommerce: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
   food: { totalOrders: 0, active: 0, completed: 0, earnings: 0 },
@@ -57,7 +64,15 @@ async function loadUserStats() {
     const data = await res.json();
 
     if(data.success) {
-      stats = data.stats;
+      // 🔥 Backend se flat aata hai to convert karo
+      if(data.stats.totalOrders!== undefined){
+        stats = data.stats;
+        statsByCategory.all = data.stats;
+      } else {
+        // Agar backend se nested aata hai
+        statsByCategory = data.stats;
+        stats = data.stats.all || data.stats;
+      }
       updateStatsUI();
     }
   } catch (err) {
@@ -66,23 +81,23 @@ async function loadUserStats() {
 }
 
 function updateStatsUI(){
-    const currentStats = stats[currentStatsFilter] || stats.all;
+    const currentStats = statsByCategory[currentStatsFilter] || stats;
     document.getElementById("stat-total").innerText = currentStats.totalOrders || 0;
     document.getElementById("stat-active").innerText = currentStats.active || 0;
     document.getElementById("stat-completed").innerText = currentStats.completed || 0;
     document.getElementById("stat-earnings").innerText = `₹${currentStats.earnings || 0}`;
     
-    // Title update
     const titles = {
         all: "Dashboard Stats",
         ecommerce: "E-Commerce Stats",
         food: "Food Delivery Stats",
         grocery: "Grocery Delivery Stats"
     };
-    document.getElementById("statsTitle").innerText = titles[currentStatsFilter];
+    const titleEl = document.getElementById("statsTitle");
+    if(titleEl) titleEl.innerText = titles[currentStatsFilter];
 }
 
-// 🔥 MAIN INIT - SINGLE DOMContentLoaded
+// 🔥 MAIN INIT
 document.addEventListener("DOMContentLoaded", async () => {
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -137,6 +152,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             initDashboard();
         }
     } catch (err) {
+        console.error(err);
         localStorage.removeItem("token");
         window.location.href = "login.html";
     }
@@ -242,7 +258,6 @@ function getLogo(name){
     return `/logos/${map[name] || "default.png"}`;
 }
 
-// 🔥 PLAN SE ALLOWED PLATFORMS
 function getAllowedPlatforms(plan){
     if(!plan) return [];
     plan = plan.toString().toLowerCase().trim();
@@ -256,7 +271,6 @@ function getAllowedPlatforms(plan){
     return [];
 }
 
-// 🔥 FILTER SE PLATFORMS
 function getPlatformsFromFilter(filter){
     if(filter === "All-in-One") return PLATFORM_CONFIG.all;
     if(filter === "E-Commerce") return PLATFORM_CONFIG.ecommerce;
@@ -266,17 +280,11 @@ function getPlatformsFromFilter(filter){
     return PLATFORM_CONFIG.all;
 }
 
-// 🔥 PLAN TO SUBSCRIPTION PAGE CATEGORY
-function getSubscriptionCategory(plan){
-    if(!plan) return "all-in-one";
-    plan = plan.toLowerCase();
-    
-    if(plan.includes("e-commerce") || plan.includes("ecommerce")) return "e-commerce";
-    if(plan.includes("both")) return "quick-commerce-both";
-    if(plan.includes("food")) return "quick-commerce-food";
-    if(plan.includes("grocery")) return "quick-commerce-grocery";
-    if(plan.includes("all-in-one") || plan.includes("all in one")) return "all-in-one";
-    
+// 🔥 PLATFORM TO SUBSCRIPTION CATEGORY
+function getSubscriptionCategory(platform){
+    if(PLATFORM_CONFIG.ecommerce.includes(platform)) return "e-commerce";
+    if(PLATFORM_CONFIG.food.includes(platform)) return "quick-commerce-food";
+    if(PLATFORM_CONFIG.grocery.includes(platform)) return "quick-commerce-grocery";
     return "all-in-one";
 }
 
@@ -306,8 +314,8 @@ function initFilterButtons(){
     console.log("🔥 Plan:", currentPlan, "| Auto Filter:", currentFilter);
 
     mainBtns.forEach(btn => {
-        btn.onclick = () => {
-            const plan = btn.dataset.plan;
+        btn.addEventListener('click', function() {
+            const plan = this.dataset.plan;
             
             if(plan === "Quick Commerce"){
                 subPlanRow.style.display = "flex";
@@ -322,15 +330,15 @@ function initFilterButtons(){
 
             updateFilterUI();
             initDashboard();
-        };
+        });
     });
 
     subBtns.forEach(btn => {
-        btn.onclick = () => {
-            currentFilter = btn.dataset.subplan;
+        btn.addEventListener('click', function() {
+            currentFilter = this.dataset.subplan;
             updateFilterUI();
             initDashboard();
-        };
+        });
     });
 
     if(planLower.includes("quick commerce") || planLower.includes("food") || planLower.includes("grocery") || planLower.includes("both")){
@@ -391,11 +399,10 @@ function initDashboard(){
         const isHigh = o.profit >= 50;
 
         if(index < 2 && o.isAllowed) tr.classList.add("high-profit-row");
-        if(!o.isAllowed) tr.style.opacity = "0.6";
+        if(!o.isAllowed) tr.style.opacity = "0.7";
 
         const planLocked =!o.isAllowed;
         const profitLocked = (lastDelivered === "high" && isHigh);
-        const isLocked = planLocked || profitLocked;
 
         tr.innerHTML = `
         <td>
@@ -409,7 +416,7 @@ function initDashboard(){
         <td class="${isHigh && o.isAllowed? "green" : ""}">₹${o.profit}</td>
         <td>
             <button class="btn ${planLocked? 'upgrade' : 'accept'}" 
-                    ${planLocked? '' : (profitLocked? 'disabled' : '')}>
+                    ${profitLocked &&!planLocked? 'disabled' : ''}>
                 ${planLocked? 'Upgrade' : (profitLocked? 'Locked' : 'Accept')}
             </button>
         </td>
@@ -420,7 +427,7 @@ function initDashboard(){
             if(planLocked){
                 // 🔥 REDIRECT TO SUBSCRIPTION PAGE
                 const category = getSubscriptionCategory(o.platform);
-                showToast(`Redirecting to ${category} subscription...`);
+                showToast(`Upgrade to ${category} plan`);
                 setTimeout(()=>{
                     window.location.href = `subscription.html?plan=${category}`;
                 }, 800);
