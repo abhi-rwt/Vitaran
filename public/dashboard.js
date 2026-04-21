@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION)
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V2
  ************************************************/
 
 let currentPlan = null;
