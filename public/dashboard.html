@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="dashboard.js?v=3" defer></script>
+    <script src="dashboard.js?v=4" defer></script>
 </head>
 
 <body>
@@ -26,14 +26,13 @@
     <div class="header-right">
         <span class="badge">Checking Plan...</span>
         
-        <!-- 🔥 3-DASH MENU SYSTEM -->
         <div class="menu-container">
             <img id="userPhoto" class="user-photo" src="/logos/default.png" onclick="toggleMenu()">
             <div id="dropdown" class="dropdown-menu">
                 <button onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark Mode</button>
                 <button onclick="logout()">Logout</button>
             </div>
-        <!-- 🔥 MENU END -->
+        </div>
     </div>
 </header>
 
@@ -49,7 +48,6 @@
 
     <section class="grid">
         <div class="left-col">
-            <!-- 🔥 STATS WITH FILTER -->
             <section class="card" id="statsCard">
                 <div class="card-head">
                     <h3 id="statsTitle">Dashboard Stats</h3>
@@ -80,27 +78,25 @@
                 </div>
             </section>
 
-            <!-- 🔥 ORDERS + FILTERS SAME BOX -->
             <section class="card" id="ordersCard">
                 <div class="card-head">
                     <h3>Orders</h3>
                     <small>Select category to view orders</small>
                 </div>
 
-                <!-- 🔥 CATEGORY FILTER BUTTONS - CENTER -->
+                <!-- 🔥 FIXED: Direct onclick added -->
                 <div class="plan-filters">
                     <div class="filter-row main-plans">
-                        <button class="filter-btn" data-plan="E-Commerce">E-Commerce</button>
-                        <button class="filter-btn" data-plan="Quick Commerce">Quick Commerce</button>
-                        <button class="filter-btn" data-plan="All-in-One">All-in-One</button>
+                        <button class="filter-btn" data-plan="E-Commerce" onclick="handleMainFilter('E-Commerce')">E-Commerce</button>
+                        <button class="filter-btn" data-plan="Quick Commerce" onclick="handleMainFilter('Quick Commerce')">Quick Commerce</button>
+                        <button class="filter-btn" data-plan="All-in-One" onclick="handleMainFilter('All-in-One')">All-in-One</button>
                     </div>
                     <div class="filter-row sub-plans" id="subPlanFilters" style="display:none;">
-                        <button class="filter-btn" data-subplan="Food">Food</button>
-                        <button class="filter-btn" data-subplan="Grocery">Grocery</button>
-                        <button class="filter-btn" data-subplan="Both">Both</button>
+                        <button class="filter-btn" data-subplan="Food" onclick="handleSubFilter('Food')">Food</button>
+                        <button class="filter-btn" data-subplan="Grocery" onclick="handleSubFilter('Grocery')">Grocery</button>
+                        <button class="filter-btn" data-subplan="Both" onclick="handleSubFilter('Both')">Both</button>
                     </div>
                 </div>
-                <!-- 🔥 FILTER END -->
 
                 <table class="table">
                     <thead>
