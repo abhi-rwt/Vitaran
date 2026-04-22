@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V2
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V3
  ************************************************/
 
 let currentPlan = null;
@@ -64,12 +64,10 @@ async function loadUserStats() {
     const data = await res.json();
 
     if(data.success) {
-      // 🔥 Backend se flat aata hai to convert karo
       if(data.stats.totalOrders!== undefined){
         stats = data.stats;
         statsByCategory.all = data.stats;
       } else {
-        // Agar backend se nested aata hai
         statsByCategory = data.stats;
         stats = data.stats.all || data.stats;
       }
@@ -138,6 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("profileNotice").style.display = "flex";
             document.getElementById("verifyModal").style.display = "flex";
             document.body.classList.add("modal-open");
+            initFilterButtons(); // 🔥 FIX: Verify na bhi ho to button chale
         } else {
             document.getElementById("profileNotice").style.display = "none";
             document.getElementById("verifyModal").style.display = "none";
@@ -280,12 +279,40 @@ function getPlatformsFromFilter(filter){
     return PLATFORM_CONFIG.all;
 }
 
-// 🔥 PLATFORM TO SUBSCRIPTION CATEGORY
 function getSubscriptionCategory(platform){
     if(PLATFORM_CONFIG.ecommerce.includes(platform)) return "e-commerce";
     if(PLATFORM_CONFIG.food.includes(platform)) return "quick-commerce-food";
     if(PLATFORM_CONFIG.grocery.includes(platform)) return "quick-commerce-grocery";
     return "all-in-one";
+}
+
+/* ================= 🔥 FILTER BUTTON HANDLERS - BACKUP ================= */
+
+function handleMainFilter(plan){
+    console.log("🔥 Main button clicked:", plan);
+    const subPlanRow = document.getElementById('subPlanFilters');
+    const planLower = currentPlan? currentPlan.toLowerCase() : "";
+    
+    if(plan === "Quick Commerce"){
+        subPlanRow.style.display = "flex";
+        if(planLower.includes("food")) currentFilter = "Food";
+        else if(planLower.includes("grocery")) currentFilter = "Grocery";
+        else if(planLower.includes("both")) currentFilter = "Both";
+        else currentFilter = "Food";
+    } else {
+        subPlanRow.style.display = "none";
+        currentFilter = plan;
+    }
+
+    updateFilterUI();
+    initDashboard();
+}
+
+function handleSubFilter(subplan){
+    console.log("🔥 Sub button clicked:", subplan);
+    currentFilter = subplan;
+    updateFilterUI();
+    initDashboard();
 }
 
 /* ================= FILTER BUTTONS INIT ================= */
@@ -315,29 +342,13 @@ function initFilterButtons(){
 
     mainBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            const plan = this.dataset.plan;
-            
-            if(plan === "Quick Commerce"){
-                subPlanRow.style.display = "flex";
-                if(planLower.includes("food")) currentFilter = "Food";
-                else if(planLower.includes("grocery")) currentFilter = "Grocery";
-                else if(planLower.includes("both")) currentFilter = "Both";
-                else currentFilter = "Food";
-            } else {
-                subPlanRow.style.display = "none";
-                currentFilter = plan;
-            }
-
-            updateFilterUI();
-            initDashboard();
+            handleMainFilter(this.dataset.plan);
         });
     });
 
     subBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            currentFilter = this.dataset.subplan;
-            updateFilterUI();
-            initDashboard();
+            handleSubFilter(this.dataset.subplan);
         });
     });
 
@@ -425,7 +436,6 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                // 🔥 REDIRECT TO SUBSCRIPTION PAGE
                 const category = getSubscriptionCategory(o.platform);
                 showToast(`Upgrade to ${category} plan`);
                 setTimeout(()=>{
