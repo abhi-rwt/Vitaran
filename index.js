@@ -161,17 +161,51 @@ app.post("/api/auth/reset-password", async (req, res) => {
   }
 });
 
-/* ===================== SUBSCRIPTION SAVE ===================== */
+/* ===================== SUBSCRIPTION SAVE - 🔥 FIXED WITH MERGE LOGIC ===================== */
 app.post("/api/subscription/save", async (req, res) => {
   try {
     const { token, plan } = req.body;
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    await User.findByIdAndUpdate(decoded.id, { plan });
+    const user = await User.findById(decoded.id);
 
-    res.json({ success: true });
+    if(!user) return res.json({ success: false, error: "User not found" });
+
+    const newPlan = plan.toLowerCase();
+    const currentPlan = user.plan ? user.plan.toLowerCase() : "";
+
+    // Duration nikaal le: "Food 1 Month" -> "1 Month"
+    const planParts = plan.split(" ");
+    const duration = planParts.slice(-2).join(" ");
+
+    let finalPlan = plan; // default naya plan
+
+    // 🔥 PLAN MERGE LOGIC
+    if (newPlan.includes("all-in-one")) {
+      finalPlan = plan;
+    }
+    else if (currentPlan.includes("e-commerce") && (newPlan.includes("food") || newPlan.includes("grocery") || newPlan.includes("both"))) {
+      finalPlan = "All-in-One " + duration;
+    }
+    else if ((currentPlan.includes("food") || currentPlan.includes("grocery") || currentPlan.includes("both")) && newPlan.includes("e-commerce")) {
+      finalPlan = "All-in-One " + duration;
+    }
+    else if (currentPlan.includes("food") && newPlan.includes("grocery")) {
+      finalPlan = "Both " + duration;
+    }
+    else if (currentPlan.includes("grocery") && newPlan.includes("food")) {
+      finalPlan = "Both " + duration;
+    }
+    else if (currentPlan.includes("both") && (newPlan.includes("food") || newPlan.includes("grocery"))) {
+      finalPlan = "Both " + duration;
+    }
+
+    user.plan = finalPlan;
+    await user.save();
+
+    res.json({ success: true, plan: finalPlan });
 
   } catch (err) {
+    console.log("Save plan error:", err);
     res.json({ success: false });
   }
 });
