@@ -1,8 +1,8 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V4
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V5
  ************************************************/
 
-console.log("🔥🔥🔥 JS FILE LOADED 🔥🔥🔥");
+console.log("🔥🔥🔥 JS FILE V5 LOADED 🔥🔥🔥");
 
 let currentPlan = null;
 let currentFilter = null;
@@ -99,7 +99,7 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🔥 Dashboard JS V4 DOM Loaded");
+    console.log("🔥 Dashboard JS V5 DOM Loaded");
 
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -430,7 +430,7 @@ function initDashboard(){
         <td>${o.km} KM</td>
         <td class="${isHigh && o.isAllowed? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn ${planLocked? 'upgrade' : 'accept'}"
+            <button class="btn ${planLocked? 'primary' : 'accept'}"
                     ${profitLocked &&!planLocked? 'disabled' : ''}>
                 ${planLocked? 'Upgrade' : (profitLocked? 'Locked' : 'Accept')}
             </button>
@@ -442,6 +442,8 @@ function initDashboard(){
             if(planLocked){
                 const category = getSubscriptionCategory(o.platform);
                 showToast(`Upgrade to ${category} plan`);
+                // 🔥 FIX 1: Set flag to bypass subscription redirect
+                localStorage.setItem("allowUpgrade", "true");
                 setTimeout(()=>{
                     window.location.href = `subscription.html?plan=${category}`;
                 }, 800);
