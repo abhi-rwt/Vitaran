@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V3
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V4
  ************************************************/
 
 let currentPlan = null;
@@ -39,11 +39,11 @@ window.onclick = function(e) {
    STATS SYSTEM - 🔥 FIXED BACKEND COMPATIBLE
 ========================================= */
 
-let stats = { 
-  totalOrders: 0, 
-  active: 0, 
-  completed: 0, 
-  earnings: 0 
+let stats = {
+  totalOrders: 0,
+  active: 0,
+  completed: 0,
+  earnings: 0
 };
 
 let statsByCategory = {
@@ -84,10 +84,10 @@ function updateStatsUI(){
     document.getElementById("stat-active").innerText = currentStats.active || 0;
     document.getElementById("stat-completed").innerText = currentStats.completed || 0;
     document.getElementById("stat-earnings").innerText = `₹${currentStats.earnings || 0}`;
-    
+
     const titles = {
         all: "Dashboard Stats",
-        ecommerce: "E-Commerce Stats", 
+        ecommerce: "E-Commerce Stats",
         food: "Food Delivery Stats",
         grocery: "Grocery Delivery Stats"
     };
@@ -97,6 +97,8 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT
 document.addEventListener("DOMContentLoaded", async () => {
+    console.log("🔥 Dashboard JS V4 Loaded");
+
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
       const btn = document.getElementById('darkModeBtn');
@@ -136,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("profileNotice").style.display = "flex";
             document.getElementById("verifyModal").style.display = "flex";
             document.body.classList.add("modal-open");
-            initFilterButtons(); // 🔥 FIX: Verify na bhi ho to button chale
+            initFilterButtons();
         } else {
             document.getElementById("profileNotice").style.display = "none";
             document.getElementById("verifyModal").style.display = "none";
@@ -266,7 +268,7 @@ function getAllowedPlatforms(plan){
     if(plan.includes("both")) return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
     if(plan.includes("food")) return PLATFORM_CONFIG.food;
     if(plan.includes("grocery")) return PLATFORM_CONFIG.grocery;
-    
+
     return [];
 }
 
@@ -286,13 +288,13 @@ function getSubscriptionCategory(platform){
     return "all-in-one";
 }
 
-/* ================= 🔥 FILTER BUTTON HANDLERS - BACKUP ================= */
+/* ================= 🔥 FILTER BUTTON HANDLERS - GLOBAL ================= */
 
 function handleMainFilter(plan){
     console.log("🔥 Main button clicked:", plan);
     const subPlanRow = document.getElementById('subPlanFilters');
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
-    
+
     if(plan === "Quick Commerce"){
         subPlanRow.style.display = "flex";
         if(planLower.includes("food")) currentFilter = "Food";
@@ -323,7 +325,7 @@ function initFilterButtons(){
     const subPlanRow = document.getElementById('subPlanFilters');
 
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
-    
+
     if(planLower.includes("all-in-one") || planLower.includes("all in one")){
         currentFilter = "All-in-One";
     } else if(planLower.includes("e-commerce") || planLower.includes("ecommerce")){
@@ -426,7 +428,7 @@ function initDashboard(){
         <td>${o.km} KM</td>
         <td class="${isHigh && o.isAllowed? "green" : ""}">₹${o.profit}</td>
         <td>
-            <button class="btn ${planLocked? 'upgrade' : 'accept'}" 
+            <button class="btn ${planLocked? 'upgrade' : 'accept'}"
                     ${profitLocked &&!planLocked? 'disabled' : ''}>
                 ${planLocked? 'Upgrade' : (profitLocked? 'Locked' : 'Accept')}
             </button>
