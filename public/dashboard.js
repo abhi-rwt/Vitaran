@@ -442,7 +442,7 @@ function initDashboard(){
             if(planLocked){
                 const category = getSubscriptionCategory(o.platform);
                 showToast(`Upgrade to ${category} plan`);
-                // 🔥 FIX 1: Set flag to bypass subscription redirect
+                // 🔥 Set flag to bypass subscription redirect
                 localStorage.setItem("allowUpgrade", "true");
                 setTimeout(()=>{
                     window.location.href = `subscription.html?plan=${category}`;
