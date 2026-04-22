@@ -294,7 +294,6 @@ function getSubscriptionCategory(platform){
 
 function handleMainFilter(plan){
     console.log("🔥 Main button clicked:", plan);
-    alert("Button Daba: " + plan); // TEMP: Remove after testing
     const subPlanRow = document.getElementById('subPlanFilters');
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
 
@@ -315,7 +314,6 @@ function handleMainFilter(plan){
 
 function handleSubFilter(subplan){
     console.log("🔥 Sub button clicked:", subplan);
-    alert("Sub Button Daba: " + subplan); // TEMP: Remove after testing
     currentFilter = subplan;
     updateFilterUI();
     initDashboard();
