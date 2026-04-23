@@ -1,8 +1,8 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V5
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6
  ************************************************/
 
-console.log("🔥🔥🔥 JS FILE V5 LOADED 🔥🔥🔥");
+console.log("🔥🔥🔥 JS FILE V6 LOADED 🔥🔥🔥");
 
 let currentPlan = null;
 let currentFilter = null;
@@ -97,9 +97,9 @@ function updateStatsUI(){
     if(titleEl) titleEl.innerText = titles[currentStatsFilter] || "Dashboard Stats";
 }
 
-// 🔥 MAIN INIT - FIXED FOR BOTH PROBLEMS
+// 🔥 MAIN INIT - FIXED WITH DEBUG
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🔥 Dashboard JS V5 DOM Loaded");
+    console.log("🔥 Dashboard JS V6 DOM Loaded");
 
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -127,14 +127,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!res.ok) throw new Error('Auth failed');
 
         const data = await res.json();
-        const user = data.user || data; // 🔥 FIX 1: Handle both formats
+        console.log("🔥 API /api/auth/me Response:", data); // 🔥 DEBUG
+
+        const user = data.user || data;
+        console.log("🔥 User Plan from API:", user.plan); // 🔥 DEBUG
 
         const userId = user._id;
         localStorage.setItem('userId', userId);
 
         const planBadge = document.querySelector(".badge");
         if(planBadge) planBadge.innerText = user.plan + " Active";
-        currentPlan = user.plan; // 🔥 Latest plan set karo
+        currentPlan = user.plan;
+        console.log("🔥 currentPlan set to:", currentPlan); // 🔥 DEBUG
 
         if (user.isFirstLogin &&!user.isVerified) {
             document.getElementById("ordersCard").style.display = "none";
@@ -265,12 +269,28 @@ function getLogo(name){
 function getAllowedPlatforms(plan){
     if(!plan) return [];
     plan = plan.toString().toLowerCase().trim();
+    console.log("🔥 getAllowedPlatforms input:", plan); // 🔥 DEBUG
 
-    if(plan.includes("all-in-one") || plan.includes("all in one")) return PLATFORM_CONFIG.all;
-    if(plan.includes("e-commerce") || plan.includes("ecommerce")) return PLATFORM_CONFIG.ecommerce;
-    if(plan.includes("both")) return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
-    if(plan.includes("food")) return PLATFORM_CONFIG.food;
-    if(plan.includes("grocery")) return PLATFORM_CONFIG.grocery;
+    if(plan.includes("all-in-one") || plan.includes("all in one")) {
+        console.log("🔥 Allowed: ALL"); // 🔥 DEBUG
+        return PLATFORM_CONFIG.all;
+    }
+    if(plan.includes("e-commerce") || plan.includes("ecommerce")) {
+        console.log("🔥 Allowed: E-COMMERCE"); // 🔥 DEBUG
+        return PLATFORM_CONFIG.ecommerce;
+    }
+    if(plan.includes("both")) {
+        console.log("🔥 Allowed: BOTH - Food + Grocery"); // 🔥 DEBUG
+        return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
+    }
+    if(plan.includes("food")) {
+        console.log("🔥 Allowed: FOOD"); // 🔥 DEBUG
+        return PLATFORM_CONFIG.food;
+    }
+    if(plan.includes("grocery")) {
+        console.log("🔥 Allowed: GROCERY"); // 🔥 DEBUG
+        return PLATFORM_CONFIG.grocery;
+    }
 
     return [];
 }
@@ -328,6 +348,7 @@ function initFilterButtons(){
     const subPlanRow = document.getElementById('subPlanFilters');
 
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
+    console.log("🔥 initFilterButtons planLower:", planLower); // 🔥 DEBUG
 
     if(planLower.includes("all-in-one") || planLower.includes("all in one")){
         currentFilter = "All-in-One";
@@ -380,7 +401,7 @@ function updateFilterUI(){
     });
 }
 
-/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FINAL FIX ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -391,6 +412,8 @@ function initDashboard(){
 
     const allowedPlatforms = getAllowedPlatforms(currentPlan);
     const filterPlatforms = getPlatformsFromFilter(currentFilter);
+    console.log("🔥 Allowed Platforms:", allowedPlatforms); // 🔥 DEBUG
+    console.log("🔥 Filter Platforms:", filterPlatforms); // 🔥 DEBUG
 
     let orders = [];
     for(let i=0; i<15; i++){
@@ -442,10 +465,12 @@ function initDashboard(){
         btn.onclick = () => {
             if(planLocked){
                 let category = getSubscriptionCategory(o.platform);
+                console.log("🔥 Platform:", o.platform, "| Category:", category, "| currentFilter:", currentFilter, "| currentPlan:", currentPlan); // 🔥 DEBUG
 
-                // 🔥 FIX 2: All-in-One tab mein hamesha All-in-One suggest karo
+                // 🔥 FIX 2: All-in-One tab ya plan mein hamesha All-in-One suggest karo
                 if(currentFilter === "All-in-One" || currentPlan?.toLowerCase().includes("all-in-one")) {
                     category = "all-in-one";
+                    console.log("🔥 Overriding to all-in-one"); // 🔥 DEBUG
                 }
 
                 showToast(`Upgrade to ${category} plan`);
