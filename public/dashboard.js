@@ -97,7 +97,7 @@ function updateStatsUI(){
     if(titleEl) titleEl.innerText = titles[currentStatsFilter] || "Dashboard Stats";
 }
 
-// 🔥 MAIN INIT
+// 🔥 MAIN INIT - FIXED FOR BOTH PROBLEMS
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("🔥 Dashboard JS V5 DOM Loaded");
 
@@ -126,14 +126,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!res.ok) throw new Error('Auth failed');
 
-        const user = await res.json();
+        const data = await res.json();
+        const user = data.user || data; // 🔥 FIX 1: Handle both formats
 
         const userId = user._id;
         localStorage.setItem('userId', userId);
 
         const planBadge = document.querySelector(".badge");
         if(planBadge) planBadge.innerText = user.plan + " Active";
-        currentPlan = user.plan;
+        currentPlan = user.plan; // 🔥 Latest plan set karo
 
         if (user.isFirstLogin &&!user.isVerified) {
             document.getElementById("ordersCard").style.display = "none";
@@ -379,7 +380,7 @@ function updateFilterUI(){
     });
 }
 
-/* ================= DASHBOARD - UPGRADE BUTTON ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -440,9 +441,14 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                const category = getSubscriptionCategory(o.platform);
+                let category = getSubscriptionCategory(o.platform);
+
+                // 🔥 FIX 2: All-in-One tab mein hamesha All-in-One suggest karo
+                if(currentFilter === "All-in-One" || currentPlan?.toLowerCase().includes("all-in-one")) {
+                    category = "all-in-one";
+                }
+
                 showToast(`Upgrade to ${category} plan`);
-                // 🔥 Set flag to bypass subscription redirect
                 localStorage.setItem("allowUpgrade", "true");
                 setTimeout(()=>{
                     window.location.href = `subscription.html?plan=${category}`;
