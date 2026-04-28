@@ -161,8 +161,34 @@ app.post("/api/auth/reset-password", async (req, res) => {
   }
 });
 
-/* ===================== SUBSCRIPTION SAVE - 🔥 FIXED WITH MERGE LOGIC ===================== */
+/* ===================== SUBSCRIPTION SAVE - NEW USER ===================== */
 app.post("/api/subscription/save", async (req, res) => {
+  try {
+    const { token, plan } = req.body;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if(!user) return res.json({ success: false, error: "User not found" });
+
+    // Agar already plan hai to upgrade route use karo
+    if(user.plan) {
+      return res.json({ success: false, error: "Use upgrade route for existing users" });
+    }
+
+    user.plan = plan;
+    user.planActivatedAt = new Date();
+    await user.save();
+
+    res.json({ success: true, plan: plan });
+
+  } catch (err) {
+    console.log("Save plan error:", err);
+    res.json({ success: false, error: err.message });
+  }
+});
+
+/* ===================== SUBSCRIPTION UPGRADE - 🔥 NAYA ROUTE ===================== */
+app.post("/api/subscription/upgrade", async (req, res) => {
   try {
     const { token, plan } = req.body;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -179,7 +205,7 @@ app.post("/api/subscription/save", async (req, res) => {
 
     let finalPlan = plan; // default naya plan
 
-    // 🔥 PLAN MERGE LOGIC
+    // 🔥 PLAN MERGE LOGIC - Upgrade ke liye
     if (newPlan.includes("all-in-one")) {
       finalPlan = plan;
     }
@@ -200,13 +226,14 @@ app.post("/api/subscription/save", async (req, res) => {
     }
 
     user.plan = finalPlan;
+    user.planActivatedAt = new Date();
     await user.save();
 
-    res.json({ success: true, plan: finalPlan });
+    res.json({ success: true, plan: finalPlan, newPlan: finalPlan });
 
   } catch (err) {
-    console.log("Save plan error:", err);
-    res.json({ success: false });
+    console.log("Upgrade plan error:", err);
+    res.json({ success: false, error: err.message });
   }
 });
 
@@ -234,7 +261,7 @@ app.post("/api/payment/create-order", async (req, res) => {
 
   } catch (err) {
     console.log("Payment Error:", err);
-    res.json({ status: "error" });
+    res.json({ status: "error", message: err.message });
   }
 });
 

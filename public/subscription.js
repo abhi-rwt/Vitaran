@@ -1,10 +1,9 @@
 /************************************************
- * Vitaran - SUBSCRIPTION PAGE LOGIC V1
- * Handles: Redirect guard, Plan switching, Payment
+ * Vitaran - SUBSCRIPTION PAGE LOGIC V6.1
+ * Handles: Redirect guard, Plan switching, Payment + Upgrade
  ************************************************/
 
 // ================= SUBSCRIPTION PAGE GUARD =================
-// 🔥 FIX 1: Flash hatana + Upgrade allow karna
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   const allowUpgrade = localStorage.getItem("allowUpgrade");
@@ -32,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Upgrade complete hone ke baad flag hata do
   localStorage.removeItem("allowUpgrade");
   
-  // 🔥 FIX 2: Ab page show kar do, flash nahi aayega
+  // Page show kar do
   document.body.style.display = "block";
   
   // Default view set karo
@@ -96,7 +95,7 @@ function setQuick(i) {
   });
 }
 
-// ================= RAZORPAY =================
+// ================= RAZORPAY + UPGRADE LOGIC =================
 
 async function buyPlan(plan, amount){
   try{
@@ -123,7 +122,7 @@ async function buyPlan(plan, amount){
     const orderData = await orderRes.json();
 
     if(orderData.status !== "ok"){
-      alert("Order creation failed");
+      alert("Order creation failed: " + orderData.message);
       return;
     }
 
@@ -138,8 +137,11 @@ async function buyPlan(plan, amount){
       order_id: orderData.order.id,
 
       handler: async function () {
-        // STEP 3: Save plan
-        const saveRes = await fetch("/api/subscription/save",{
+        // 🔥 FIX: Upgrade vs New user alag route
+        const isUpgrade = localStorage.getItem("allowUpgrade");
+        const endpoint = isUpgrade ? "/api/subscription/upgrade" : "/api/subscription/save";
+        
+        const saveRes = await fetch(endpoint, {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({
@@ -151,11 +153,11 @@ async function buyPlan(plan, amount){
         const saveData = await saveRes.json();
 
         if(saveData.success){
-          // Upgrade ke baad flag hata do
           localStorage.removeItem("allowUpgrade");
+          alert("Plan activated: " + plan);
           window.location.replace("dashboard.html");
         } else {
-          alert("Plan save failed");
+          alert("Plan save failed: " + saveData.error);
         }
       },
 
