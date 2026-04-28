@@ -1,8 +1,8 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6.1
  ************************************************/
 
-console.log("🔥🔥🔥 JS FILE V6 LOADED 🔥🔥🔥");
+console.log("🔥🔥🔥 JS FILE V6.1 LOADED 🔥🔥🔥");
 
 let currentPlan = null;
 let currentFilter = null;
@@ -99,7 +99,7 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT - FIXED WITH DEBUG
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🔥 Dashboard JS V6 DOM Loaded");
+    console.log("🔥 Dashboard JS V6.1 DOM Loaded");
 
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -127,10 +127,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!res.ok) throw new Error('Auth failed');
 
         const data = await res.json();
-        console.log("🔥 API /api/auth/me Response:", data); // 🔥 DEBUG
+        console.log("🔥 API /api/auth/me Response:", data);
 
         const user = data.user || data;
-        console.log("🔥 User Plan from API:", user.plan); // 🔥 DEBUG
+        console.log("🔥 User Plan from API:", user.plan);
 
         const userId = user._id;
         localStorage.setItem('userId', userId);
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const planBadge = document.querySelector(".badge");
         if(planBadge) planBadge.innerText = user.plan + " Active";
         currentPlan = user.plan;
-        console.log("🔥 currentPlan set to:", currentPlan); // 🔥 DEBUG
+        console.log("🔥 currentPlan set to:", currentPlan);
 
         if (user.isFirstLogin &&!user.isVerified) {
             document.getElementById("ordersCard").style.display = "none";
@@ -269,26 +269,26 @@ function getLogo(name){
 function getAllowedPlatforms(plan){
     if(!plan) return [];
     plan = plan.toString().toLowerCase().trim();
-    console.log("🔥 getAllowedPlatforms input:", plan); // 🔥 DEBUG
+    console.log("🔥 getAllowedPlatforms input:", plan);
 
     if(plan.includes("all-in-one") || plan.includes("all in one")) {
-        console.log("🔥 Allowed: ALL"); // 🔥 DEBUG
+        console.log("🔥 Allowed: ALL");
         return PLATFORM_CONFIG.all;
     }
     if(plan.includes("e-commerce") || plan.includes("ecommerce")) {
-        console.log("🔥 Allowed: E-COMMERCE"); // 🔥 DEBUG
+        console.log("🔥 Allowed: E-COMMERCE");
         return PLATFORM_CONFIG.ecommerce;
     }
     if(plan.includes("both")) {
-        console.log("🔥 Allowed: BOTH - Food + Grocery"); // 🔥 DEBUG
+        console.log("🔥 Allowed: BOTH - Food + Grocery");
         return [...PLATFORM_CONFIG.food,...PLATFORM_CONFIG.grocery];
     }
     if(plan.includes("food")) {
-        console.log("🔥 Allowed: FOOD"); // 🔥 DEBUG
+        console.log("🔥 Allowed: FOOD");
         return PLATFORM_CONFIG.food;
     }
     if(plan.includes("grocery")) {
-        console.log("🔥 Allowed: GROCERY"); // 🔥 DEBUG
+        console.log("🔥 Allowed: GROCERY");
         return PLATFORM_CONFIG.grocery;
     }
 
@@ -309,6 +309,64 @@ function getSubscriptionCategory(platform){
     if(PLATFORM_CONFIG.food.includes(platform)) return "quick-commerce-food";
     if(PLATFORM_CONFIG.grocery.includes(platform)) return "quick-commerce-grocery";
     return "all-in-one";
+}
+
+/* ================= 🔥 UPGRADE LOGIC - V6.1 FIX ================= */
+
+function getUpgradeCategory(targetPlatform){
+    const currentPlanLower = currentPlan? currentPlan.toLowerCase() : "";
+    const targetCategory = getSubscriptionCategory(targetPlatform);
+
+    console.log("🔥 Current Plan:", currentPlanLower, "| Target Platform:", targetPlatform, "| Target Category:", targetCategory);
+
+    // Case 1: Already All-in-One
+    if(currentPlanLower.includes("all-in-one")) {
+        return "all-in-one";
+    }
+
+    // Case 2: Food plan + E-commerce click = Both
+    if(currentPlanLower.includes("food") && targetCategory === "e-commerce") {
+        console.log("🔥 Upgrading Food → Food + E-commerce = Both");
+        return "both";
+    }
+
+    // Case 3: Grocery plan + E-commerce click = Both
+    if(currentPlanLower.includes("grocery") && targetCategory === "e-commerce") {
+        console.log("🔥 Upgrading Grocery → Grocery + E-commerce = Both");
+        return "both";
+    }
+
+    // Case 4: E-commerce plan + Food click = Both
+    if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-food") {
+        console.log("🔥 Upgrading E-commerce → E-commerce + Food = Both");
+        return "both";
+    }
+
+    // Case 5: E-commerce plan + Grocery click = Both
+    if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-grocery") {
+        console.log("🔥 Upgrading E-commerce → E-commerce + Grocery = Both");
+        return "both";
+    }
+
+    // Case 6: Food plan + Grocery click = Both
+    if(currentPlanLower.includes("food") && targetCategory === "quick-commerce-grocery") {
+        console.log("🔥 Upgrading Food → Food + Grocery = Both");
+        return "both";
+    }
+
+    // Case 7: Grocery plan + Food click = Both
+    if(currentPlanLower.includes("grocery") && targetCategory === "quick-commerce-food") {
+        console.log("🔥 Upgrading Grocery → Grocery + Food = Both");
+        return "both";
+    }
+
+    // Case 8: All-in-One tab mein ho to hamesha all-in-one suggest karo
+    if(currentFilter === "All-in-One") {
+        console.log("🔥 All-in-One tab active - suggesting all-in-one");
+        return "all-in-one";
+    }
+
+    return targetCategory;
 }
 
 /* ================= 🔥 FILTER BUTTON HANDLERS - GLOBAL ================= */
@@ -348,7 +406,7 @@ function initFilterButtons(){
     const subPlanRow = document.getElementById('subPlanFilters');
 
     const planLower = currentPlan? currentPlan.toLowerCase() : "";
-    console.log("🔥 initFilterButtons planLower:", planLower); // 🔥 DEBUG
+    console.log("🔥 initFilterButtons planLower:", planLower);
 
     if(planLower.includes("all-in-one") || planLower.includes("all in one")){
         currentFilter = "All-in-One";
@@ -401,7 +459,7 @@ function updateFilterUI(){
     });
 }
 
-/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FINAL FIX ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED V6.1 ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -412,8 +470,8 @@ function initDashboard(){
 
     const allowedPlatforms = getAllowedPlatforms(currentPlan);
     const filterPlatforms = getPlatformsFromFilter(currentFilter);
-    console.log("🔥 Allowed Platforms:", allowedPlatforms); // 🔥 DEBUG
-    console.log("🔥 Filter Platforms:", filterPlatforms); // 🔥 DEBUG
+    console.log("🔥 Allowed Platforms:", allowedPlatforms);
+    console.log("🔥 Filter Platforms:", filterPlatforms);
 
     let orders = [];
     for(let i=0; i<15; i++){
@@ -464,14 +522,9 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                let category = getSubscriptionCategory(o.platform);
-                console.log("🔥 Platform:", o.platform, "| Category:", category, "| currentFilter:", currentFilter, "| currentPlan:", currentPlan); // 🔥 DEBUG
-
-                // 🔥 FIX 2: All-in-One tab ya plan mein hamesha All-in-One suggest karo
-                if(currentFilter === "All-in-One" || currentPlan?.toLowerCase().includes("all-in-one")) {
-                    category = "all-in-one";
-                    console.log("🔥 Overriding to all-in-one"); // 🔥 DEBUG
-                }
+                // 🔥 V6.1 FIX: Use getUpgradeCategory instead of getSubscriptionCategory
+                let category = getUpgradeCategory(o.platform);
+                console.log("🔥 Platform:", o.platform, "| Final Category:", category, "| currentFilter:", currentFilter, "| currentPlan:", currentPlan);
 
                 showToast(`Upgrade to ${category} plan`);
                 localStorage.setItem("allowUpgrade", "true");
