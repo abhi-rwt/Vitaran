@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - SUBSCRIPTION PAGE LOGIC V6.1
+ * Vitaran - SUBSCRIPTION PAGE LOGIC V6.2
  * Handles: Redirect guard, Plan switching, Payment + Upgrade
  ************************************************/
 
@@ -154,7 +154,7 @@ async function buyPlan(plan, amount){
 
         if(saveData.success){
           localStorage.removeItem("allowUpgrade");
-          alert("Plan activated: " + plan);
+          // 🔥 Popup hata diya - seedha redirect
           window.location.replace("dashboard.html");
         } else {
           alert("Plan save failed: " + saveData.error);
