@@ -1,8 +1,8 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6.1
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6.2
  ************************************************/
 
-console.log("🔥🔥🔥 JS FILE V6.1 LOADED 🔥🔥🔥");
+console.log("🔥🔥🔥 JS FILE V6.2 LOADED 🔥🔥🔥");
 
 let currentPlan = null;
 let currentFilter = null;
@@ -99,7 +99,7 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT - FIXED WITH DEBUG
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🔥 Dashboard JS V6.1 DOM Loaded");
+    console.log("🔥 Dashboard JS V6.2 DOM Loaded");
 
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -120,8 +120,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const res = await fetch('/api/user/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch('/api/auth/me', {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ token })
         });
 
         if (!res.ok) throw new Error('Auth failed');
@@ -311,7 +313,7 @@ function getSubscriptionCategory(platform){
     return "all-in-one";
 }
 
-/* ================= 🔥 UPGRADE LOGIC - V6.1 FIX ================= */
+/* ================= 🔥 UPGRADE LOGIC - V6.2 FIX ================= */
 
 function getUpgradeCategory(targetPlatform){
     const currentPlanLower = currentPlan? currentPlan.toLowerCase() : "";
@@ -319,48 +321,40 @@ function getUpgradeCategory(targetPlatform){
 
     console.log("🔥 Current Plan:", currentPlanLower, "| Target Platform:", targetPlatform, "| Target Category:", targetCategory);
 
-    // Case 1: Already All-in-One
     if(currentPlanLower.includes("all-in-one")) {
         return "all-in-one";
     }
 
-    // Case 2: Food plan + E-commerce click = Both
     if(currentPlanLower.includes("food") && targetCategory === "e-commerce") {
         console.log("🔥 Upgrading Food → Food + E-commerce = Both");
         return "both";
     }
 
-    // Case 3: Grocery plan + E-commerce click = Both
     if(currentPlanLower.includes("grocery") && targetCategory === "e-commerce") {
         console.log("🔥 Upgrading Grocery → Grocery + E-commerce = Both");
         return "both";
     }
 
-    // Case 4: E-commerce plan + Food click = Both
     if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-food") {
         console.log("🔥 Upgrading E-commerce → E-commerce + Food = Both");
         return "both";
     }
 
-    // Case 5: E-commerce plan + Grocery click = Both
     if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-grocery") {
         console.log("🔥 Upgrading E-commerce → E-commerce + Grocery = Both");
         return "both";
     }
 
-    // Case 6: Food plan + Grocery click = Both
     if(currentPlanLower.includes("food") && targetCategory === "quick-commerce-grocery") {
         console.log("🔥 Upgrading Food → Food + Grocery = Both");
         return "both";
     }
 
-    // Case 7: Grocery plan + Food click = Both
     if(currentPlanLower.includes("grocery") && targetCategory === "quick-commerce-food") {
         console.log("🔥 Upgrading Grocery → Grocery + Food = Both");
         return "both";
     }
 
-    // Case 8: All-in-One tab mein ho to hamesha all-in-one suggest karo
     if(currentFilter === "All-in-One") {
         console.log("🔥 All-in-One tab active - suggesting all-in-one");
         return "all-in-one";
@@ -459,7 +453,7 @@ function updateFilterUI(){
     });
 }
 
-/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED V6.1 ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED V6.2 ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -522,12 +516,11 @@ function initDashboard(){
         const btn = tr.querySelector("button");
         btn.onclick = () => {
             if(planLocked){
-                // 🔥 V6.1 FIX: Use getUpgradeCategory instead of getSubscriptionCategory
                 let category = getUpgradeCategory(o.platform);
                 console.log("🔥 Platform:", o.platform, "| Final Category:", category, "| currentFilter:", currentFilter, "| currentPlan:", currentPlan);
 
                 showToast(`Upgrade to ${category} plan`);
-                localStorage.setItem("allowUpgrade", "true");
+                localStorage.setItem("allowUpgrade", "true"); // 🔥 FIX: Flag set karna zaroori hai
                 setTimeout(()=>{
                     window.location.href = `subscription.html?plan=${category}`;
                 }, 800);
