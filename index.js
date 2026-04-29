@@ -263,6 +263,39 @@ app.post("/api/subscription/upgrade", async (req, res) => {
   }
 });
 
+/* ===================== RAZORPAY - 🔥 WAPAS ADD KIYA ===================== */
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+app.post("/api/payment/create-order", async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    if (!amount) return res.json({ status: "error", message: "Amount required" });
+
+    const order = await razorpay.orders.create({
+      amount: amount * 100, // Paise mein
+      currency: "INR",
+      receipt: "vitaran_" + Date.now(),
+    });
+
+    res.json({
+      status: "ok",
+      key: process.env.RAZORPAY_KEY_ID,
+      order,
+    });
+
+  } catch (err) {
+    console.log("Payment Error:", err);
+    res.json({ status: "error", message: err.message });
+  }
+});
+
+// 🔥 3. NAYE USER ROUTES REGISTER KARO - YE LINE SABSE IMPORTANT HAI
+app.use('/api/user', userRoutes);
+
 /* =========================== RESET USERS (TEMP) ===========================
 app.get("/reset-users", async (req,res)=>{
     try{
