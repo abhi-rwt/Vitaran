@@ -214,6 +214,7 @@ padding:30px;
 display:grid;
 grid-template-columns:2fr 1fr;
 gap:25px;
+align-items:start; /* 🔥 FIX: Align top */
 }
 
 /* ================= CARD ================= */
@@ -343,9 +344,28 @@ color:#0a58ff;
     color: #fff;
     box-shadow: 0 4px 14px rgba(10, 88, 255, 0.35);
 }
+
+/* 🔥 PLAN FILTER DISABLE STATE */
+.filter-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #f0f0f0;
+    transform: none !important;
+}
+
+.filter-btn:disabled:hover {
+    border-color: #d1d5db;
+    color: #374151;
+}
 /* ================= FILTER END ================= */
 
-/* ================= TABLE - CENTER ALIGNED ================= */
+/* ================= TABLE - CENTER ALIGNED + SCROLL FIX ================= */
+
+/* 🔥 TABLE SCROLL FIX */
+.orders-section {
+    max-height: 65vh;
+    overflow-y: auto;
+}
 
 .table{
 width:100%;
@@ -354,6 +374,10 @@ border-collapse:collapse;
 
 .table thead tr{
 border-bottom:2px solid #e5e7eb;
+position: sticky; /* 🔥 HEADER STICKY */
+top: 0;
+background: #fff;
+z-index: 10;
 }
 
 .table th{
@@ -406,7 +430,14 @@ color:#00a65a;
 font-weight:bold;
 }
 
-/* ================= MAP ================= */
+/* ================= MAP - STICKY FIX ================= */
+
+/* 🔥 MAP STICKY FIX */
+.right-col {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
 
 .map-box{
 height:550px;
@@ -601,11 +632,17 @@ transform:scale(1);
 
 /* ================= MOBILE ================= */
 
-@media(max-width:900px){
-
+@media(max-width:1024px){
 .grid{
 grid-template-columns:1fr;
 }
+.right-col {
+    position: relative; /* 🔥 MOBILE PE STICKY HATA DO */
+    top: 0;
+}
+}
+
+@media(max-width:900px){
 
 .stats{
 grid-template-columns:repeat(2,1fr);
@@ -745,8 +782,14 @@ body.dark .filter-btn.active {
   color: #fff;
 }
 
+body.dark .filter-btn:disabled {
+  background: #1e293b;
+  opacity: 0.3;
+}
+
 body.dark .table thead tr {
   border-bottom-color: #334155;
+  background: #1e293b; /* 🔥 DARK MODE STICKY HEADER */
 }
 
 body.dark .table th {

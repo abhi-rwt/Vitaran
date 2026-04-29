@@ -6,9 +6,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const Razorpay = require("razorpay");
 
-// 🔥 1. Yaha se User model import karo
 const User = require("./models/User");
-// 🔥 2. userRoutes import karo
 const userRoutes = require("./routes/user");
 
 const app = express();
@@ -42,7 +40,7 @@ app.post("/api/auth/register", async (req, res) => {
   try {
     let { name, email, phone, password } = req.body;
 
-    if (!name || !email || !phone || !password)
+    if (!name ||!email ||!phone ||!password)
       return res.json({ success: false, message: "All fields required" });
 
     email = email.toLowerCase().trim();
@@ -77,7 +75,7 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     let { email, password } = req.body;
 
-    if (!email || !password)
+    if (!email ||!password)
       return res.json({ success: false, message: "Missing fields" });
 
     email = email.toLowerCase().trim();
@@ -137,7 +135,7 @@ app.post("/api/auth/reset-password", async (req, res) => {
   try {
     let { email, newPassword } = req.body;
 
-    if (!email || !newPassword)
+    if (!email ||!newPassword)
       return res.json({ success: false, message: "All fields required" });
 
     email = email.toLowerCase().trim();
@@ -170,7 +168,6 @@ app.post("/api/subscription/save", async (req, res) => {
 
     if(!user) return res.json({ success: false, error: "User not found" });
 
-    // Agar already plan hai to upgrade route use karo
     if(user.plan) {
       return res.json({ success: false, error: "Use upgrade route for existing users" });
     }
@@ -187,7 +184,7 @@ app.post("/api/subscription/save", async (req, res) => {
   }
 });
 
-/* ===================== SUBSCRIPTION UPGRADE - 🔥 FIXED MERGE LOGIC ===================== */
+/* ===================== SUBSCRIPTION UPGRADE - 🔥 FINAL MERGE LOGIC ===================== */
 app.post("/api/subscription/upgrade", async (req, res) => {
   try {
     const { token, plan } = req.body;
@@ -196,65 +193,64 @@ app.post("/api/subscription/upgrade", async (req, res) => {
 
     if(!user) return res.json({ success: false, error: "User not found" });
 
-    const currentPlan = user.plan ? user.plan.toLowerCase() : "";
-    const newPlan = plan.toLowerCase();
+    const getCategory = (planStr) => {
+      if (!planStr) return "";
+      const p = planStr.toLowerCase();
+      if (p.includes("all-in-one")) return "allinone";
+      if (p.includes("food") && p.includes("e-commerce")) return "food-ecommerce";
+      if (p.includes("grocery") && p.includes("e-commerce")) return "grocery-ecommerce";
+      if (p.includes("both")) return "both";
+      if (p.includes("food")) return "food";
+      if (p.includes("grocery")) return "grocery";
+      if (p.includes("e-commerce")) return "ecommerce";
+      return "";
+    };
 
-    // Duration nikaal le: "Food 1 Month" -> "1 Month" 
-    const planParts = plan.split(" ");
-    const duration = planParts.slice(-2).join(" ");
-    const categoryOnly = newPlan.replace(/ \d+ month.*/, '').trim(); // "food 1 month" -> "food"
+    const currentCategory = getCategory(user.plan);
+    const newCategory = getCategory(plan);
 
-    let finalPlan = plan; // default naya plan
+    const durationMatch = plan.match(/\d+\s*Month/i);
+    const duration = durationMatch? durationMatch[0] : "1 Month";
 
-    console.log("🔥 UPGRADE: Current:", currentPlan, "| New:", newPlan, "| Category:", categoryOnly);
+    console.log("🔥 DB CURRENT PLAN:", user.plan);
+    console.log("🔥 Current Category:", currentCategory, "| New Category:", newCategory);
 
-    // 🔥 EXACT PLAN MERGE LOGIC
-    if (currentPlan.includes("all-in-one")) {
-      finalPlan = "All-in-One " + duration;
+    let finalPlan = plan;
+
+    // 🔥 EXACT MERGE RULES
+    if (currentCategory === "allinone") {
+      finalPlan = `All-in-One ${duration}`;
     }
-    else if (currentPlan.includes("food-ecommerce") || currentPlan.includes("grocery-ecommerce")) {
-      finalPlan = "All-in-One " + duration;
+    else if (currentCategory === "food-ecommerce" && newCategory === "grocery") {
+      finalPlan = `All-in-One ${duration}`;
     }
-    else if (currentPlan === 'both' || currentPlan.includes("both")) {
-      finalPlan = "All-in-One " + duration;
+    else if (currentCategory === "grocery-ecommerce" && newCategory === "food") {
+      finalPlan = `All-in-One ${duration}`;
+    }
+    else if (currentCategory === "both" && newCategory === "ecommerce") {
+      finalPlan = `All-in-One ${duration}`;
     }
     // Food + Grocery = Both
-    else if (currentPlan.includes("food") && !currentPlan.includes("ecommerce") && categoryOnly.includes("grocery")) {
-      finalPlan = "Both " + duration;
+    else if ((currentCategory === "food" && newCategory === "grocery") ||
+             (currentCategory === "grocery" && newCategory === "food")) {
+      finalPlan = `Both ${duration}`;
     }
-    else if (currentPlan.includes("grocery") && !currentPlan.includes("ecommerce") && categoryOnly.includes("food")) {
-      finalPlan = "Both " + duration;
+    // Food + E-commerce = Food E-commerce
+    else if ((currentCategory === "food" && newCategory === "ecommerce") ||
+             (currentCategory === "ecommerce" && newCategory === "food")) {
+      finalPlan = `Food E-commerce ${duration}`;
     }
-    // Food + E-commerce = food-ecommerce
-    else if (currentPlan.includes("food") && !currentPlan.includes("ecommerce") && categoryOnly.includes("e-commerce")) {
-      finalPlan = "Food E-commerce " + duration;
-    }
-    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("food")) {
-      finalPlan = "Food E-commerce " + duration;
-    }
-    // Grocery + E-commerce = grocery-ecommerce
-    else if (currentPlan.includes("grocery") && !currentPlan.includes("ecommerce") && categoryOnly.includes("e-commerce")) {
-      finalPlan = "Grocery E-commerce " + duration;
-    }
-    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("grocery")) {
-      finalPlan = "Grocery E-commerce " + duration;
-    }
-    // Same plan click = no change
-    else if (currentPlan.includes("food") && categoryOnly.includes("food") && !currentPlan.includes("ecommerce")) {
-      finalPlan = "Food " + duration;
-    }
-    else if (currentPlan.includes("grocery") && categoryOnly.includes("grocery") && !currentPlan.includes("ecommerce")) {
-      finalPlan = "Grocery " + duration;
-    }
-    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("e-commerce")) {
-      finalPlan = "E-commerce " + duration;
+    // Grocery + E-commerce = Grocery E-commerce
+    else if ((currentCategory === "grocery" && newCategory === "ecommerce") ||
+             (currentCategory === "ecommerce" && newCategory === "grocery")) {
+      finalPlan = `Grocery E-commerce ${duration}`;
     }
 
     user.plan = finalPlan;
     user.planActivatedAt = new Date();
     await user.save();
 
-    console.log("🔥 FINAL PLAN SAVED:", finalPlan);
+    console.log("🔥 ✅ FINAL PLAN SAVED:", finalPlan);
     res.json({ success: true, plan: finalPlan, newPlan: finalPlan });
 
   } catch (err) {
@@ -263,7 +259,7 @@ app.post("/api/subscription/upgrade", async (req, res) => {
   }
 });
 
-/* ===================== RAZORPAY - 🔥 WAPAS ADD KIYA ===================== */
+/* ===================== RAZORPAY ===================== */
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -276,7 +272,7 @@ app.post("/api/payment/create-order", async (req, res) => {
     if (!amount) return res.json({ status: "error", message: "Amount required" });
 
     const order = await razorpay.orders.create({
-      amount: amount * 100, // Paise mein
+      amount: amount * 100,
       currency: "INR",
       receipt: "vitaran_" + Date.now(),
     });
@@ -293,20 +289,7 @@ app.post("/api/payment/create-order", async (req, res) => {
   }
 });
 
-// 🔥 3. NAYE USER ROUTES REGISTER KARO - YE LINE SABSE IMPORTANT HAI
 app.use('/api/user', userRoutes);
-
-/* =========================== RESET USERS (TEMP) ===========================
-app.get("/reset-users", async (req,res)=>{
-    try{
-        await User.deleteMany({});
-        res.send("All users deleted ✅");
-    }catch(err){
-        console.log("Reset Error:", err);
-        res.send("Error ❌");
-    }
-});
-============================================================================= */
 
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
