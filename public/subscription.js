@@ -1,12 +1,13 @@
 /************************************************
- * Vitaran - SUBSCRIPTION PAGE LOGIC V6.2
- * Handles: Redirect guard, Plan switching, Payment + Upgrade
+ * Vitaran - SUBSCRIPTION PAGE LOGIC V6.3
+ * Handles: Redirect guard, Plan switching, Payment + Upgrade + Auto Tab
  ************************************************/
 
 // ================= SUBSCRIPTION PAGE GUARD =================
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   const allowUpgrade = localStorage.getItem("allowUpgrade");
+  const upgradeTarget = localStorage.getItem("upgradeTarget"); // 👈 Naya
 
   // Agar user logged in hai AUR upgrade se nahi aaya to dashboard bhejo
   if (token && !allowUpgrade) {
@@ -28,15 +29,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Upgrade complete hone ke baad flag hata do
+  // 🔥 FIX: Upgrade complete hone ke baad flags hata do
   localStorage.removeItem("allowUpgrade");
+  localStorage.removeItem("upgradeTarget");
   
   // Page show kar do
   document.body.style.display = "block";
   
-  // Default view set karo
-  showEcom();
-  showFood();
+  // 🔥 FIX: URL se tab param read karo + dashboard se aaya tab check karo
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab') || upgradeTarget;
+  const planParam = urlParams.get('plan');
+  
+  console.log("🔥 Opening tab:", tabParam, "| Plan:", planParam);
+  
+  // Tab ke hisaab se view set karo
+  if(tabParam === 'food') {
+    showQuick();
+    showFood();
+  } else if(tabParam === 'grocery') {
+    showQuick();
+    showGrocery();
+  } else if(tabParam === 'ecom') {
+    showEcom();
+    showFood();
+  } else if(tabParam === 'all') {
+    showAll();
+  } else if(planParam === 'both') {
+    showQuick();
+    showBoth();
+  } else {
+    // Default view
+    showEcom();
+    showFood();
+  }
 });
 
 // ================= MAIN PLAN SWITCHING =================
@@ -154,6 +180,7 @@ async function buyPlan(plan, amount){
 
         if(saveData.success){
           localStorage.removeItem("allowUpgrade");
+          localStorage.removeItem("upgradeTarget");
           // 🔥 Popup hata diya - seedha redirect
           window.location.replace("dashboard.html");
         } else {

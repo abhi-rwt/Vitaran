@@ -1,8 +1,8 @@
 /************************************************
- * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6.2
+ * Vitaran - FINAL PRO DASHBOARD (PRODUCTION) V6.3
  ************************************************/
 
-console.log("🔥🔥🔥 JS FILE V6.2 LOADED 🔥🔥🔥");
+console.log("🔥🔥🔥 JS FILE V6.3 LOADED 🔥🔥🔥");
 
 let currentPlan = null;
 let currentFilter = null;
@@ -99,7 +99,7 @@ function updateStatsUI(){
 
 // 🔥 MAIN INIT - FIXED WITH DEBUG
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🔥 Dashboard JS V6.2 DOM Loaded");
+    console.log("🔥 Dashboard JS V6.3 DOM Loaded");
 
     if(localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
@@ -313,7 +313,7 @@ function getSubscriptionCategory(platform){
     return "all-in-one";
 }
 
-/* ================= 🔥 UPGRADE LOGIC - V6.2 FIX ================= */
+/* ================= 🔥 UPGRADE LOGIC - V6.3 FIX ================= */
 
 function getUpgradeCategory(targetPlatform){
     const currentPlanLower = currentPlan? currentPlan.toLowerCase() : "";
@@ -453,7 +453,7 @@ function updateFilterUI(){
     });
 }
 
-/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED V6.2 ================= */
+/* ================= DASHBOARD - UPGRADE BUTTON - 🔥 FIXED V6.3 ================= */
 
 function initDashboard(){
     const tbody = document.querySelector(".table tbody");
@@ -519,10 +519,18 @@ function initDashboard(){
                 let category = getUpgradeCategory(o.platform);
                 console.log("🔥 Platform:", o.platform, "| Final Category:", category, "| currentFilter:", currentFilter, "| currentPlan:", currentPlan);
 
+                // 🔥 FIX: Platform ke hisaab se tab decide karo
+                let targetTab = 'ecom'; // default
+                if(['Swiggy','Zomato'].includes(o.platform)) targetTab = 'food';
+                else if(['Zepto','Instamart','Blinkit'].includes(o.platform)) targetTab = 'grocery';
+                else if(['Amazon','Flipkart','Meesho','Myntra'].includes(o.platform)) targetTab = 'ecom';
+                else if(currentFilter === "All-in-One") targetTab = 'all';
+
                 showToast(`Upgrade to ${category} plan`);
-                localStorage.setItem("allowUpgrade", "true"); // 🔥 FIX: Flag set karna zaroori hai
+                localStorage.setItem("allowUpgrade", "true");
+                localStorage.setItem("upgradeTarget", targetTab); // 👈 Tab info save
                 setTimeout(()=>{
-                    window.location.href = `subscription.html?plan=${category}`;
+                    window.location.href = `subscription.html?plan=${category}&tab=${targetTab}`;
                 }, 800);
                 return;
             }
