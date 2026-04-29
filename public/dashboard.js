@@ -313,7 +313,7 @@ function getSubscriptionCategory(platform){
     return "all-in-one";
 }
 
-/* ================= 🔥 UPGRADE LOGIC - V6.4 FINAL FIX ================= */
+/* ================= 🔥 UPGRADE LOGIC - V6.5 FINAL ================= */
 
 function getUpgradeCategory(targetPlatform){
     const currentPlanLower = currentPlan? currentPlan.toLowerCase().trim() : "";
@@ -321,51 +321,53 @@ function getUpgradeCategory(targetPlatform){
 
     console.log("🔥 Current Plan:", currentPlanLower, "| Target Platform:", targetPlatform, "| Target Category:", targetCategory);
 
-    // Case 1: Agar user ka plan hi nahi hai - direct plan assign karo
+    // Case 1: Koi plan nahi hai
     if(!currentPlanLower || currentPlanLower === 'none') {
-        if(targetCategory === "quick-commerce-food") return "quick-commerce-food";
-        if(targetCategory === "quick-commerce-grocery") return "quick-commerce-grocery";
-        if(targetCategory === "e-commerce") return "e-commerce";
-        return "all-in-one";
+        return targetCategory; // Jo click kiya wahi
     }
 
-    // Case 2: Already All-in-One hai to kuch change nahi
+    // Case 2: Already All-in-One
     if(currentPlanLower.includes("all-in-one")) {
         return "all-in-one";
     }
 
-    // Case 3: 🔥 FIX: Food plan + Food click = same rahe, Grocery click = Both, Ecom click = Both
-    if(currentPlanLower.includes("food") && !currentPlanLower.includes("grocery")) {
+    // Case 3: Food plan hai
+    if(currentPlanLower.includes("food") && !currentPlanLower.includes("grocery") && !currentPlanLower.includes("e-commerce")) {
         if(targetCategory === "quick-commerce-food") return "quick-commerce-food"; // Same
         if(targetCategory === "quick-commerce-grocery") return "both"; // Food + Grocery
-        if(targetCategory === "e-commerce") return "both"; // Food + Ecom = Both
+        if(targetCategory === "e-commerce") return "food-ecommerce"; // 🔥 Food + Ecom
     }
 
-    // Case 4: Grocery plan + Grocery click = same, Food click = Both, Ecom click = Both  
-    if(currentPlanLower.includes("grocery") && !currentPlanLower.includes("food")) {
+    // Case 4: Grocery plan hai
+    if(currentPlanLower.includes("grocery") && !currentPlanLower.includes("food") && !currentPlanLower.includes("e-commerce")) {
         if(targetCategory === "quick-commerce-grocery") return "quick-commerce-grocery"; // Same
         if(targetCategory === "quick-commerce-food") return "both"; // Grocery + Food
-        if(targetCategory === "e-commerce") return "both"; // Grocery + Ecom = Both
+        if(targetCategory === "e-commerce") return "grocery-ecommerce"; // 🔥 Grocery + Ecom
     }
 
-    // Case 5: E-commerce plan + Ecom click = same, Food click = Both, Grocery click = Both
+    // Case 5: E-commerce plan hai
     if(currentPlanLower.includes("e-commerce") || currentPlanLower.includes("ecommerce")) {
         if(targetCategory === "e-commerce") return "e-commerce"; // Same
-        if(targetCategory === "quick-commerce-food") return "both"; // Ecom + Food = Both
-        if(targetCategory === "quick-commerce-grocery") return "both"; // Ecom + Grocery = Both
+        if(targetCategory === "quick-commerce-food") return "food-ecommerce"; // 🔥 Ecom + Food
+        if(targetCategory === "quick-commerce-grocery") return "grocery-ecommerce"; // 🔥 Ecom + Grocery
     }
 
-    // Case 6: Both plan + koi bhi click = All-in-One
+    // Case 6: Both plan hai - koi bhi click = All-in-One
     if(currentPlanLower.includes("both")) {
-        return "all-in-one"; // Both + anything = All-in-One
-    }
-
-    // Case 7: All-in-One tab mein ho to all-in-one
-    if(currentFilter === "All-in-One") {
         return "all-in-one";
     }
 
-    // Default: jo click kiya wahi
+    // Case 7: food-ecommerce ya grocery-ecommerce hai
+    if(currentPlanLower.includes("food-ecommerce")) {
+        if(targetCategory === "quick-commerce-grocery") return "all-in-one";
+        return "food-ecommerce";
+    }
+    
+    if(currentPlanLower.includes("grocery-ecommerce")) {
+        if(targetCategory === "quick-commerce-food") return "all-in-one";
+        return "grocery-ecommerce";
+    }
+
     return targetCategory;
 }
 

@@ -187,7 +187,7 @@ app.post("/api/subscription/save", async (req, res) => {
   }
 });
 
-/* ===================== SUBSCRIPTION UPGRADE - 🔥 NAYA ROUTE ===================== */
+/* ===================== SUBSCRIPTION UPGRADE - 🔥 FIXED MERGE LOGIC ===================== */
 app.post("/api/subscription/upgrade", async (req, res) => {
   try {
     const { token, plan } = req.body;
@@ -196,39 +196,65 @@ app.post("/api/subscription/upgrade", async (req, res) => {
 
     if(!user) return res.json({ success: false, error: "User not found" });
 
-    const newPlan = plan.toLowerCase();
     const currentPlan = user.plan ? user.plan.toLowerCase() : "";
+    const newPlan = plan.toLowerCase();
 
-    // Duration nikaal le: "Food 1 Month" -> "1 Month"
+    // Duration nikaal le: "Food 1 Month" -> "1 Month" 
     const planParts = plan.split(" ");
     const duration = planParts.slice(-2).join(" ");
+    const categoryOnly = newPlan.replace(/ \d+ month.*/, '').trim(); // "food 1 month" -> "food"
 
     let finalPlan = plan; // default naya plan
 
-    // 🔥 PLAN MERGE LOGIC - Upgrade ke liye
-    if (newPlan.includes("all-in-one")) {
-      finalPlan = plan;
-    }
-    else if (currentPlan.includes("e-commerce") && (newPlan.includes("food") || newPlan.includes("grocery") || newPlan.includes("both"))) {
+    console.log("🔥 UPGRADE: Current:", currentPlan, "| New:", newPlan, "| Category:", categoryOnly);
+
+    // 🔥 EXACT PLAN MERGE LOGIC
+    if (currentPlan.includes("all-in-one")) {
       finalPlan = "All-in-One " + duration;
     }
-    else if ((currentPlan.includes("food") || currentPlan.includes("grocery") || currentPlan.includes("both")) && newPlan.includes("e-commerce")) {
+    else if (currentPlan.includes("food-ecommerce") || currentPlan.includes("grocery-ecommerce")) {
       finalPlan = "All-in-One " + duration;
     }
-    else if (currentPlan.includes("food") && newPlan.includes("grocery")) {
+    else if (currentPlan === 'both' || currentPlan.includes("both")) {
+      finalPlan = "All-in-One " + duration;
+    }
+    // Food + Grocery = Both
+    else if (currentPlan.includes("food") && !currentPlan.includes("ecommerce") && categoryOnly.includes("grocery")) {
       finalPlan = "Both " + duration;
     }
-    else if (currentPlan.includes("grocery") && newPlan.includes("food")) {
+    else if (currentPlan.includes("grocery") && !currentPlan.includes("ecommerce") && categoryOnly.includes("food")) {
       finalPlan = "Both " + duration;
     }
-    else if (currentPlan.includes("both") && (newPlan.includes("food") || newPlan.includes("grocery"))) {
-      finalPlan = "Both " + duration;
+    // Food + E-commerce = food-ecommerce
+    else if (currentPlan.includes("food") && !currentPlan.includes("ecommerce") && categoryOnly.includes("e-commerce")) {
+      finalPlan = "Food E-commerce " + duration;
+    }
+    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("food")) {
+      finalPlan = "Food E-commerce " + duration;
+    }
+    // Grocery + E-commerce = grocery-ecommerce
+    else if (currentPlan.includes("grocery") && !currentPlan.includes("ecommerce") && categoryOnly.includes("e-commerce")) {
+      finalPlan = "Grocery E-commerce " + duration;
+    }
+    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("grocery")) {
+      finalPlan = "Grocery E-commerce " + duration;
+    }
+    // Same plan click = no change
+    else if (currentPlan.includes("food") && categoryOnly.includes("food") && !currentPlan.includes("ecommerce")) {
+      finalPlan = "Food " + duration;
+    }
+    else if (currentPlan.includes("grocery") && categoryOnly.includes("grocery") && !currentPlan.includes("ecommerce")) {
+      finalPlan = "Grocery " + duration;
+    }
+    else if (currentPlan.includes("e-commerce") && categoryOnly.includes("e-commerce")) {
+      finalPlan = "E-commerce " + duration;
     }
 
     user.plan = finalPlan;
     user.planActivatedAt = new Date();
     await user.save();
 
+    console.log("🔥 FINAL PLAN SAVED:", finalPlan);
     res.json({ success: true, plan: finalPlan, newPlan: finalPlan });
 
   } catch (err) {
@@ -236,37 +262,6 @@ app.post("/api/subscription/upgrade", async (req, res) => {
     res.json({ success: false, error: err.message });
   }
 });
-
-/* ===================== RAZORPAY ===================== */
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
-app.post("/api/payment/create-order", async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    const order = await razorpay.orders.create({
-      amount: amount * 100,
-      currency: "INR",
-      receipt: "vitaran_" + Date.now(),
-    });
-
-    res.json({
-      status: "ok",
-      key: process.env.RAZORPAY_KEY_ID,
-      order,
-    });
-
-  } catch (err) {
-    console.log("Payment Error:", err);
-    res.json({ status: "error", message: err.message });
-  }
-});
-
-// 🔥 3. NAYE USER ROUTES REGISTER KARO - YE LINE SABSE IMPORTANT HAI
-app.use('/api/user', userRoutes);
 
 /* =========================== RESET USERS (TEMP) ===========================
 app.get("/reset-users", async (req,res)=>{
