@@ -313,53 +313,59 @@ function getSubscriptionCategory(platform){
     return "all-in-one";
 }
 
-/* ================= 🔥 UPGRADE LOGIC - V6.3 FIX ================= */
+/* ================= 🔥 UPGRADE LOGIC - V6.4 FINAL FIX ================= */
 
 function getUpgradeCategory(targetPlatform){
-    const currentPlanLower = currentPlan? currentPlan.toLowerCase() : "";
+    const currentPlanLower = currentPlan? currentPlan.toLowerCase().trim() : "";
     const targetCategory = getSubscriptionCategory(targetPlatform);
 
     console.log("🔥 Current Plan:", currentPlanLower, "| Target Platform:", targetPlatform, "| Target Category:", targetCategory);
 
+    // Case 1: Agar user ka plan hi nahi hai - direct plan assign karo
+    if(!currentPlanLower || currentPlanLower === 'none') {
+        if(targetCategory === "quick-commerce-food") return "quick-commerce-food";
+        if(targetCategory === "quick-commerce-grocery") return "quick-commerce-grocery";
+        if(targetCategory === "e-commerce") return "e-commerce";
+        return "all-in-one";
+    }
+
+    // Case 2: Already All-in-One hai to kuch change nahi
     if(currentPlanLower.includes("all-in-one")) {
         return "all-in-one";
     }
 
-    if(currentPlanLower.includes("food") && targetCategory === "e-commerce") {
-        console.log("🔥 Upgrading Food → Food + E-commerce = Both");
-        return "both";
+    // Case 3: 🔥 FIX: Food plan + Food click = same rahe, Grocery click = Both, Ecom click = Both
+    if(currentPlanLower.includes("food") && !currentPlanLower.includes("grocery")) {
+        if(targetCategory === "quick-commerce-food") return "quick-commerce-food"; // Same
+        if(targetCategory === "quick-commerce-grocery") return "both"; // Food + Grocery
+        if(targetCategory === "e-commerce") return "both"; // Food + Ecom = Both
     }
 
-    if(currentPlanLower.includes("grocery") && targetCategory === "e-commerce") {
-        console.log("🔥 Upgrading Grocery → Grocery + E-commerce = Both");
-        return "both";
+    // Case 4: Grocery plan + Grocery click = same, Food click = Both, Ecom click = Both  
+    if(currentPlanLower.includes("grocery") && !currentPlanLower.includes("food")) {
+        if(targetCategory === "quick-commerce-grocery") return "quick-commerce-grocery"; // Same
+        if(targetCategory === "quick-commerce-food") return "both"; // Grocery + Food
+        if(targetCategory === "e-commerce") return "both"; // Grocery + Ecom = Both
     }
 
-    if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-food") {
-        console.log("🔥 Upgrading E-commerce → E-commerce + Food = Both");
-        return "both";
+    // Case 5: E-commerce plan + Ecom click = same, Food click = Both, Grocery click = Both
+    if(currentPlanLower.includes("e-commerce") || currentPlanLower.includes("ecommerce")) {
+        if(targetCategory === "e-commerce") return "e-commerce"; // Same
+        if(targetCategory === "quick-commerce-food") return "both"; // Ecom + Food = Both
+        if(targetCategory === "quick-commerce-grocery") return "both"; // Ecom + Grocery = Both
     }
 
-    if(currentPlanLower.includes("e-commerce") && targetCategory === "quick-commerce-grocery") {
-        console.log("🔥 Upgrading E-commerce → E-commerce + Grocery = Both");
-        return "both";
+    // Case 6: Both plan + koi bhi click = All-in-One
+    if(currentPlanLower.includes("both")) {
+        return "all-in-one"; // Both + anything = All-in-One
     }
 
-    if(currentPlanLower.includes("food") && targetCategory === "quick-commerce-grocery") {
-        console.log("🔥 Upgrading Food → Food + Grocery = Both");
-        return "both";
-    }
-
-    if(currentPlanLower.includes("grocery") && targetCategory === "quick-commerce-food") {
-        console.log("🔥 Upgrading Grocery → Grocery + Food = Both");
-        return "both";
-    }
-
+    // Case 7: All-in-One tab mein ho to all-in-one
     if(currentFilter === "All-in-One") {
-        console.log("🔥 All-in-One tab active - suggesting all-in-one");
         return "all-in-one";
     }
 
+    // Default: jo click kiya wahi
     return targetCategory;
 }
 
