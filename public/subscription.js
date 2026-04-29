@@ -1,5 +1,5 @@
 /************************************************
- * Vitaran - SUBSCRIPTION PAGE LOGIC V6.3
+ * Vitaran - SUBSCRIPTION PAGE LOGIC V6.4
  * Handles: Redirect guard, Plan switching, Payment + Upgrade + Auto Tab
  ************************************************/
 
@@ -7,7 +7,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   const allowUpgrade = localStorage.getItem("allowUpgrade");
-  const upgradeTarget = localStorage.getItem("upgradeTarget"); // 👈 Naya
+  const upgradeTarget = localStorage.getItem("upgradeTarget");
 
   // Agar user logged in hai AUR upgrade se nahi aaya to dashboard bhejo
   if (token && !allowUpgrade) {
@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
       
       if (data.success && data.user.plan) {
-        // Already subscribed + normal login = dashboard
         window.location.replace("dashboard.html");
         return;
       }
@@ -29,11 +28,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // 🔥 FIX: Upgrade complete hone ke baad flags hata do
-  localStorage.removeItem("allowUpgrade");
-  localStorage.removeItem("upgradeTarget");
+  // 🔥 FIX: Yahan flag mat hatao - sirf upgrade complete hone ke baad hatana hai
+  // localStorage.removeItem("allowUpgrade"); // ❌ Ye hata diya
+  // localStorage.removeItem("upgradeTarget"); // ❌ Ye bhi hata diya
   
-  // Page show kar do
   document.body.style.display = "block";
   
   // 🔥 FIX: URL se tab param read karo + dashboard se aaya tab check karo
@@ -41,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabParam = urlParams.get('tab') || upgradeTarget;
   const planParam = urlParams.get('plan');
   
-  console.log("🔥 Opening tab:", tabParam, "| Plan:", planParam);
+  console.log("🔥 Opening tab:", tabParam, "| Plan:", planParam, "| allowUpgrade:", allowUpgrade);
   
   // Tab ke hisaab se view set karo
   if(tabParam === 'food') {
@@ -163,8 +161,10 @@ async function buyPlan(plan, amount){
       order_id: orderData.order.id,
 
       handler: async function () {
-        // 🔥 FIX: Upgrade vs New user alag route
+        // 🔥 FIX: Yahan check karo flag abhi bhi hai
         const isUpgrade = localStorage.getItem("allowUpgrade");
+        console.log("🔥 Payment Success | isUpgrade:", isUpgrade);
+        
         const endpoint = isUpgrade ? "/api/subscription/upgrade" : "/api/subscription/save";
         
         const saveRes = await fetch(endpoint, {
@@ -179,9 +179,9 @@ async function buyPlan(plan, amount){
         const saveData = await saveRes.json();
 
         if(saveData.success){
+          // 🔥 FIX: Sirf yahin flags hatao - payment ke baad
           localStorage.removeItem("allowUpgrade");
           localStorage.removeItem("upgradeTarget");
-          // 🔥 Popup hata diya - seedha redirect
           window.location.replace("dashboard.html");
         } else {
           alert("Plan save failed: " + saveData.error);
